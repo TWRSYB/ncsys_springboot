@@ -1,0 +1,29 @@
+package com.dc.ncsys_springboot.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class ResVo<T> {
+    private Integer code;
+    private String message;
+    private T data;
+
+    public static <E> ResVo<E> success(String message, E data){
+        return new ResVo<>(200, message, data);
+    }
+    public static ResVo<?> success(String message){
+        return new ResVo<>(200, message, null);
+    }
+    public static ResVo<?> success(){
+        return new ResVo<>(200, "操作成功", null);
+    }
+    public static ResVo<?> fail(Integer code, String message) {
+        return new ResVo<>(code, message, null);
+    }
+    public static ResVo<?> fail(String message) {
+        return new ResVo<>(500, message, null);
+    }
+
+}
