@@ -34,13 +34,7 @@ public class HelloController {
         String userAgent = request.getHeader("User-Agent");
         System.out.println("userAgent = " + userAgent);
 
-        try {
-            Map<String, Object> token = jwtUtil.parseToken(request.getHeader("Authorization"));
-            System.out.println("token = " + token);
-        } catch (Exception e) {
-            log.error("token验证异常", e);
-            return "未登录";
-        }
+
 
         return "hello world~";
     }
