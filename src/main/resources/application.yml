@@ -16,3 +16,8 @@ server:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 直接输出到控制台
+
+
+jwt:
+  secret-key: your-strong-secret-key-here # 至少32位随机字符串
+  expiration: 60 # 过期时间（单位：分）

@@ -71,7 +71,7 @@ public class CodeGenerator {
                 // 开启链式模型（即setter返回this）
                 .enableChainModel()
                 // 表字段名转换为驼峰命名（默认true）
-                .enableColumnConstant()
+//                .enableColumnConstant()
                 // 命名策略（下划线转驼峰）
                 .naming(NamingStrategy.underline_to_camel)
                 // 列名命名策略
@@ -89,7 +89,7 @@ public class CodeGenerator {
                 // ----------------- Mapper策略 -----------------
                 .mapperBuilder()
                 // 开启 @Mapper 注解
-                .enableMapperAnnotation()
+//                .enableMapperAnnotation() deprecated
                 // 开启 BaseResultMap 生成
                 .enableBaseResultMap()
                 // 开启 BaseColumnList

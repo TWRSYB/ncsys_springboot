@@ -5,11 +5,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.mapper.UserMapper;
 import com.dc.ncsys_springboot.service.UserService;
+import com.dc.ncsys_springboot.util.JwtUtil;
 import com.dc.ncsys_springboot.vo.ResVo;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -25,6 +33,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public ResVo login(User user) {
@@ -47,11 +58,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResVo.fail("账号或密码错误!");
         }
 
-        if (!queryUser.getDataStatus().equals("1")){
+        if (!queryUser.getDataStatus().equals("1")) {
             log.warn("用户状态不可用: {}", user.getDataStatus());
             return ResVo.fail("当前用户不可用, 请联系管理员!");
         }
 
-        return ResVo.success("登录成功", "登录成功的token");
+        // 将登录用户的信息放到session中
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
+        HttpSession session = request.getSession();
+        session.setAttribute("loginUser", queryUser);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("loginCode", queryUser.getLoginCode());
+
+
+        return ResVo.success("登录成功", jwtUtil.genToken(claims));
     }
 }
