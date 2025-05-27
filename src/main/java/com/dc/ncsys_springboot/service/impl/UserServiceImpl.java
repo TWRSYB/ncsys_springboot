@@ -32,7 +32,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaWrapper.eq(User::getLoginCode, user.getLoginCode()); // 直接引用实体类的字段方法
 
         // 查询一条记录（可设置是否抛出异常）
-        User queryUser = userMapper.selectById(user); // 第二个参数：是否允许多条结果时抛出异常
+        User queryUser = userMapper.selectOne(lambdaWrapper); // 第二个参数：是否允许多条结果时抛出异常
 
 
         log.info("用户登录->查询登录用户结果: {}", user);

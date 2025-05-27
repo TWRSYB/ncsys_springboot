@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-
+// mybatis 3.5.6 版本下不可用
 public class MybatisPlusGenerator {
 
 //    public static void main(String[] args) {

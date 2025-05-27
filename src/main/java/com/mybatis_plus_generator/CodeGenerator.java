@@ -1,0 +1,132 @@
+package com.mybatis_plus_generator;
+
+import com.baomidou.mybatisplus.generator.AutoGenerator;
+import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
+import com.baomidou.mybatisplus.generator.config.GlobalConfig;
+import com.baomidou.mybatisplus.generator.config.PackageConfig;
+import com.baomidou.mybatisplus.generator.config.StrategyConfig;
+import com.baomidou.mybatisplus.generator.config.rules.DateType;
+import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
+
+/**
+ * MyBatis-Plus 代码生成器示例 (v3.5.6)
+ * 注意：运行前请确保已正确配置数据库连接信息
+ */
+public class CodeGenerator {
+
+    public static void main(String[] args) {
+        // ===================== 1. 数据源配置 =====================
+        DataSourceConfig dataSource = new DataSourceConfig.Builder(
+                "jdbc:mysql://localhost:3306/ncsys_dev?useSSL=false&serverTimezone=Asia/Shanghai",
+                "root",
+                "123456")
+                .build();
+
+        // ===================== 2. 全局配置 =====================
+        GlobalConfig globalConfig = new GlobalConfig.Builder()
+                // 输出目录（建议使用绝对路径）
+                .outputDir(System.getProperty("user.dir") + "/src/main/java")
+                // 作者信息（生成类注释中使用）
+                .author("sysAdmin")
+                // 是否打开输出目录（默认true）
+                .disableOpenDir()
+                // 时间类型策略（DateType.ONLY_DATE 或 DateType.SQL_PACK）
+                .dateType(DateType.TIME_PACK)
+                // 注释日期格式
+                .commentDate("yyyy-MM-dd HH:mm")
+                // 开启Swagger支持（需要自行引入swagger依赖）
+                //.enableSwagger()
+                .build();
+
+        // ===================== 3. 包配置 =====================
+        PackageConfig packageConfig = new PackageConfig.Builder()
+                // 父包名（组织名+项目名）
+                .parent("com.mybatis_plus_generator")
+                // 模块名（可选，会作为父包下的子包）
+//                .moduleName("system")
+                // 各层包名配置（按需修改）
+                .entity("daoVo")       // 实体类包名
+                .mapper("mapper")       // Mapper接口包名
+                .service("service")     // Service接口包名
+                .serviceImpl("service.impl") // Service实现类包名
+                .controller("controller")  // Controller包名
+                .build();
+
+        // ===================== 4. 策略配置 =====================
+        StrategyConfig strategyConfig = new StrategyConfig.Builder()
+                // ----------------- 全局策略 -----------------
+                // 需要生成的表名（多个表用逗号分隔）
+                .addInclude("m_user")
+                // 开启跳过视图（默认false）
+                .enableSkipView()
+                // 禁用SQL过滤（默认true）
+                //.disableSqlFilter()
+                // 表前缀过滤（例如设置"sys_"会去除表前缀）
+                .addTablePrefix("m_")
+
+                // ----------------- 实体类策略 -----------------
+                .entityBuilder()
+                // 开启Lombok
+                .enableLombok()
+                // 开启链式模型（即setter返回this）
+                .enableChainModel()
+                // 表字段名转换为驼峰命名（默认true）
+                .enableColumnConstant()
+                // 命名策略（下划线转驼峰）
+                .naming(NamingStrategy.underline_to_camel)
+                // 列名命名策略
+                .columnNaming(NamingStrategy.underline_to_camel)
+                // 逻辑删除字段名（需与数据库字段对应）
+                //.logicDeleteColumnName("deleted")
+                // 开启 ActiveRecord 模型（需继承Model类）
+                //.enableActiveRecord()
+                // 全局主键类型（需与数据库对应）
+                //.idType(IdType.AUTO)
+                // 格式化文件名称（示例：%sEntity）
+                //.formatFileName("%sEntity")
+                .build()
+
+                // ----------------- Mapper策略 -----------------
+                .mapperBuilder()
+                // 开启 @Mapper 注解
+                .enableMapperAnnotation()
+                // 开启 BaseResultMap 生成
+                .enableBaseResultMap()
+                // 开启 BaseColumnList
+                .enableBaseColumnList()
+                // 格式化Mapper文件名称
+                .formatMapperFileName("%sMapper")
+                // 格式化Xml文件名称
+                .formatXmlFileName("%sMapper")
+                .build()
+
+                // ----------------- Service策略 -----------------
+                .serviceBuilder()
+                // 格式化Service接口名称
+                .formatServiceFileName("%sService")
+                // 格式化Service实现类名称
+                .formatServiceImplFileName("%sServiceImpl")
+                .build()
+
+                // ----------------- Controller策略 -----------------
+                .controllerBuilder()
+                // 开启生成 @RestController
+                .enableRestStyle()
+                // 开启驼峰转连字符（@RequestMapping("/userInfo") -> "/user-info"）
+                .enableHyphenStyle()
+                // 格式化Controller名称
+                .formatFileName("%sController")
+                .build();
+
+        // ===================== 5. 创建生成器 =====================
+        AutoGenerator generator = new AutoGenerator(dataSource)
+                .global(globalConfig)
+                .packageInfo(packageConfig)
+                .strategy(strategyConfig);
+
+        // ===================== 6. 执行生成 =====================
+        generator.execute();
+
+        System.out.println("代码生成完成！");
+    }
+}

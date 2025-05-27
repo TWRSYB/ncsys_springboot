@@ -10,3 +10,9 @@ server:
   port: 8090
   servlet:
     context-path: /ncsys
+
+
+# 开启 MyBatis-Plus SQL 日志（格式：控制台输出）
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 直接输出到控制台
