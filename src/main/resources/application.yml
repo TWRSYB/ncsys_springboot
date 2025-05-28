@@ -10,7 +10,8 @@ server:
   port: 8090
   servlet:
     context-path: /ncsys
-
+    session:
+      timeout: 3600 # Session超时时间（秒）
 
 # 开启 MyBatis-Plus SQL 日志（格式：控制台输出）
 mybatis-plus:
@@ -21,3 +22,4 @@ mybatis-plus:
 jwt:
   secret-key: your-strong-secret-key-here # 至少32位随机字符串
   expiration: 60 # 过期时间（单位：分）
+
