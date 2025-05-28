@@ -14,12 +14,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loginInterceptor)
-                .excludePathPatterns(   // 放行的页面
-                        "/test/loginPage",          // 登录页面
-                        "/login.html",          // 登录页面
-                        "/user/login",     // 登录接口
-                        "/static/**"      // 静态资源
-                );
+        registry.addInterceptor(loginInterceptor);
     }
 }
