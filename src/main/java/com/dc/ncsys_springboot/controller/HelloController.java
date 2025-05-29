@@ -35,8 +35,6 @@ public class HelloController {
         String userAgent = request.getHeader("User-Agent");
         System.out.println("userAgent = " + userAgent);
 
-
-
         return "hello world~";
     }
 

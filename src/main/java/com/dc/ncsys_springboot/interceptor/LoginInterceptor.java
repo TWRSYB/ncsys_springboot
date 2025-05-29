@@ -7,12 +7,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -36,7 +34,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 输出请求的 URL 和方法
-        log.info("拦截器收到请求: {} {}", request.getMethod(), request.getRequestURI());
+        log.info("拦截器处理请求: {} {}", request.getMethod(), request.getRequestURI());
 
         // 输出 URL 参数
         Map<String, String> queryParams = getQueryParams(request);
@@ -67,29 +65,28 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         // 检查用户是否登录（假设用户信息存储在"user"属性中）
         if (session == null || session.getAttribute("loginUser") == null) {
-            log.warn("session中不存在loginUser, 跳转登录页面");
+            log.warn("登录状态验证拒绝: session中不存在loginUser");
         } else {
             // 继续执行
             try {
                 Map<String, Object> token = jwtUtil.parseToken(request.getHeader("Authorization"));
                 log.info("解析token成功: {}", token);
                 if (!((User) session.getAttribute("loginUser")).getLoginCode().equals(token.get("loginCode"))) {
-                    log.error("警告, 请求携带的令牌与session用户不一致");
+                    log.error("登录状态验证拒绝: 警告, 请求携带的令牌与session用户不一致");
                 }
-                log.info("token验证通过, 放行至控制器");
+                log.info("登录状态验证通过: token验证通过, 放行至控制器");
                 authResult = true;
             } catch (Exception e) {
-                response.setStatus(401);
-                log.error("token验证异常", e);
+                log.error("登录状态验证拒绝: token验证异常", e);
             }
         }
 
         if (!authResult) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             // 处理AJAX请求
             if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
                 log.warn("AJAX请求, 响应401要求前端自己跳转登录页面");
                 response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("""
                         {"code": 401, "message": "未登录，请先登录！"}
                         """);
@@ -106,24 +103,19 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     }
 
+
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        // 输出响应状态码
-        log.info("响应状态码: {}", response.getStatus());
-        // 确保响应是 ContentCachingResponseWrapper 类型
-        if (response instanceof ContentCachingResponseWrapper responseWrapper) {
-
-            // 输出响应状态码
-            log.info("响应状态码: {}", responseWrapper.getStatus());
-
-            // 输出响应体内容
-            byte[] responseBody = responseWrapper.getContentAsByteArray();
-            if (responseBody.length > 0) {
-                log.info("响应体内容: {}", new String(responseBody, response.getCharacterEncoding()));
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                Object handler, @Nullable Exception ex) {
+        // 输出请求的 URL 和方法
+        log.info("拦截器处理响应{}: {} {}", response.getStatus(), request.getMethod(), request.getRequestURI());
+        try {
+            if (response instanceof CachedBodyHttpServletResponse wrappedResponse) {
+                // 输出响应体
+                log.info("响应体: {}", wrappedResponse.getContentAsString());
             }
-        } else {
-            // 输出响应状态码
-            log.info("响应状态码: {}", response.getStatus());
+        } catch (Exception e) {
+            log.error("Error logging response: {}", e.getMessage());
         }
     }
 
@@ -146,5 +138,6 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
         return queryParams;
     }
+
 
 }

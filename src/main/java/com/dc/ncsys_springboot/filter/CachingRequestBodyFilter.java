@@ -1,8 +1,10 @@
 package com.dc.ncsys_springboot.filter;
 
 import com.dc.ncsys_springboot.interceptor.CachedBodyHttpServletRequest;
+import com.dc.ncsys_springboot.interceptor.CachedBodyHttpServletResponse;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -17,11 +19,19 @@ public class CachingRequestBodyFilter implements Filter {
 
         long start = System.currentTimeMillis();
         // ... 执行过滤 ...
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        // 只处理需要记录请求体的类型（排除文件上传等）
-        if (shouldCacheBody(httpServletRequest)) {
-            CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(httpServletRequest);
-            chain.doFilter(wrappedRequest, response);
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        // 只处理文本类型的请求和响应
+        if (isTextBasedContent(httpRequest.getContentType())) {
+            // 包装请求
+            CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(httpRequest);
+            // 包装响应
+            CachedBodyHttpServletResponse wrappedResponse = new CachedBodyHttpServletResponse(httpResponse);
+
+            chain.doFilter(wrappedRequest, wrappedResponse);
+            // 将包装后的响应设置回原始响应
+            response = wrappedResponse;
+
         } else {
             chain.doFilter(request, response);
         }
@@ -32,11 +42,11 @@ public class CachingRequestBodyFilter implements Filter {
         }
     }
 
-    private boolean shouldCacheBody(HttpServletRequest request) {
-        String contentType = request.getContentType();
+    private boolean isTextBasedContent(String contentType) {
         return contentType != null &&
                 (contentType.startsWith("application/json") ||
                         contentType.startsWith("application/xml") ||
-                        contentType.startsWith("text/"));
+                        contentType.startsWith("text/") ||
+                        contentType.startsWith("application/x-www-form-urlencoded"));
     }
 }
