@@ -13,13 +13,20 @@ server:
     session:
       timeout: 3600 # Session超时时间（秒）
 
+jwt:
+  secret-key: your-strong-secret-key-here # 至少32位随机字符串
+  expiration: 3600 # 过期时间（秒）
+
 # 开启 MyBatis-Plus SQL 日志（格式：控制台输出）
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 直接输出到控制台
 
 
-jwt:
-  secret-key: your-strong-secret-key-here # 至少32位随机字符串
-  expiration: 60 # 过期时间（单位：分）
+logging:
+  level:
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %line : %msg%n"
+
 

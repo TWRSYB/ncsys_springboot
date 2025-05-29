@@ -24,7 +24,7 @@ public class JwtUtil {
     public String genToken(Map<String, Object> claims) {
         return JWT.create()
                 .withPayload(claims) // 直接平铺Claims到JWT声明
-                .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperties.getExpiration() * 1000 * 60))
+                .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperties.getExpiration() * 1000))
                 .sign(Algorithm.HMAC256(jwtProperties.getSecretKey()));
     }
 
