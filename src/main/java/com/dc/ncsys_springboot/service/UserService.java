@@ -16,4 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface UserService extends IService<User> {
 
     ResVo login(User user);
+
+    ResVo getUserList();
 }

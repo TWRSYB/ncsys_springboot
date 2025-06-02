@@ -21,5 +21,9 @@
     <sql id="Base_Column_List">
         user_id, login_code, login_password, user_name, phone_num, role_code, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <select id="getTableDesign" resultType="Map">
+        show create table m_user
+    </select>
+
 
 </mapper>

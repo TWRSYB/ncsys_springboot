@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.mapper.UserMapper;
@@ -17,6 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -74,5 +76,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
         return ResVo.success("登录成功", jwtUtil.genToken(claims));
+    }
+
+    @Override
+    public ResVo getUserList() {
+        Map<String, String> map = userMapper.getTableDesign();
+        System.out.println("map = " + map);
+        List<User> users = userMapper.selectList(new QueryWrapper<>());
+        return ResVo.success("查询用户列表成功", users);
     }
 }

@@ -2,7 +2,10 @@ package com.dc.ncsys_springboot.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dc.ncsys_springboot.daoVo.User;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.Map;
 
 /**
  * <p>
@@ -15,4 +18,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
+    @MapKey("Table")
+    Map<String, String> getTableDesign();
 }

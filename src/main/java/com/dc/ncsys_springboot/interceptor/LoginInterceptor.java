@@ -63,15 +63,19 @@ public class LoginInterceptor implements HandlerInterceptor {
         // 获取Session，不自动创建新Session
         HttpSession session = request.getSession(false);
 
+
+        User loginUser = session != null ? (User) session.getAttribute("loginUser") : null;
+        log.info("当前session中的loginUser: {}", loginUser);
+
         // 检查用户是否登录（假设用户信息存储在"user"属性中）
-        if (session == null || session.getAttribute("loginUser") == null) {
+        if (loginUser == null ) {
             log.warn("登录状态验证拒绝: session中不存在loginUser");
         } else {
             // 继续执行
             try {
                 Map<String, Object> token = jwtUtil.parseToken(request.getHeader("Authorization"));
                 log.info("解析token成功: {}", token);
-                if (!((User) session.getAttribute("loginUser")).getLoginCode().equals(token.get("loginCode"))) {
+                if (!loginUser.getLoginCode().equals(token.get("loginCode"))) {
                     log.error("登录状态验证拒绝: 警告, 请求携带的令牌与session用户不一致");
                 }
                 log.info("登录状态验证通过: token验证通过, 放行至控制器");
@@ -81,23 +85,23 @@ public class LoginInterceptor implements HandlerInterceptor {
             }
         }
 
-        if (!authResult) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            // 处理AJAX请求
-            if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
-                log.warn("AJAX请求, 响应401要求前端自己跳转登录页面");
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("""
-                        {"code": 401, "message": "未登录，请先登录！"}
-                        """);
-            } else {
-                // 普通请求重定向到登录页，并携带原始请求URL作为参数
-                log.warn("普通请求重定向到登录页，并携带原始请求URL作为参数");
-                String redirectUrl = request.getContextPath() + "/login.html?redirect=" + URLEncoder.encode(getOriginalRequestUrl(request), StandardCharsets.UTF_8);
-                response.sendRedirect(redirectUrl);
-            }
-            return false;
-        }
+//        if (!authResult) {
+//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//            // 处理AJAX请求
+//            if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+//                log.warn("AJAX请求, 响应401要求前端自己跳转登录页面");
+//                response.setContentType("application/json;charset=UTF-8");
+//                response.getWriter().write("""
+//                        {"code": 401, "message": "未登录，请先登录！"}
+//                        """);
+//            } else {
+//                // 普通请求重定向到登录页，并携带原始请求URL作为参数
+//                log.warn("普通请求重定向到登录页，并携带原始请求URL作为参数");
+//                String redirectUrl = request.getContextPath() + "/login.html?redirect=" + URLEncoder.encode(getOriginalRequestUrl(request), StandardCharsets.UTF_8);
+//                response.sendRedirect(redirectUrl);
+//            }
+//            return false;
+//        }
 
         return true;
 
