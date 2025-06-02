@@ -14,5 +14,7 @@ import com.dc.ncsys_springboot.vo.ResVo;
  */
 public interface TableDesignService extends IService<TableDesign> {
 
-    ResVo getTableDesign();
+    ResVo getTableDesignList();
+
+    ResVo getTableDesign(String tableName);
 }

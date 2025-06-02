@@ -1,0 +1,21 @@
+package com.dc.ncsys_springboot.vo;
+
+import lombok.Data;
+
+@Data
+public class SimpleTableDesign {
+    /**
+     * 序数位置
+     */
+    private int ordinalPosition;
+    /**
+     * 字段名
+     */
+    private String columnName;
+    /**
+     * 字段注释
+     */
+    private String columnComment;
+
+    private String columnDefault;
+}

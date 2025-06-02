@@ -22,9 +22,14 @@ public class TableDesignController {
     @Autowired
     private TableDesignService tableDesignService;
 
+    @GetMapping("/getTableDesignList")
+    public ResVo getTableDesignList() {
+        return tableDesignService.getTableDesignList();
+    }
+
     @GetMapping("/getTableDesign")
-    public ResVo getTableDesign() {
-        return tableDesignService.getTableDesign();
+    public ResVo getTableDesign(String tableName) {
+        return tableDesignService.getTableDesign(tableName);
     }
 
 }
