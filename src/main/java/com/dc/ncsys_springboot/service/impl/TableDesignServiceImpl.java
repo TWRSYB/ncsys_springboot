@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.daoVo.TableDesign;
 import com.dc.ncsys_springboot.mapper.TableDesignMapper;
 import com.dc.ncsys_springboot.service.TableDesignService;
@@ -82,5 +83,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             Fields.add(field);
         }
         return ResVo.success("获取表设计成功", Fields);
+    }
+
+    @Override
+    public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
+        return null;
     }
 }

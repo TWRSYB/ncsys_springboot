@@ -1,11 +1,10 @@
 package com.dc.ncsys_springboot.controller;
 
+import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -30,6 +29,11 @@ public class TableDesignController {
     @GetMapping("/getTableDesign")
     public ResVo getTableDesign(String tableName) {
         return tableDesignService.getTableDesign(tableName);
+    }
+
+    @PostMapping("/saveTableDesign")
+    public ResVo saveTableDesign(@RequestBody MixedTableDesign mixedTableDesign) {
+        return tableDesignService.saveTableDesign(mixedTableDesign);
     }
 
 }
