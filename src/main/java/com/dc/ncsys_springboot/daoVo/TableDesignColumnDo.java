@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-06 16:56
+ * @since 2025-06-06 17:31
  */
 @Data
 @Accessors(chain = true)
@@ -32,7 +32,7 @@ public class TableDesignColumnDo implements Serializable {
     /**
      * 序号
      */
-    private String fieldIndex;
+    private Integer fieldIndex;
 
     /**
      * 列名

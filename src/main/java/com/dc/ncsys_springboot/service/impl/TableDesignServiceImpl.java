@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@Transactional
 public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, TableDesignDo> implements TableDesignService {
 
     @Autowired
@@ -108,7 +110,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         if (ObjectUtils.isEmpty(mixedTableDesign.getTableId())) {
             log.info("SVC保存表设计: 当前入参没有tableId, 表名: {}", mixedTableDesign.getTableName());
             mixedTableDesign.setCreateUser(nowUserLoginCode);
-            mixedTableDesign.setTableId(mixedTableDesign.getTableName() + DateTimeUtil.getMinuteKey());
+            mixedTableDesign.setTableId(mixedTableDesign.getTableName() + "_" + DateTimeUtil.getMinuteKey());
         }
 
         mixedTableDesign.setUpdateUser(nowUserLoginCode);
@@ -121,18 +123,22 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         LambdaQueryWrapper<TableDesignColumnDo> tdcQueryWrapper = new LambdaQueryWrapper<>();
         tdcQueryWrapper.eq(TableDesignColumnDo::getTableId, mixedTableDesign.getTableId());
         int delete = tableDesignColumnMapper.delete(tdcQueryWrapper);
+        log.info("SVC保存表设计: 重新插入列之前删除了{}个列", delete);
 
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
+        int fieldIndex = 0;
         for (TableDesignColumnDo tableDesignColumn : listTableDesignColumn) {
             if (ObjectUtils.isEmpty(tableDesignColumn.getTableId())) {
                 log.info("SVC保存表设计: 当前列没有tableId, 列名: {}", tableDesignColumn.getColumnName());
                 tableDesignColumn.setCreateUser(nowUserLoginCode);
                 tableDesignColumn.setTableId(mixedTableDesign.getTableId());
             }
-
+            tableDesignColumn.setFieldIndex(++fieldIndex);
+            tableDesignColumn.setUpdateUser(nowUserLoginCode);
+            tableDesignColumnMapper.insert(tableDesignColumn);
+            log.info("SVC保存表设计: 保存列完成, 列名: {}", tableDesignColumn.getColumnName());
         }
 
         return ResVo.success("保存表设计成功");
-
     }
 }
