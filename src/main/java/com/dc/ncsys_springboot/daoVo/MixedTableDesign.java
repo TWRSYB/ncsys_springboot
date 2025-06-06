@@ -19,6 +19,6 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class MixedTableDesign extends TableDesignDo implements Serializable {
-    private List<TableDesignColumn> list_tableDesignColumn;
+    private List<TableDesignColumnDo> list_tableDesignColumn;
 //    public TableDesignSql last_tableDesignSql;
 }

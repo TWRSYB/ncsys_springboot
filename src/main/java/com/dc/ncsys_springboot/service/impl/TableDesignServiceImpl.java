@@ -1,10 +1,14 @@
 package com.dc.ncsys_springboot.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
+import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.mapper.TableDesignColumnMapper;
 import com.dc.ncsys_springboot.mapper.TableDesignMapper;
+import com.dc.ncsys_springboot.service.TableDesignColumnService;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.util.FieldUtil;
@@ -34,6 +38,12 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Autowired
     private  TableDesignMapper tableDesignMapper;
+
+    @Autowired
+    private TableDesignColumnMapper tableDesignColumnMapper;
+
+    @Autowired
+    private TableDesignColumnService tableDesignColumnService;
 
     @Override
     public ResVo getTableDesignList() {
@@ -96,9 +106,22 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
         mixedTableDesign.setUpdateUser(sessionUser.getLoginCode());
         boolean insertOrUpdateTableDesign = tableDesignMapper.insertOrUpdate(mixedTableDesign);
-        if (insertOrUpdateTableDesign) {
-            return ResVo.success("保存表设计成功");
+        if (!insertOrUpdateTableDesign) {
+            return ResVo.fail("保存表设计失败");
         }
-        return ResVo.fail("保存表设计失败");
+
+        // 删除表设计列后再插入
+        LambdaQueryWrapper<TableDesignColumnDo> tdcQueryWrapper = new LambdaQueryWrapper<>();
+        tdcQueryWrapper.eq(TableDesignColumnDo::getTableId, mixedTableDesign.getTableId());
+        tableDesignColumnMapper.delete(tdcQueryWrapper);
+
+//        List<TableDesignColumn> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
+//        for (TableDesignColumn tableDesignColumn : listTableDesignColumn) {
+//
+//
+//        }
+
+        return ResVo.success("保存表设计成功");
+
     }
 }

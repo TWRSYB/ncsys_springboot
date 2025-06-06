@@ -1,6 +1,6 @@
 package com.dc.ncsys_springboot.service;
 
-import com.dc.ncsys_springboot.daoVo.TableDesignColumn;
+import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author sysAdmin
  * @since 2025-06-02 19:53
  */
-public interface TableDesignColumnService extends IService<TableDesignColumn> {
+public interface TableDesignColumnService extends IService<TableDesignColumnDo> {
 
 }

@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
@@ -13,25 +14,26 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-04 18:04
+ * @since 2025-06-06 10:57
  */
 @Data
 @Accessors(chain = true)
 @TableName("s_table_design_column")
-public class TableDesignColumn implements Serializable {
+public class TableDesignColumnDo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * 序号
+     * 表ID
      */
-    private String fieldIndex;
+    @TableId("table_id")
+    private String tableId;
 
     /**
-     * 表名
+     * 序号
      */
-    @TableId("table_name")
-    private String tableName;
+    @TableField("field_index")
+    private String fieldIndex;
 
     /**
      * 列名

@@ -3,9 +3,9 @@
 <mapper namespace="com.dc.ncsys_springboot.mapper.TableDesignColumnMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.TableDesignColumn">
-        <id column="table_name" property="tableName" />
-        <result column="field_index" property="fieldIndex" />
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
+        <id column="table_id" property="tableId" />
+        <id column="field_index" property="fieldIndex" />
         <result column="column_name" property="columnName" />
         <result column="column_comment" property="columnComment" />
         <result column="field_type" property="fieldType" />
@@ -20,7 +20,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        field_index, table_name, column_name, column_comment, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
+        table_id, field_index, column_name, column_comment, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
     </sql>
 
 </mapper>

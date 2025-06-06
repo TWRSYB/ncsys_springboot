@@ -53,7 +53,7 @@ public class CodeGenerator {
         // ===================== 4. 策略配置 =====================
         StrategyConfig strategyConfig = new StrategyConfig.Builder()
                 // ----------------- 全局策略 -----------------
-                .addInclude("s_table_design") // 需要生成的表名（多个表用逗号分隔）
+                .addInclude("s_table_design_column") // 需要生成的表名（多个表用逗号分隔）
                 .enableSkipView() // 开启跳过视图（默认false）
                 //.disableSqlFilter() // 禁用SQL过滤（默认true）
                 .addTablePrefix("s_") // 表前缀过滤（例如设置"sys_"会去除表前缀）

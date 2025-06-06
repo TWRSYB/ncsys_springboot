@@ -1,18 +1,19 @@
 package com.dc.ncsys_springboot.mapper;
 
-import com.dc.ncsys_springboot.daoVo.TableDesignColumn;
+import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-
+import org.apache.ibatis.annotations.Mapper;
 
 
 /**
  * <p>
- * 数据库设计表 Mapper 接口
+ * 表设计之字段设计表 Mapper 接口
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-02 19:53
+ * @since 2025-06-06 10:57
  */
-public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumn> {
+@Mapper
+public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumnDo> {
 
 }
