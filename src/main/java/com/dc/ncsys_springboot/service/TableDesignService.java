@@ -1,7 +1,7 @@
 package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
-import com.dc.ncsys_springboot.daoVo.TableDesign;
+import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dc.ncsys_springboot.vo.ResVo;
 
@@ -13,7 +13,7 @@ import com.dc.ncsys_springboot.vo.ResVo;
  * @author sysAdmin
  * @since 2025-06-02 11:08
  */
-public interface TableDesignService extends IService<TableDesign> {
+public interface TableDesignService extends IService<TableDesignDo> {
 
     ResVo getTableDesignList();
 

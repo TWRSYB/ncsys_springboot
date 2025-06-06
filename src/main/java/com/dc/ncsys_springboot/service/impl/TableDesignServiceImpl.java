@@ -2,16 +2,19 @@ package com.dc.ncsys_springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
-import com.dc.ncsys_springboot.daoVo.TableDesign;
+import com.dc.ncsys_springboot.daoVo.TableDesignDo;
+import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.mapper.TableDesignMapper;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.util.FieldUtil;
+import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.Field;
 import com.dc.ncsys_springboot.vo.ResVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
+import org.springframework.util.ObjectUtils;
 
 
 import java.util.ArrayList;
@@ -27,14 +30,14 @@ import java.util.List;
  * @since 2025-06-02 11:08
  */
 @Service
-public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, TableDesign> implements TableDesignService {
+public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, TableDesignDo> implements TableDesignService {
 
     @Autowired
     private  TableDesignMapper tableDesignMapper;
 
     @Override
     public ResVo getTableDesignList() {
-        List<TableDesign> tableDesigns = tableDesignMapper.selectList(new QueryWrapper<>());
+        List<TableDesignDo> tableDesigns = tableDesignMapper.selectList(new QueryWrapper<>());
         return ResVo.success("获取表设计成功", tableDesigns);
     }
 
@@ -87,6 +90,15 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Override
     public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
-        return null;
+        User sessionUser = SessionUtils.getSessionUser();
+        if (ObjectUtils.isEmpty(mixedTableDesign.getCreateUser())) {
+            mixedTableDesign.setCreateUser(sessionUser.getLoginCode());
+        }
+        mixedTableDesign.setUpdateUser(sessionUser.getLoginCode());
+        boolean insertOrUpdateTableDesign = tableDesignMapper.insertOrUpdate(mixedTableDesign);
+        if (insertOrUpdateTableDesign) {
+            return ResVo.success("保存表设计成功");
+        }
+        return ResVo.fail("保存表设计失败");
     }
 }

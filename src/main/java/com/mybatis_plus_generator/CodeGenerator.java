@@ -53,7 +53,7 @@ public class CodeGenerator {
         // ===================== 4. 策略配置 =====================
         StrategyConfig strategyConfig = new StrategyConfig.Builder()
                 // ----------------- 全局策略 -----------------
-                .addInclude("s_table_design_column") // 需要生成的表名（多个表用逗号分隔）
+                .addInclude("s_table_design") // 需要生成的表名（多个表用逗号分隔）
                 .enableSkipView() // 开启跳过视图（默认false）
                 //.disableSqlFilter() // 禁用SQL过滤（默认true）
                 .addTablePrefix("s_") // 表前缀过滤（例如设置"sys_"会去除表前缀）
@@ -70,7 +70,7 @@ public class CodeGenerator {
                 //.logicDeleteColumnName("deleted") // 逻辑删除字段名（需与数据库字段对应）
                 //.enableActiveRecord() // 开启 ActiveRecord 模型（需继承Model类）
                 //.idType(IdType.AUTO) // 全局主键类型（需与数据库对应）
-                //.formatFileName("%sEntity") // 格式化文件名称（示例：%sEntity）
+                .formatFileName("%sDo") // 格式化文件名称（示例：%sEntity）
                 .build()
 
                 // ----------------- Mapper策略 -----------------
@@ -80,6 +80,7 @@ public class CodeGenerator {
                 .enableBaseColumnList() // 开启 BaseColumnList
                 .formatMapperFileName("%sMapper") // 格式化Mapper文件名称
                 .formatXmlFileName("%sMapper") // 格式化Xml文件名称
+                .enableFileOverride() // 允许覆盖已有文件
                 .build()
 
                 // ----------------- Service策略 -----------------

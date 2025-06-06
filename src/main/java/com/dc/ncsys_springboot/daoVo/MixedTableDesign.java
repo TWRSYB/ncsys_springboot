@@ -18,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class MixedTableDesign extends TableDesign implements Serializable {
+public class MixedTableDesign extends TableDesignDo implements Serializable {
     private List<TableDesignColumn> list_tableDesignColumn;
 //    public TableDesignSql last_tableDesignSql;
 }

@@ -3,6 +3,7 @@ package com.dc.ncsys_springboot.controller;
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.dc.ncsys_springboot.vo.ResVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * @author sysAdmin
  * @since 2025-06-02 11:08
  */
+@Slf4j
 @RestController
 @RequestMapping("/tableDesign")
 public class TableDesignController {
@@ -33,6 +35,7 @@ public class TableDesignController {
 
     @PostMapping("/saveTableDesign")
     public ResVo saveTableDesign(@RequestBody MixedTableDesign mixedTableDesign) {
+        log.info("保存数据库设计接口收到请求: {}", mixedTableDesign);
         return tableDesignService.saveTableDesign(mixedTableDesign);
     }
 

@@ -15,19 +15,24 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-02 11:08
+ * @since 2025-06-06 09:08
  */
 @Data
 @Accessors(chain = true)
 @TableName("s_table_design")
-public class TableDesign implements Serializable {
+public class TableDesignDo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
+     * 表ID
+     */
+    @TableId("table_id")
+    private String tableId;
+
+    /**
      * 表名
      */
-    @TableId("table_name")
     private String tableName;
 
     /**

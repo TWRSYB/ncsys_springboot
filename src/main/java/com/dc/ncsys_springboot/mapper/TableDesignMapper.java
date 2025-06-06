@@ -1,6 +1,6 @@
 package com.dc.ncsys_springboot.mapper;
 
-import com.dc.ncsys_springboot.daoVo.TableDesign;
+import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
 import org.apache.ibatis.annotations.Mapper;
@@ -18,7 +18,7 @@ import java.util.List;
  * @since 2025-06-02 11:08
  */
 @Mapper
-public interface TableDesignMapper extends BaseMapper<TableDesign> {
+public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
 
     List<SimpleTableDesign> getTableDesign(@Param("tableName") String tableName);
 }
