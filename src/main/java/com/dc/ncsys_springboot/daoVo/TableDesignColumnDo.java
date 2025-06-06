@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-06 10:57
+ * @since 2025-06-06 11:44
  */
 @Data
 @Accessors(chain = true)
@@ -32,18 +32,23 @@ public class TableDesignColumnDo implements Serializable {
     /**
      * 序号
      */
-    @TableField("field_index")
     private String fieldIndex;
 
     /**
      * 列名
      */
+    @TableField("column_name")
     private String columnName;
 
     /**
      * 列注释
      */
     private String columnComment;
+
+    /**
+     * 是否主键:Y-是,N-否
+     */
+    private String keyYn;
 
     /**
      * 字段类型:varchar,char,int,timestamp,TEXT,BLOB,JSON
