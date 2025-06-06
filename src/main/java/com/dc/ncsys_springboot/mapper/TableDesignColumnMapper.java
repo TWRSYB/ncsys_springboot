@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-06 11:44
+ * @since 2025-06-06 16:56
  */
 @Mapper
 public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumnDo> {

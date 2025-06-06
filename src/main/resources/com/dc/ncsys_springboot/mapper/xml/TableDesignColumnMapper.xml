@@ -5,8 +5,8 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         <id column="table_id" property="tableId" />
-        <id column="field_index" property="fieldIndex" />
-        <result column="column_name" property="columnName" />
+        <id column="column_name" property="columnName" />
+        <result column="field_index" property="fieldIndex" />
         <result column="column_comment" property="columnComment" />
         <result column="key_yn" property="keyYn" />
         <result column="field_type" property="fieldType" />
