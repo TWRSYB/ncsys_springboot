@@ -5,8 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.util.ObjectUtils;
 
 /**
  * <p>
@@ -95,4 +101,30 @@ public class TableDesignColumnDo implements Serializable {
      */
     @TableField(exist = false)
     private int ordinalPosition;
+
+    /**
+     * 必需输入长度
+     */
+    @TableField(exist = false)
+    private boolean needLength;
+
+    /**
+     * 可以设置枚举
+     */
+    @TableField(exist = false)
+    private boolean canEnum;
+
+    /**
+     * 枚举数组
+     */
+    @TableField(exist = false)
+    private List<String> fieldEnumArray;
+
+    public TableDesignColumnDo setFieldEnum(final String fieldEnum) throws JsonProcessingException {
+        this.fieldEnum = fieldEnum;
+        if (!ObjectUtils.isEmpty(fieldEnum)) {
+            this.fieldEnumArray = new ObjectMapper().readValue(fieldEnum, new TypeReference<List<String>>() {});
+        }
+        return this;
+    }
 }

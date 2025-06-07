@@ -26,6 +26,8 @@
     <select id="getByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         select
             tdc.*,
+            IF(tdc.field_type IN ('varchar', 'char'), TRUE, FALSE) AS need_length,
+            IF(tdc.field_type IN ('varchar', 'char'), TRUE, FALSE) AS can_enum,
             td.table_name,
             isc.ORDINAL_POSITION
         from s_table_design_column tdc
