@@ -3,6 +3,9 @@ package com.dc.ncsys_springboot.mapper;
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 
 /**
@@ -15,5 +18,8 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumnDo> {
+
+
+    List<TableDesignColumnDo> getByTableId(@Param("tableId") String tableId);
 
 }

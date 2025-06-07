@@ -89,4 +89,10 @@ public class TableDesignColumnDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    /**
+     * 序号
+     */
+    @TableField(exist = false)
+    private int ordinalPosition;
 }

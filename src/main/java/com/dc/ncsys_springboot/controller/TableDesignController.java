@@ -39,4 +39,9 @@ public class TableDesignController {
         return tableDesignService.saveTableDesign(mixedTableDesign);
     }
 
+    @GetMapping("/getTableDesignDetail")
+    public ResVo getTableDesignDetail(String tableName) {
+        return tableDesignService.getTableDesignDetail(tableName);
+    }
+
 }

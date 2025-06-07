@@ -23,5 +23,22 @@
     <sql id="Base_Column_List">
         table_id, field_index, column_name, column_comment, key_yn, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <select id="getByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
+        select
+            tdc.*,
+            td.table_name,
+            isc.ORDINAL_POSITION
+        from s_table_design_column tdc
+        left join s_table_design td
+            on tdc.table_id = td.table_id
+        left join INFORMATION_SCHEMA.columns isc
+            on isc.TABLE_SCHEMA = database()
+            and isc.table_name = td.table_name
+        where tdc.table_id = #{tableId}
+        order by
+            ORDINAL_POSITION,
+            tdc.create_time
+    </select>
+
 
 </mapper>

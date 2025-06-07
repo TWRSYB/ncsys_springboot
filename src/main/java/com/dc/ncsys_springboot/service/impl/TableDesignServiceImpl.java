@@ -17,6 +17,7 @@ import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.Field;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
@@ -140,5 +141,24 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
 
         return ResVo.success("保存表设计成功");
+    }
+
+
+
+    @Override
+    public ResVo getTableDesignDetail(String tableName) {
+        MixedTableDesign mixedTableDesign = new MixedTableDesign();
+        LambdaQueryWrapper<TableDesignDo> tdQueryWrapper = new LambdaQueryWrapper<>();
+        tdQueryWrapper.eq(TableDesignDo::getTableName, tableName);
+        TableDesignDo tableDesignDo = tableDesignMapper.selectOne(tdQueryWrapper);
+        if (ObjectUtils.isEmpty(tableDesignDo)) {
+            return ResVo.fail("未能查询到当前表的详细设计信息");
+        }
+        BeanUtils.copyProperties(tableDesignDo, mixedTableDesign);
+
+        List<TableDesignColumnDo> tableDesignColumnDos = tableDesignColumnMapper.getByTableId(mixedTableDesign.getTableId());
+        mixedTableDesign.setList_tableDesignColumn(tableDesignColumnDos);
+
+        return ResVo.success("获取表详细设计成功", mixedTableDesign);
     }
 }
