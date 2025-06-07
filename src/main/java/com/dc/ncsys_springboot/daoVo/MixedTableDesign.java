@@ -19,6 +19,14 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class MixedTableDesign extends TableDesignDo implements Serializable {
+
+    // 表名前缀
+    private String pre_tableName;
+
+    // 表名后段
+    private String sub_tableName;
+
+
     private List<TableDesignColumnDo> list_tableDesignColumn;
 //    public TableDesignSql last_tableDesignSql;
 }

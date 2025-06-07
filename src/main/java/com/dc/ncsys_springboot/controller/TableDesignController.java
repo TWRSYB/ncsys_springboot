@@ -44,4 +44,10 @@ public class TableDesignController {
         return tableDesignService.getTableDesignDetail(tableName);
     }
 
+    @PostMapping("/createTableAndEntity")
+    public ResVo createTableAndEntity(@RequestBody MixedTableDesign mixedTableDesign) {
+        log.info("CONT入参: {}", mixedTableDesign);
+        return tableDesignService.createTableAndEntity(mixedTableDesign);
+    }
+
 }

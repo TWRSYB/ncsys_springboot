@@ -28,6 +28,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -106,6 +107,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Override
     public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
+        if (!validateMixedTableDesign(mixedTableDesign)) {
+            return ResVo.fail("表设计校验失败");
+        }
         User sessionUser = SessionUtils.getSessionUser();
         String nowUserLoginCode = sessionUser.getLoginCode();
         if (ObjectUtils.isEmpty(mixedTableDesign.getTableId())) {
@@ -160,5 +164,89 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         mixedTableDesign.setList_tableDesignColumn(tableDesignColumnDos);
 
         return ResVo.success("获取表详细设计成功", mixedTableDesign);
+    }
+
+    @Override
+    public ResVo createTableAndEntity(MixedTableDesign mixedTableDesign) {
+
+        saveTableDesign(mixedTableDesign);
+
+        StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ");
+        sqlBuilder.append(mixedTableDesign.getTableName()).append(" (").append(System.lineSeparator());
+        List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
+        for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
+            sqlBuilder.append("\t").append("`").append(tableDesignColumnDo.getColumnName()).append("`").append("\t");
+        }
+        return null;
+    }
+
+
+    private boolean validateMixedTableDesign(MixedTableDesign mixedTableDesign) {
+
+        // 表类型检查
+        String tableType = mixedTableDesign.getTableType();
+        Set<String> validStrings = Set.of("s", "t", "l", "m", "ts");
+        if (!validStrings.contains(tableType)) {
+            log.info("校验拒绝 表类型: {}", tableType);
+            return false;
+        }
+
+
+        // 表名前缀检查
+        String preTableName = mixedTableDesign.getPre_tableName();
+        if (!preTableName.equals(tableType + "_")) {
+            log.info("校验拒绝 表名前缀: {}", preTableName);
+            return false;
+        }
+
+        // 表名后段检查
+        String subTableName = mixedTableDesign.getSub_tableName();
+        String subTableNameReg = "^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)*$";
+        if (!subTableName.matches(subTableNameReg)) {
+            log.info("校验拒绝 表名后段: {} 字符匹配", subTableName);
+            return false;
+        }
+        if (subTableName.length() > 40) {
+            log.info("校验拒绝 表名后段: {} 长度大于40", subTableName);
+            return false;
+        }
+        if (subTableName.length() < 5) {
+            log.info("校验拒绝 表名后段: {} 长度小于5", subTableName);
+            return false;
+        }
+
+        // 表名检查
+        // 正则表达式解释：
+        // ^                  : 字符串开始
+        // (s_|t_|l_|m_|ts_)  : 匹配指定前缀
+        // ([a-zA-Z0-9]+      : 必须以字母/数字开头，避免连续下划线
+        // (?:_[a-zA-Z0-9]+)* : 允许下划线，但必须后跟字母/数字（防止连续下划线）
+        // )?                 : 中间部分可选（允许如"s_a"的短格式）
+        // [a-zA-Z0-9]$       : 结尾必须是字母/数字（非下划线）
+
+        // 表名检查
+//        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*)?[a-zA-Z0-9]$";
+//        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9]+)(_[a-zA-Z0-9]+)*$";
+//        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9](?:[a-zA-Z0-9]|_(?=[a-zA-Z0-9]))){4,}[a-zA-Z0-9]$";
+        String tableName = mixedTableDesign.getTableName();
+        if (!tableName.equals(preTableName + subTableName)) {
+            log.info("校验拒绝 表名: {} 不等于表名前缀+表名后段", tableName);
+            return false;
+        }
+
+        // 表注释检查
+        String tableComment = mixedTableDesign.getTableComment();
+        if (tableComment.contains(" ")) {
+            log.info("校验拒绝 表注释: {} 有空个", tableComment);
+            return false;
+        }
+        if (tableComment.length() > 40) {
+            log.info("校验拒绝 表注释: {} 长度大于40", tableComment);
+            return false;
+        }
+
+
+        return true;
+
     }
 }

@@ -22,4 +22,6 @@ public interface TableDesignService extends IService<TableDesignDo> {
     ResVo saveTableDesign(MixedTableDesign mixedTableDesign);
 
     ResVo getTableDesignDetail(String tableName);
+
+    ResVo createTableAndEntity(MixedTableDesign mixedTableDesign);
 }
