@@ -9,6 +9,7 @@
         <result column="field_index" property="fieldIndex" />
         <result column="column_comment" property="columnComment" />
         <result column="key_yn" property="keyYn" />
+        <result column="null_able_yn" property="nullAbleYn" />
         <result column="field_type" property="fieldType" />
         <result column="field_length" property="fieldLength" />
         <result column="field_enum" property="fieldEnum" />
@@ -21,7 +22,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        table_id, field_index, column_name, column_comment, key_yn, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
+        table_id, field_index, column_name, column_comment, key_yn, null_able, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="getByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         select

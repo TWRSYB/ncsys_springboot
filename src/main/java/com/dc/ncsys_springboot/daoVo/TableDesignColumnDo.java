@@ -20,7 +20,7 @@ import org.springframework.util.ObjectUtils;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-06 17:31
+ * @since 2025-06-07 17:12
  */
 @Data
 @Accessors(chain = true)
@@ -55,6 +55,11 @@ public class TableDesignColumnDo implements Serializable {
      * 是否主键:Y-是,N-否
      */
     private String keyYn;
+
+    /**
+     * 是否可空:Y-是,N-否
+     */
+    private String nullAbleYn;
 
     /**
      * 字段类型:varchar,char,int,timestamp,TEXT,BLOB,JSON

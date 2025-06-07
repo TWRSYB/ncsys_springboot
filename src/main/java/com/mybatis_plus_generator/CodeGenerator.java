@@ -15,6 +15,12 @@ import com.baomidou.mybatisplus.generator.model.ClassAnnotationAttributes;
 public class CodeGenerator {
 
     public static void main(String[] args) {
+        String tableName = "s_table_design_column";
+        generator(tableName);
+    }
+
+    private static void generator(String tableName) {
+        String tablePrefix = tableName.substring(0, tableName.indexOf("_") + 1);
         // ===================== 1. 数据源配置 =====================
         DataSourceConfig dataSource = new DataSourceConfig.Builder(
                 "jdbc:mysql://localhost:3306/ncsys_dev?useSSL=false&serverTimezone=Asia/Shanghai",
@@ -53,7 +59,7 @@ public class CodeGenerator {
         // ===================== 4. 策略配置 =====================
         StrategyConfig strategyConfig = new StrategyConfig.Builder()
                 // ----------------- 全局策略 -----------------
-                .addInclude("s_table_design_column") // 需要生成的表名（多个表用逗号分隔）
+                .addInclude(tableName) // 需要生成的表名（多个表用逗号分隔）
                 .enableSkipView() // 开启跳过视图（默认false）
                 //.disableSqlFilter() // 禁用SQL过滤（默认true）
                 .addTablePrefix("s_") // 表前缀过滤（例如设置"sys_"会去除表前缀）
@@ -61,7 +67,7 @@ public class CodeGenerator {
                 // ----------------- 实体类策略 -----------------
                 .entityBuilder()
 //                .enableLombok() // 开启Lombok
-                .enableLombok(new ClassAnnotationAttributes("@Data","lombok.Data"))
+                .enableLombok(new ClassAnnotationAttributes("@Data", "lombok.Data"))
                 .enableChainModel() // 开启链式模型（即setter返回this）
 //                .enableColumnConstant() // 表字段名转换为驼峰命名（默认true）
 //                .naming(NamingStrategy.underline_to_camel) // 命名策略（默认下划线转驼峰命名）
