@@ -13,6 +13,7 @@
         <result column="field_type" property="fieldType" />
         <result column="field_length" property="fieldLength" />
         <result column="field_enum" property="fieldEnum" />
+        <result column="default_value" property="defaultValue" />
         <result column="data_status" property="dataStatus" />
         <result column="create_user" property="createUser" />
         <result column="create_time" property="createTime" />
@@ -22,7 +23,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        table_id, field_index, column_name, column_comment, key_yn, null_able, field_type, field_length, field_enum, data_status, create_user, create_time, update_user, update_time
+        table_id, field_index, column_name, column_comment, key_yn, null_able, field_type, field_length, field_enum, default_value, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="getByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         select

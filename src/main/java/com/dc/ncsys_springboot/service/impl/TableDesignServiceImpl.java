@@ -2,10 +2,7 @@ package com.dc.ncsys_springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
-import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
-import com.dc.ncsys_springboot.daoVo.TableDesignDo;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.*;
 import com.dc.ncsys_springboot.mapper.TableDesignColumnMapper;
 import com.dc.ncsys_springboot.mapper.TableDesignMapper;
 import com.dc.ncsys_springboot.service.TableDesignColumnService;
@@ -29,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -148,7 +146,6 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     }
 
 
-
     @Override
     public ResVo getTableDesignDetail(String tableName) {
         MixedTableDesign mixedTableDesign = new MixedTableDesign();
@@ -171,13 +168,58 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         saveTableDesign(mixedTableDesign);
 
+        TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
+        tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE");
+
         StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ");
-        sqlBuilder.append(mixedTableDesign.getTableName()).append(" (").append(System.lineSeparator());
+        sqlBuilder.append(mixedTableDesign.getTableName()).append(" (");
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
+        List<String> keys = new ArrayList<>();
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
-            sqlBuilder.append("\t").append("`").append(tableDesignColumnDo.getColumnName()).append("`").append("\t");
+
+            if (tableDesignColumnDo.getKeyYn().equals("Y")){
+                keys.add(tableDesignColumnDo.getColumnName());
+            }
+
+            sqlBuilder.append(System.lineSeparator()).append("\t`").append(tableDesignColumnDo.getColumnName()).append("`\t").append(tableDesignColumnDo.getFieldType());
+
+            if (ObjectUtils.isEmpty(tableDesignColumnDo.getFieldLength())) {
+                sqlBuilder.append("\t");
+            } else {
+                sqlBuilder.append("(").append(tableDesignColumnDo.getFieldLength()).append(")\t");
+            }
+
+            if ("N".equals(tableDesignColumnDo.getNullAbleYn())) {
+                sqlBuilder.append("NOT NULL\t");
+            }
+
+//            if (!ObjectUtils.isEmpty(tableDesignColumnDo.getDefaultValue())) {
+//                sqlBuilder.append("DEFAULT '").append(tableDesignColumnDo.getDefaultValue()).append("'\t");
+//            }
+
+            sqlBuilder.append("COMMENT '").append(tableDesignColumnDo.getColumnComment());
+            if (ObjectUtils.isEmpty(tableDesignColumnDo.getFieldEnumArray())) {
+                sqlBuilder.append("'");
+            } else {
+                String join = String.join(",", tableDesignColumnDo.getFieldEnumArray());
+                sqlBuilder.append(":").append(join).append("'");
+            }
+            sqlBuilder.append(",");
         }
-        return null;
+        sqlBuilder.append(System.lineSeparator()).append("\t`data_status`\tchar(1)\tNOT NULL\tDEFAULT '0'\tCOMMENT '数据状态:0-未生效,1-生效,2-禁用,9-废弃',");
+        sqlBuilder.append(System.lineSeparator()).append("\t`create_user`\tvarchar(8)\tNOT NULL\tCOMMENT '创建用户',");
+        sqlBuilder.append(System.lineSeparator()).append("\t`create_time`\ttimestamp\tNOT NULL\tDEFAULT CURRENT_TIMESTAMP\tCOMMENT '创建时间',");
+        sqlBuilder.append(System.lineSeparator()).append("\t`update_user`\tvarchar(8)\tNOT NULL\tCOMMENT '最后更新用户',");
+        sqlBuilder.append(System.lineSeparator()).append("\t`update_time`\ttimestamp\tNOT NULL\tDEFAULT CURRENT_TIMESTAMP\tON UPDATE CURRENT_TIMESTAMP\tCOMMENT '最后更新时间'");
+
+        if (!ObjectUtils.isEmpty(keys)) {
+            sqlBuilder.append(",").append(System.lineSeparator()).append("\tPRIMARY KEY (").append(String.join(",", keys)).append(")");
+        }
+
+        sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
+
+        System.out.println("sqlBuilder = " + sqlBuilder);
+        return ResVo.success();
     }
 
 
@@ -185,8 +227,12 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 表类型检查
         String tableType = mixedTableDesign.getTableType();
-        Set<String> validStrings = Set.of("s", "t", "l", "m", "ts");
-        if (!validStrings.contains(tableType)) {
+        Set<String> tableTypeSet = Set.of("s", "t", "l", "m", "ts");
+        if (ObjectUtils.isEmpty(tableType)) {
+            log.info("校验拒绝 表类型 为空");
+            return false;
+        }
+        if (!tableTypeSet.contains(tableType)) {
             log.info("校验拒绝 表类型: {}", tableType);
             return false;
         }
@@ -194,6 +240,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 表名前缀检查
         String preTableName = mixedTableDesign.getPre_tableName();
+        if (ObjectUtils.isEmpty(preTableName)) {
+            log.info("校验拒绝 表名前缀 为空");
+            return false;
+        }
         if (!preTableName.equals(tableType + "_")) {
             log.info("校验拒绝 表名前缀: {}", preTableName);
             return false;
@@ -201,7 +251,11 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 表名后段检查
         String subTableName = mixedTableDesign.getSub_tableName();
-        String subTableNameReg = "^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)*$";
+        String subTableNameReg = "^[a-z0-9]+(_[a-z0-9]+)*$";
+        if (ObjectUtils.isEmpty(subTableName)) {
+            log.info("校验拒绝 表名后段 为空");
+            return false;
+        }
         if (!subTableName.matches(subTableNameReg)) {
             log.info("校验拒绝 表名后段: {} 字符匹配", subTableName);
             return false;
@@ -229,6 +283,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 //        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9]+)(_[a-zA-Z0-9]+)*$";
 //        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9](?:[a-zA-Z0-9]|_(?=[a-zA-Z0-9]))){4,}[a-zA-Z0-9]$";
         String tableName = mixedTableDesign.getTableName();
+        if (ObjectUtils.isEmpty(tableName)) {
+            log.info("校验拒绝 表名 为空");
+            return false;
+        }
         if (!tableName.equals(preTableName + subTableName)) {
             log.info("校验拒绝 表名: {} 不等于表名前缀+表名后段", tableName);
             return false;
@@ -236,13 +294,157 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 表注释检查
         String tableComment = mixedTableDesign.getTableComment();
+        if (ObjectUtils.isEmpty(tableComment)) {
+            log.info("校验拒绝 表注释 为空");
+            return false;
+        }
         if (tableComment.contains(" ")) {
-            log.info("校验拒绝 表注释: {} 有空个", tableComment);
+            log.info("校验拒绝 表注释: {} 有空格", tableComment);
             return false;
         }
         if (tableComment.length() > 40) {
             log.info("校验拒绝 表注释: {} 长度大于40", tableComment);
             return false;
+        }
+
+        // 字段检查
+        List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
+        if (ObjectUtils.isEmpty(listTableDesignColumn)) {
+            log.info("校验拒绝 没有字段: {}", listTableDesignColumn);
+            return false;
+        }
+
+        String columnNameReg = "^[a-z][a-z0-9]*(_[a-z0-9]+)*$";
+        Pattern patternNotInColumnComment = Pattern.compile("[ ,:]"); // 匹配空格、冒号、逗号
+        Set<String> ynSet = Set.of("Y", "N");
+        Set<String> fieldTypeSet = Set.of("varchar", "char", "int", "timestamp", "TEXT", "BLOB", "JSON");
+        Set<String> needLengthSet = Set.of("varchar", "char");
+        Set<String> canEnumSet = Set.of("varchar", "char");
+
+
+        for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
+            //tableId 不校验, 没有的话会自动添加
+            //fieldIndex 不校验, 这个字段后续就没用了
+            //columnName
+            String columnName = tableDesignColumnDo.getColumnName();
+            if (ObjectUtils.isEmpty(columnName)) {
+                log.info("校验拒绝 columnName 为空");
+                return false;
+            }
+            if (!columnName.matches(columnNameReg)) {
+                log.info("校验拒绝 columnName: {} 字符匹配", columnName);
+                return false;
+            }
+            if (columnName.length() > 40) {
+                log.info("校验拒绝 columnName: {} 长度大于40", columnName);
+                return false;
+            }
+
+            //columnComment
+            String columnComment = tableDesignColumnDo.getColumnComment();
+            if (ObjectUtils.isEmpty(columnComment)) {
+                log.info("校验拒绝 columnComment 为空");
+                return false;
+            }
+            if (patternNotInColumnComment.matcher(columnComment).find()) {
+                log.info("校验拒绝 columnComment: {} 有禁止字符", columnComment);
+                return false;
+            }
+            if (columnComment.length() > 40) {
+                log.info("校验拒绝 columnComment: {} 长度大于40", columnComment);
+                return false;
+            }
+            //keyYn
+            String keyYn = tableDesignColumnDo.getKeyYn();
+            if (ObjectUtils.isEmpty(keyYn)) {
+                log.info("校验拒绝 keyYn 为空");
+                return false;
+            }
+            if (!ynSet.contains(keyYn)) {
+                log.info("校验拒绝 keyYn: {} 非允许的值", keyYn);
+                return false;
+            }
+
+            //nullAbleYn
+            String nullAbleYn = tableDesignColumnDo.getKeyYn();
+            if (ObjectUtils.isEmpty(nullAbleYn)) {
+                log.info("校验拒绝 nullAbleYn 为空");
+                return false;
+            }
+            if (!ynSet.contains(nullAbleYn)) {
+                log.info("校验拒绝 nullAbleYn: {} 非允许的值", nullAbleYn);
+                return false;
+            }
+            if (keyYn.equals("Y") && !nullAbleYn.equals("Y")) {
+                log.info("校验拒绝 nullAbleYn: {} 主键但可以空", nullAbleYn);
+                return false;
+            }
+
+            //fieldType
+            String fieldType = tableDesignColumnDo.getFieldType();
+            if (ObjectUtils.isEmpty(fieldType)) {
+                log.info("校验拒绝 fieldType 为空");
+                return false;
+            }
+            if (!fieldTypeSet.contains(fieldType)) {
+                log.info("校验拒绝 fieldType: {} 非允许的值", fieldType);
+                return false;
+            }
+
+
+
+            //fieldLength
+            Integer fieldLength = tableDesignColumnDo.getFieldLength();
+            if (needLengthSet.contains(fieldType)) {
+                if (fieldLength == null || fieldLength < 1){
+                    log.info("校验拒绝 fieldLength: {} 需要长度的字段没有长度", fieldLength);
+                    return false;
+                }
+            } else {
+                if (fieldLength != null){
+                    log.info("校验拒绝 fieldLength: {} 不需要长度的字段送来长度", fieldLength);
+                    return false;
+                }
+            }
+
+            //fieldEnum
+            String fieldEnum = tableDesignColumnDo.getFieldEnum();
+            if (!canEnumSet.contains(fieldType)) {
+                if (!ObjectUtils.isEmpty(fieldEnum)) {
+                    log.info("校验拒绝 fieldEnum: {} 不可以枚举的字段送来枚举", fieldEnum);
+                    return false;
+                }
+            }
+
+
+            //defaultValue
+            String defaultValue = tableDesignColumnDo.getDefaultValue();
+            if (!ObjectUtils.isEmpty(defaultValue)) {
+                if (defaultValue.length() > 2) {
+                    if (defaultValue.contains(" ")) {
+                        log.info("校验拒绝 defaultValue: {} 长度大于2的默认值有空格", defaultValue);
+                        return false;
+                    }
+                    if (defaultValue.length() > 17) {
+                        log.info("校验拒绝 defaultValue: {} 默认值长度大于17", defaultValue);
+                        return false;
+                    }
+                }
+            }
+
+
+            //dataStatus
+            String dataStatus = tableDesignColumnDo.getDataStatus();
+            if (!"0".equals(dataStatus)) {
+                log.info("校验拒绝 dataStatus: {} 表状态不是待创建", dataStatus);
+                return false;
+            }
+
+
+
+            //fieldEnumArray
+//            List<String> fieldEnumArray = tableDesignColumnDo.getFieldEnumArray();
+
         }
 
 

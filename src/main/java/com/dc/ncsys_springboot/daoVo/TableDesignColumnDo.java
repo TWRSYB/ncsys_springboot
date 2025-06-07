@@ -77,6 +77,11 @@ public class TableDesignColumnDo implements Serializable {
     private String fieldEnum;
 
     /**
+     * 默认值
+     */
+    private String defaultValue;
+
+    /**
      * 数据状态:0-未生效,1-生效,2-禁用,9-废弃
      */
     private String dataStatus;

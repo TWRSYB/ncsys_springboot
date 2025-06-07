@@ -15,7 +15,7 @@ import com.baomidou.mybatisplus.generator.model.ClassAnnotationAttributes;
 public class CodeGenerator {
 
     public static void main(String[] args) {
-        String tableName = "s_table_design_column";
+        String tableName = "s_table_design_sql";
         generator(tableName);
     }
 
