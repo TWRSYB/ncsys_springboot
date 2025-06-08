@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -21,4 +22,7 @@ import java.util.List;
 public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
 
     List<SimpleTableDesign> getTableDesign(@Param("tableName") String tableName);
+
+    @Update("${sql}")
+    void createTable(@Param("sql") String sql);
 }

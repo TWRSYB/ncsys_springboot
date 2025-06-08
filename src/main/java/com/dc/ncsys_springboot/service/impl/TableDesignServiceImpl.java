@@ -22,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -177,7 +174,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         List<String> keys = new ArrayList<>();
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
 
-            if (tableDesignColumnDo.getKeyYn().equals("Y")){
+            if (tableDesignColumnDo.getKeyYn().equals("Y")) {
                 keys.add(tableDesignColumnDo.getColumnName());
             }
 
@@ -217,6 +214,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
 
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
+
+        String sql = sqlBuilder.toString();
+
+        tableDesignMapper.createTable(sql);
 
         System.out.println("sqlBuilder = " + sqlBuilder);
         return ResVo.success();
@@ -320,6 +321,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         Set<String> fieldTypeSet = Set.of("varchar", "char", "int", "timestamp", "TEXT", "BLOB", "JSON");
         Set<String> needLengthSet = Set.of("varchar", "char");
         Set<String> canEnumSet = Set.of("varchar", "char");
+        Pattern patternNotInFieldEnum = Pattern.compile("[ ,:;]"); // 匹配空格、冒号、逗号
 
 
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
@@ -354,6 +356,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 log.info("校验拒绝 columnComment: {} 长度大于40", columnComment);
                 return false;
             }
+
             //keyYn
             String keyYn = tableDesignColumnDo.getKeyYn();
             if (ObjectUtils.isEmpty(keyYn)) {
@@ -366,7 +369,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             }
 
             //nullAbleYn
-            String nullAbleYn = tableDesignColumnDo.getKeyYn();
+            String nullAbleYn = tableDesignColumnDo.getNullAbleYn();
             if (ObjectUtils.isEmpty(nullAbleYn)) {
                 log.info("校验拒绝 nullAbleYn 为空");
                 return false;
@@ -375,7 +378,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 log.info("校验拒绝 nullAbleYn: {} 非允许的值", nullAbleYn);
                 return false;
             }
-            if (keyYn.equals("Y") && !nullAbleYn.equals("Y")) {
+            if (keyYn.equals("Y") && nullAbleYn.equals("Y")) {
                 log.info("校验拒绝 nullAbleYn: {} 主键但可以空", nullAbleYn);
                 return false;
             }
@@ -392,16 +395,15 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             }
 
 
-
             //fieldLength
             Integer fieldLength = tableDesignColumnDo.getFieldLength();
             if (needLengthSet.contains(fieldType)) {
-                if (fieldLength == null || fieldLength < 1){
+                if (fieldLength == null || fieldLength < 1) {
                     log.info("校验拒绝 fieldLength: {} 需要长度的字段没有长度", fieldLength);
                     return false;
                 }
             } else {
-                if (fieldLength != null){
+                if (fieldLength != null) {
                     log.info("校验拒绝 fieldLength: {} 不需要长度的字段送来长度", fieldLength);
                     return false;
                 }
@@ -413,6 +415,67 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 if (!ObjectUtils.isEmpty(fieldEnum)) {
                     log.info("校验拒绝 fieldEnum: {} 不可以枚举的字段送来枚举", fieldEnum);
                     return false;
+                }
+            }
+
+            if (!ObjectUtils.isEmpty(fieldEnum)) {
+                //fieldEnumArray
+                List<String> fieldEnumArray = tableDesignColumnDo.getFieldEnumArray();
+                if (ObjectUtils.isEmpty(fieldEnumArray)) {
+                    log.info("校验拒绝 fieldEnumArray: {} 有枚举但没有枚举数组", fieldEnumArray);
+                    return false;
+                }
+
+                Set<String> singleSet = new HashSet<>();
+                Set<String> keySet = new HashSet<>();
+                Set<String> valueSet = new HashSet<>();
+                for (String oneEnum : fieldEnumArray) {
+                    if (ObjectUtils.isEmpty(oneEnum)) {
+                        log.info("校验拒绝 oneEnum 为空");
+                        return false;
+                    }
+                    if (patternNotInFieldEnum.matcher(oneEnum).find()) {
+                        log.info("校验拒绝 oneEnum: {} 有禁止字符", oneEnum);
+                        return false;
+                    }
+                    if (oneEnum.contains("-")) {
+                        String[] split = oneEnum.split("-");
+                        if (split.length != 2) {
+                            log.info("校验拒绝 oneEnum: {} key-value枚举格式不正确", oneEnum);
+                            return false;
+                        }
+                        String key = split[0];
+                        if (fieldLength != null && key.length() > fieldLength) {
+                            log.info("校验拒绝 oneEnum: {} key长度大于字段长度", oneEnum);
+                            return false;
+                        }
+                        keySet.add(key);
+                        valueSet.add(split[1]);
+                    } else {
+                        if (fieldLength != null && oneEnum.length() > fieldLength) {
+                            log.info("校验拒绝 oneEnum: {} oneEnum长度大于字段长度", oneEnum);
+                            return false;
+                        }
+                        singleSet.add(oneEnum);
+                    }
+                }
+
+                if (singleSet.size() != 0) {
+                    log.info("当前是single枚举");
+                    if (singleSet.size() != fieldEnumArray.size()) {
+                        log.info("校验拒绝 fieldEnumArray: {} single枚举数量不正确", fieldEnumArray);
+                        return false;
+                    }
+                    if (keySet.size() != 0 || valueSet.size() != 0) {
+                        log.info("校验拒绝 fieldEnumArray: {} 既有single枚举又有key-value枚举", fieldEnumArray);
+                        return false;
+                    }
+                } else {
+                    log.info("当前是key-value枚举");
+                    if (keySet.size() != fieldEnumArray.size() || valueSet.size() != fieldEnumArray.size()) {
+                        log.info("校验拒绝 fieldEnumArray: {} key-value枚举数量不正确", fieldEnumArray);
+                        return false;
+                    }
                 }
             }
 
@@ -440,10 +503,6 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 return false;
             }
 
-
-
-            //fieldEnumArray
-//            List<String> fieldEnumArray = tableDesignColumnDo.getFieldEnumArray();
 
         }
 
