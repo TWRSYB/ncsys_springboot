@@ -215,11 +215,20 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
 
+        System.out.println("sqlBuilder = " + sqlBuilder);
+
         String sql = sqlBuilder.toString();
 
-        tableDesignMapper.createTable(sql);
+//        throw new RuntimeException("手动抛出运行时异常");
+        try {
+            tableDesignMapper.createTable(sql);
+        } catch (Exception e) {
+            log.info("建表时出现异常: ", e);
+            throw new RuntimeException("建表时出现异常, 手动抛出运行时异常");
+        }
 
-        System.out.println("sqlBuilder = " + sqlBuilder);
+
+        log.info("完成建表");
         return ResVo.success();
     }
 

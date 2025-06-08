@@ -38,6 +38,7 @@
         left join INFORMATION_SCHEMA.columns isc
             on isc.TABLE_SCHEMA = database()
             and isc.table_name = td.table_name
+            and isc.column_name = tdc.column_name
         where tdc.table_id = #{tableId}
         order by
             ORDINAL_POSITION,

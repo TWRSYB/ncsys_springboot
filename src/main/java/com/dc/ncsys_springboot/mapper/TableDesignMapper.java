@@ -24,5 +24,5 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
     List<SimpleTableDesign> getTableDesign(@Param("tableName") String tableName);
 
     @Update("${sql}")
-    void createTable(@Param("sql") String sql);
+    int createTable(@Param("sql") String sql);
 }

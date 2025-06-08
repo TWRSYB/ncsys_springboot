@@ -6,6 +6,10 @@ spring:
     url: jdbc:mysql://localhost:3306/ncsys_dev
     username: root
     password: 123456
+#    为解决建表失败回滚而设计, 最后没有解决
+#    hikari:
+#      auto-commit: false
+
 server:
   port: 8090
   servlet:
@@ -26,6 +30,12 @@ mybatis-plus:
 logging:
   level:
     root: INFO
+    org:
+      springframework:
+        transaction:
+          interceptor: TRACE
+        jdbc:
+          datasource: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %line : %msg%n"
 
