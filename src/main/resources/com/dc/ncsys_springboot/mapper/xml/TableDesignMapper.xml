@@ -26,4 +26,8 @@
         order by ORDINAL_POSITION
     </select>
 
+    <select id="showCreateTable" resultType="Map">
+        show create table ${tableName}
+    </select>
+
 </mapper>

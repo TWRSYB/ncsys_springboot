@@ -3,11 +3,13 @@ package com.dc.ncsys_springboot.mapper;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -25,4 +27,9 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
 
     @Update("${sql}")
     int createTable(@Param("sql") String sql);
+
+    @MapKey("Table")
+    Map<String, Map<String, String>> showCreateTable(@Param("tableName") String tableName);
+
+
 }

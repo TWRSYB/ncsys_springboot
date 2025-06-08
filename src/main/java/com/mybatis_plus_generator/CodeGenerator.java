@@ -19,7 +19,7 @@ public class CodeGenerator {
         generator(tableName);
     }
 
-    private static void generator(String tableName) {
+    public static void generator(String tableName) {
         String tablePrefix = tableName.substring(0, tableName.indexOf("_") + 1);
         // ===================== 1. 数据源配置 =====================
         DataSourceConfig dataSource = new DataSourceConfig.Builder(
@@ -32,7 +32,7 @@ public class CodeGenerator {
         GlobalConfig globalConfig = new GlobalConfig.Builder()
                 .outputDir(System.getProperty("user.dir") + "/src/main/java") // 输出目录（建议使用绝对路径）
                 .author("sysAdmin") // 作者信息（生成类注释中使用）
-//                .disableOpenDir() // 是否打开输出目录（默认true）
+                .disableOpenDir() // 是否打开输出目录（默认true）
                 /*
                  * 时间类型策略
                  * DateType.ONLY_DATE
@@ -62,7 +62,7 @@ public class CodeGenerator {
                 .addInclude(tableName) // 需要生成的表名（多个表用逗号分隔）
                 .enableSkipView() // 开启跳过视图（默认false）
                 //.disableSqlFilter() // 禁用SQL过滤（默认true）
-                .addTablePrefix("s_") // 表前缀过滤（例如设置"sys_"会去除表前缀）
+                .addTablePrefix(tablePrefix) // 表前缀过滤（例如设置"sys_"会去除表前缀）
 
                 // ----------------- 实体类策略 -----------------
                 .entityBuilder()

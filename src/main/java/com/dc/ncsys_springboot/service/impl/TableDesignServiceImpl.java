@@ -3,16 +3,20 @@ package com.dc.ncsys_springboot.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dc.ncsys_springboot.daoVo.*;
+import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.TableDesignColumnMapper;
 import com.dc.ncsys_springboot.mapper.TableDesignMapper;
+import com.dc.ncsys_springboot.mapper.TableDesignSqlMapper;
 import com.dc.ncsys_springboot.service.TableDesignColumnService;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.util.DateTimeUtil;
 import com.dc.ncsys_springboot.util.FieldUtil;
 import com.dc.ncsys_springboot.util.SessionUtils;
+import com.dc.ncsys_springboot.util.StrUtils;
 import com.dc.ncsys_springboot.vo.Field;
 import com.dc.ncsys_springboot.vo.ResVo;
+import com.mybatis_plus_generator.CodeGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -43,6 +51,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Autowired
     private TableDesignColumnMapper tableDesignColumnMapper;
+
+    @Autowired
+    private TableDesignSqlMapper tableDesignSqlMapper;
 
     @Autowired
     private TableDesignColumnService tableDesignColumnService;
@@ -102,9 +113,12 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Override
     public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
-        if (!validateMixedTableDesign(mixedTableDesign)) {
-            return ResVo.fail("表设计校验失败");
-        }
+        if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
+        saveMixedTableDesign(mixedTableDesign);
+        return ResVo.success("保存表设计成功");
+    }
+
+    private void saveMixedTableDesign(MixedTableDesign mixedTableDesign) {
         User sessionUser = SessionUtils.getSessionUser();
         String nowUserLoginCode = sessionUser.getLoginCode();
         if (ObjectUtils.isEmpty(mixedTableDesign.getTableId())) {
@@ -116,7 +130,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         mixedTableDesign.setUpdateUser(nowUserLoginCode);
         boolean insertOrUpdateTableDesign = tableDesignMapper.insertOrUpdate(mixedTableDesign);
         if (!insertOrUpdateTableDesign) {
-            return ResVo.fail("保存表设计失败");
+            throw new BusinessException("保存表设计失败");
         }
 
         // 删除表设计列后再插入
@@ -138,8 +152,6 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             tableDesignColumnMapper.insert(tableDesignColumn);
             log.info("SVC保存表设计: 保存列完成, 列名: {}", tableDesignColumn.getColumnName());
         }
-
-        return ResVo.success("保存表设计成功");
     }
 
 
@@ -163,13 +175,22 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     @Override
     public ResVo createTableAndEntity(MixedTableDesign mixedTableDesign) {
 
-        saveTableDesign(mixedTableDesign);
+        User sessionUser = SessionUtils.getSessionUser();
 
+        // 表设计校验
+        if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
+        // 保存表设计
+        saveMixedTableDesign(mixedTableDesign);
+        String tableName = mixedTableDesign.getTableName();
+        log.info("表设计保存成功: 表名: {}", tableName);
+
+        // 拼接建表SQL
         TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
-        tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE");
+        tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE").setExecuteOrder(1);
 
-        StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ");
-        sqlBuilder.append(mixedTableDesign.getTableName()).append(" (");
+        StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE `");
+
+        sqlBuilder.append(tableName).append("` (");
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
         List<String> keys = new ArrayList<>();
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
@@ -210,7 +231,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         sqlBuilder.append(System.lineSeparator()).append("\t`update_time`\ttimestamp\tNOT NULL\tDEFAULT CURRENT_TIMESTAMP\tON UPDATE CURRENT_TIMESTAMP\tCOMMENT '最后更新时间'");
 
         if (!ObjectUtils.isEmpty(keys)) {
-            sqlBuilder.append(",").append(System.lineSeparator()).append("\tPRIMARY KEY (").append(String.join(",", keys)).append(")");
+            sqlBuilder.append(",").append(System.lineSeparator()).append("\tPRIMARY KEY (`").append(String.join("`, `", keys)).append("`)");
         }
 
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
@@ -219,16 +240,122 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         String sql = sqlBuilder.toString();
 
-//        throw new RuntimeException("手动抛出运行时异常");
+        tableDesignSqlDo.setExecuteSql(sql);
+
         try {
             tableDesignMapper.createTable(sql);
+            log.info("建表成功");
         } catch (Exception e) {
             log.info("建表时出现异常: ", e);
-            throw new RuntimeException("建表时出现异常, 手动抛出运行时异常");
+            return ResVo.fail("保存表设计成功, 但建表时出现异常");
+        }
+
+        Map<String, Map<String, String>> lastCreateSqlMap = tableDesignMapper.showCreateTable(tableName);
+        String lastCreateSql = lastCreateSqlMap.get(tableName).get("Create Table");
+        System.out.println("lastCreateSql = " + lastCreateSql);
+
+        tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+
+        try {
+            tableDesignSqlMapper.insert(tableDesignSqlDo);
+            log.info("记录表设计SQL成功");
+        } catch (Exception e) {
+            log.warn("记录表设计SQL异常: ", e);
+            throw new BusinessException("建表成功, 但记录表设计SQL异常");
+        }
+
+        // 开始生成实体类
+        CodeGenerator.generator(tableName);
+
+        // 找到Mapper.java添加@Mapper注解
+        String generateMapperDir = "src/main/java/com/dc/ncsys_springboot/mapper/";
+        String mapperName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.java";
+        Path mapperPath = Path.of(generateMapperDir, mapperName);
+        List<String> mapperLines;
+        try {
+            log.info("为Mapper文件添加@Mapper注解");
+            mapperLines = Files.readAllLines(mapperPath);
+            boolean hasMapperImport = mapperLines.stream()
+                    .anyMatch(line -> line.contains("import org.apache.ibatis.annotations.Mapper;"));
+            boolean hasMapperAnnotation = mapperLines.stream()
+                    .anyMatch(line -> line.contains("@Mapper"));
+
+            if (hasMapperImport || hasMapperAnnotation) {
+                log.info("Mapper文件已有@Mapper注解, 无需添加");
+            } else {
+                log.info("Mapper文件没有@Mapper注解, 执行添加");
+                // 添加import语句
+                int importInsertIndex = findImportInsertIndex(mapperLines);
+                mapperLines.add(importInsertIndex, "import org.apache.ibatis.annotations.Mapper;");
+
+                // 添加注解
+                int classDeclLine = findClassDeclarationLine(mapperLines);
+                if (classDeclLine != -1) {
+                    mapperLines.add(classDeclLine, "@Mapper");
+                }
+                // 写回文件
+                Files.write(mapperPath, mapperLines);
+                log.info("为Mapper文件添加@Mapper注解成功");
+            }
+
+        } catch (IOException e) {
+            log.warn("为Mapper文件添加@Mapper注解出现异常: ", e);
+            throw new BusinessException("为Mapper文件添加@Mapper注解出现异常");
         }
 
 
-        log.info("完成建表");
+        // 找到Mapper.xml移动到resources目录下
+        String generateMapperXmlDir = "src/main/java/com/dc/ncsys_springboot/mapper/xml/";
+        String targetMapperXmlDir = "src/main/resources/com/dc/ncsys_springboot/mapper/xml/";
+        String mapperXmlName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.xml";
+        Path source = Path.of(generateMapperXmlDir, mapperXmlName);
+        Path target = Path.of(targetMapperXmlDir).resolve(mapperXmlName);
+        // 移动文件
+        try {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+            log.info("移动代码生成器生成的Mapper.xml文件成功");
+        } catch (IOException e) {
+            log.warn("移动代码生成器生成的Mapper.xml文件出现异常: ", e);
+            throw new BusinessException("移动代码生成器生成的Mapper.xml文件出现异常");
+        }
+
+        // 找到Do, 如果keys>1, 则把后面的key的@TableId替换为@TableField
+        if (keys.size() >1) {
+            log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField");
+            String generateDoDir = "src/main/java/com/dc/ncsys_springboot/daoVo/";
+            String doName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Do.java";
+            Path doPath = Path.of(generateDoDir, doName);
+            List<String> doLines;
+            try {
+                doLines = Files.readAllLines(doPath);
+                boolean hasTableFieldImport = doLines.stream()
+                        .anyMatch(line -> line.contains("import com.baomidou.mybatisplus.annotation.TableField;"));
+
+                // 添加TableField import（如果需要）
+                if (!hasTableFieldImport) {
+                    int importInsertIndex = findImportInsertIndex(doLines);
+                    doLines.add(importInsertIndex, "import com.baomidou.mybatisplus.annotation.TableField;");
+                }
+
+                for (int k = 1; k < keys.size(); k++) {
+                    String fieldName = keys.get(k);
+                    // 替换注解
+                    for (int i = 10; i < doLines.size() - 2; i++) {
+                        String line = doLines.get(i);
+                        if (doLines.get(i+1).contains(" " + fieldName + ";") && line.contains("@TableId")) {
+                            doLines.set(i, line.replace("@TableId", "@TableField"));
+                        }
+                    }
+                }
+                Files.write(doPath, doLines);
+                log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换成功");
+            } catch (IOException e) {
+                log.error("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常: ", e);
+                throw new BusinessException("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常");
+            }
+
+        }
+
         return ResVo.success();
     }
 
@@ -239,44 +366,36 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         String tableType = mixedTableDesign.getTableType();
         Set<String> tableTypeSet = Set.of("s", "t", "l", "m", "ts");
         if (ObjectUtils.isEmpty(tableType)) {
-            log.info("校验拒绝 表类型 为空");
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表类型 为空");
         }
         if (!tableTypeSet.contains(tableType)) {
-            log.info("校验拒绝 表类型: {}", tableType);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表类型不合法: " + tableType);
         }
 
 
         // 表名前缀检查
         String preTableName = mixedTableDesign.getPre_tableName();
         if (ObjectUtils.isEmpty(preTableName)) {
-            log.info("校验拒绝 表名前缀 为空");
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名前缀 为空");
         }
         if (!preTableName.equals(tableType + "_")) {
-            log.info("校验拒绝 表名前缀: {}", preTableName);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名前缀: " + preTableName);
         }
 
         // 表名后段检查
         String subTableName = mixedTableDesign.getSub_tableName();
         String subTableNameReg = "^[a-z0-9]+(_[a-z0-9]+)*$";
         if (ObjectUtils.isEmpty(subTableName)) {
-            log.info("校验拒绝 表名后段 为空");
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名后段 为空");
         }
         if (!subTableName.matches(subTableNameReg)) {
-            log.info("校验拒绝 表名后段: {} 字符匹配", subTableName);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名后段: " + subTableName + " 字符匹配");
         }
         if (subTableName.length() > 40) {
-            log.info("校验拒绝 表名后段: {} 长度大于40", subTableName);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名后段: 长度大于40 " + subTableName);
         }
         if (subTableName.length() < 5) {
-            log.info("校验拒绝 表名后段: {} 长度小于5", subTableName);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名后段: 长度小于5 " + subTableName);
         }
 
         // 表名检查
@@ -294,12 +413,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 //        String tableNameReg = "^(s_|t_|l_|m_|ts_)([a-zA-Z0-9](?:[a-zA-Z0-9]|_(?=[a-zA-Z0-9]))){4,}[a-zA-Z0-9]$";
         String tableName = mixedTableDesign.getTableName();
         if (ObjectUtils.isEmpty(tableName)) {
-            log.info("校验拒绝 表名 为空");
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名 为空");
         }
         if (!tableName.equals(preTableName + subTableName)) {
-            log.info("校验拒绝 表名: {} 不等于表名前缀+表名后段", tableName);
-            return false;
+            throw new BusinessException("校验拒绝", "校验拒绝 表名: 不等于表名前缀+表名后段" + tableName);
         }
 
         // 表注释检查
@@ -320,8 +437,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         // 字段检查
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
         if (ObjectUtils.isEmpty(listTableDesignColumn)) {
-            log.info("校验拒绝 没有字段: {}", listTableDesignColumn);
-            return false;
+            throw new BusinessException("表设计中至少需要包含一个字段, 请添加字段");
         }
 
         String columnNameReg = "^[a-z][a-z0-9]*(_[a-z0-9]+)*$";
@@ -518,5 +634,34 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         return true;
 
+    }
+
+    // 辅助方法：查找import插入位置
+    private static int findImportInsertIndex(List<String> lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("import ") || line.startsWith("package ")) {
+                continue;
+            }
+            if (line.isEmpty()) {
+                return i;
+            }
+            break;
+        }
+        return 1; // 默认插入位置在package之后
+    }
+
+    // 辅助方法：查找类声明行
+    private static int findClassDeclarationLine(List<String> lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("public class ") ||
+                    line.startsWith("public interface ") ||
+                    line.startsWith("class ") ||
+                    line.startsWith("interface ")) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

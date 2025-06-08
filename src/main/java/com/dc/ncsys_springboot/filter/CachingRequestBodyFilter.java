@@ -33,9 +33,10 @@ public class CachingRequestBodyFilter implements Filter {
         if (isTextBasedContent(httpRequest.getContentType())) {
             // 包装请求
             CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(httpRequest);
+//            chain.doFilter(wrappedRequest, response);
+
             // 包装响应
             CachedBodyHttpServletResponse wrappedResponse = new CachedBodyHttpServletResponse(httpResponse);
-
             chain.doFilter(wrappedRequest, wrappedResponse);
             // 将包装后的响应设置回原始响应
             response = wrappedResponse;
