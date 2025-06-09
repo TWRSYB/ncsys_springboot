@@ -29,5 +29,14 @@
     <select id="showCreateTable" resultType="Map">
         show create table ${tableName}
     </select>
+    <select id="isTableExist" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+                       SELECT 1
+                       FROM information_schema.TABLES
+                       WHERE TABLE_SCHEMA = DATABASE()
+                         AND TABLE_NAME = #{tableName}
+                   ) AS table_exists
+    </select>
+
 
 </mapper>

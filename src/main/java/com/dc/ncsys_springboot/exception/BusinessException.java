@@ -8,10 +8,19 @@ public class BusinessException extends RuntimeException {
     public BusinessException(String customerMessage) {
         this(customerMessage, customerMessage);
     }
+    public BusinessException(String customerMessage, Throwable cause) {
+        this(customerMessage, customerMessage, cause);
+    }
 
     // 完整构造器（同时传内部和客户消息）
     public BusinessException(String internalMessage, String customerMessage) {
         super(customerMessage);
+        this.internalMessage = internalMessage;
+        this.customerMessage = customerMessage;
+    }
+
+    public BusinessException(String internalMessage, String customerMessage, Throwable cause) {
+        super(customerMessage, cause);
         this.internalMessage = internalMessage;
         this.customerMessage = customerMessage;
     }

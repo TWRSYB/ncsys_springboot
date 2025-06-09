@@ -172,24 +172,46 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         return ResVo.success("获取表详细设计成功", mixedTableDesign);
     }
 
+
+    /**
+     * 1. 获取SessionUser
+     * 2. 表设计验证(如果TableId为空则赋值)
+     * 3. 查看表是否已经存在
+     * 4. 拼接建表SQL
+     * 5. 建表
+     * 6. 记录表设计SQL
+     * 7. 更新混合表数据状态并落库
+     * 8. 生成实体类
+     * 9. 文件处理
+     */
     @Override
     public ResVo createTableAndEntity(MixedTableDesign mixedTableDesign) {
 
+        // 1. 获取SessionUser
+        log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
         User sessionUser = SessionUtils.getSessionUser();
-
-        // 表设计校验
-        if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
-        // 保存表设计
-        saveMixedTableDesign(mixedTableDesign);
         String tableName = mixedTableDesign.getTableName();
-        log.info("表设计保存成功: 表名: {}", tableName);
+        log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
-        // 拼接建表SQL
-        TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
-        tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE").setExecuteOrder(1);
 
+        // 2. 表设计校验
+        log.info("↓↓↓ 2. 表设计校验 ↓↓↓");
+        if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
+        log.info("↑↑↑ 2. 表设计校验 ↑↑↑");
+
+        // 3. 查看表是否已经存在
+        log.info("↓↓↓ 3. 查看表是否已经存在 ↓↓↓");
+        Boolean isTableExist = tableDesignMapper.isTableExist(tableName);
+        if (isTableExist) {
+            log.warn("当前表名的表已经存在, {}", tableName);
+            return ResVo.fail("当前表名的表已经存在");
+        }
+        log.info("↑↑↑ 3. 查看表是否已经存在 ↑↑↑");
+
+
+        // 4. 拼接建表SQL
+        log.info("↓↓↓ 4. 拼接建表SQL ↓↓↓");
         StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE `");
-
         sqlBuilder.append(tableName).append("` (");
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
         List<String> keys = new ArrayList<>();
@@ -236,44 +258,78 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
 
-        System.out.println("sqlBuilder = " + sqlBuilder);
-
         String sql = sqlBuilder.toString();
 
-        tableDesignSqlDo.setExecuteSql(sql);
+        log.info("生成了建表SQL: {}", sql);
 
+        Set<String> dangerWordsSet = Set.of(" select ", " * ", " from ", " where "
+                , " set "
+                , " delete "
+                , " drop ", " truncate ");
+
+
+        for (String word : dangerWordsSet) {
+            if (sql.toLowerCase().contains(word.toLowerCase())) {
+                log.error("SQL中存在危险字符: {}", word);
+                return ResVo.fail("表设计校验失败");
+            }
+        }
+
+
+        log.info("↑↑↑ 4. 拼接建表SQL ↑↑↑");
+
+
+        // 5. 建表
+        log.info("↓↓↓ 5. 建表 ↓↓↓");
         try {
             tableDesignMapper.createTable(sql);
             log.info("建表成功");
         } catch (Exception e) {
-            log.info("建表时出现异常: ", e);
-            return ResVo.fail("保存表设计成功, 但建表时出现异常");
+            throw new BusinessException("建表时出现异常", e);
         }
+        log.info("↑↑↑ 5. 建表 ↑↑↑");
 
-        Map<String, Map<String, String>> lastCreateSqlMap = tableDesignMapper.showCreateTable(tableName);
-        String lastCreateSql = lastCreateSqlMap.get(tableName).get("Create Table");
-        System.out.println("lastCreateSql = " + lastCreateSql);
 
-        tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
-
+        // 6. 记录表设计SQL
+        log.info("↓↓↓ 6. 记录表设计SQL ↓↓↓");
         try {
+            Map<String, Map<String, String>> lastCreateSqlMap = tableDesignMapper.showCreateTable(tableName);
+            String lastCreateSql = lastCreateSqlMap.get(tableName).get("Create Table");
+            TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
+            tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE").setExecuteOrder(1);
+            tableDesignSqlDo.setExecuteSql(sql);
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
             tableDesignSqlMapper.insert(tableDesignSqlDo);
             log.info("记录表设计SQL成功");
         } catch (Exception e) {
-            log.warn("记录表设计SQL异常: ", e);
-            throw new BusinessException("建表成功, 但记录表设计SQL异常");
+            throw new BusinessException("建表成功, 但记录表设计SQL异常", e);
         }
+        log.info("↑↑↑ 6. 记录表设计SQL ↑↑↑");
 
-        // 开始生成实体类
+        // 7. 更新混合表数据状态并落库
+        log.info("↓↓↓ 7. 更新混合表数据状态并落库 ↓↓↓");
+        mixedTableDesign.setDataStatus("1");
+        for (TableDesignColumnDo tableDesignColumnDo : mixedTableDesign.getList_tableDesignColumn()) {
+            tableDesignColumnDo.setDataStatus("1");
+        }
+        saveMixedTableDesign(mixedTableDesign);
+        log.info("表设计保存成功: 表名: {}", tableName);
+        log.info("↑↑↑ 7. 更新混合表数据状态并落库 ↑↑↑");
+
+        // 8. 生成实体类
+        log.info("↓↓↓ 8. 生成实体类 ↓↓↓");
         CodeGenerator.generator(tableName);
+        log.info("↑↑↑ 8. 生成实体类 ↑↑↑");
 
-        // 找到Mapper.java添加@Mapper注解
+        // 9. 文件处理
+        log.info("↓↓↓ 9. 文件处理 ↓↓↓");
+        // 为Mapper.java添加@Mapper注解
+        log.info("↓↓↓ 9.1. 为Mapper添加@Mapper注解 ↓↓↓");
         String generateMapperDir = "src/main/java/com/dc/ncsys_springboot/mapper/";
         String mapperName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.java";
         Path mapperPath = Path.of(generateMapperDir, mapperName);
         List<String> mapperLines;
         try {
-            log.info("为Mapper文件添加@Mapper注解");
             mapperLines = Files.readAllLines(mapperPath);
             boolean hasMapperImport = mapperLines.stream()
                     .anyMatch(line -> line.contains("import org.apache.ibatis.annotations.Mapper;"));
@@ -281,9 +337,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                     .anyMatch(line -> line.contains("@Mapper"));
 
             if (hasMapperImport || hasMapperAnnotation) {
-                log.info("Mapper文件已有@Mapper注解, 无需添加");
+                log.info("Mapper已有@Mapper注解, 无需添加");
             } else {
-                log.info("Mapper文件没有@Mapper注解, 执行添加");
+                log.info("Mapper没有@Mapper注解, 执行添加");
                 // 添加import语句
                 int importInsertIndex = findImportInsertIndex(mapperLines);
                 mapperLines.add(importInsertIndex, "import org.apache.ibatis.annotations.Mapper;");
@@ -295,16 +351,18 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 }
                 // 写回文件
                 Files.write(mapperPath, mapperLines);
-                log.info("为Mapper文件添加@Mapper注解成功");
+                log.info("为Mapper添加@Mapper注解成功");
             }
 
         } catch (IOException e) {
             log.warn("为Mapper文件添加@Mapper注解出现异常: ", e);
             throw new BusinessException("为Mapper文件添加@Mapper注解出现异常");
         }
+        log.info("↑↑↑ 9.1. 为Mapper添加@Mapper注解 ↑↑↑");
 
 
-        // 找到Mapper.xml移动到resources目录下
+        // 将Mapper.xml移动到resources目录下
+        log.info("↓↓↓ 9.2. 将Mapper.xml移动到resources目录下 ↓↓↓");
         String generateMapperXmlDir = "src/main/java/com/dc/ncsys_springboot/mapper/xml/";
         String targetMapperXmlDir = "src/main/resources/com/dc/ncsys_springboot/mapper/xml/";
         String mapperXmlName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.xml";
@@ -315,12 +373,15 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
             log.info("移动代码生成器生成的Mapper.xml文件成功");
         } catch (IOException e) {
-            log.warn("移动代码生成器生成的Mapper.xml文件出现异常: ", e);
-            throw new BusinessException("移动代码生成器生成的Mapper.xml文件出现异常");
+            throw new BusinessException("移动代码生成器生成的Mapper.xml文件出现异常", e);
         }
+        log.info("↑↑↑ 9.2. 将Mapper.xml移动到resources目录下 ↑↑↑");
 
-        // 找到Do, 如果keys>1, 则把后面的key的@TableId替换为@TableField
-        if (keys.size() >1) {
+
+
+        // 如果keys>1, 则把Do后面的key的@TableId替换为@TableField
+        log.info("↓↓↓ 9.3. 如果keys>1, 则把Do后面的key的@TableId替换为@TableField ↓↓↓");
+        if (keys.size() > 1) {
             log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField");
             String generateDoDir = "src/main/java/com/dc/ncsys_springboot/daoVo/";
             String doName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Do.java";
@@ -342,7 +403,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                     // 替换注解
                     for (int i = 10; i < doLines.size() - 2; i++) {
                         String line = doLines.get(i);
-                        if (doLines.get(i+1).contains(" " + fieldName + ";") && line.contains("@TableId")) {
+                        if (doLines.get(i + 1).contains(" " + fieldName + ";") && line.contains("@TableId")) {
                             doLines.set(i, line.replace("@TableId", "@TableField"));
                         }
                     }
@@ -355,6 +416,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             }
 
         }
+        log.info("↑↑↑ 9.3. 如果keys>1, 则把Do后面的key的@TableId替换为@TableField ↑↑↑");
+        log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
         return ResVo.success();
     }
@@ -447,6 +510,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         Set<String> needLengthSet = Set.of("varchar", "char");
         Set<String> canEnumSet = Set.of("varchar", "char");
         Pattern patternNotInFieldEnum = Pattern.compile("[ ,:;]"); // 匹配空格、冒号、逗号
+        Set<String> columnNameSet = new HashSet<>();
 
 
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
@@ -466,6 +530,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 log.info("校验拒绝 columnName: {} 长度大于40", columnName);
                 return false;
             }
+            if (columnNameSet.contains(columnName)) {
+                throw new BusinessException("字段名重复" + columnName);
+            }
+            columnNameSet.add(columnName);
 
             //columnComment
             String columnComment = tableDesignColumnDo.getColumnComment();
@@ -629,6 +697,11 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             }
 
 
+        }
+
+        if (ObjectUtils.isEmpty(mixedTableDesign.getTableId())) {
+            log.info("SVC混合表设计校验: 当前入参没有tableId, 表名: {}", tableName);
+            mixedTableDesign.setTableId(tableName + "_" + DateTimeUtil.getMinuteKey());
         }
 
 

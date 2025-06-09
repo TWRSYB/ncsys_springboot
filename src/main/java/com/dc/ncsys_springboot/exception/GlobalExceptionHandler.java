@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ResVo> handleBusinessException(BusinessException ex) {
         // 记录内部日志（包含敏感信息）
-        log.error("业务异常 - 内部信息: {}", ex.getInternalMessage(), ex);
+        log.error("业务异常 - 对客信息: {}, 对内信息: {}", ex.getCustomerMessage(), ex.getInternalMessage(), ex);
         return new ResponseEntity<>(ResVo.fail(ex.getCustomerMessage()), HttpStatus.BAD_REQUEST);
     }
 
