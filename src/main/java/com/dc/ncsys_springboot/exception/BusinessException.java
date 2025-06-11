@@ -13,13 +13,13 @@ public class BusinessException extends RuntimeException {
     }
 
     // 完整构造器（同时传内部和客户消息）
-    public BusinessException(String internalMessage, String customerMessage) {
+    public BusinessException(String customerMessage, String internalMessage) {
         super(customerMessage);
         this.internalMessage = internalMessage;
         this.customerMessage = customerMessage;
     }
 
-    public BusinessException(String internalMessage, String customerMessage, Throwable cause) {
+    public BusinessException(String customerMessage, String internalMessage, Throwable cause) {
         super(customerMessage, cause);
         this.internalMessage = internalMessage;
         this.customerMessage = customerMessage;
