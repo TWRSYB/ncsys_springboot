@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.controller;
 
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
+import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,12 @@ public class TableDesignController {
     public ResVo createTableAndEntity(@RequestBody MixedTableDesign mixedTableDesign) {
         log.info("CONT入参: {}", mixedTableDesign);
         return tableDesignService.createTableAndEntity(mixedTableDesign);
+    }
+
+    @PostMapping("/addColumn")
+    public ResVo addColumn(@RequestBody TableDesignColumnDo tableDesignColumnDo) {
+        log.info("CONT入参: {}", tableDesignColumnDo);
+        return tableDesignService.addColumn(tableDesignColumnDo);
     }
 
 }

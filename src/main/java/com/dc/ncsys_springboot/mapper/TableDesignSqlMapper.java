@@ -16,4 +16,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface TableDesignSqlMapper extends BaseMapper<TableDesignSqlDo> {
 
+    int insertNextRecord(TableDesignSqlDo tableDesignSqlDo);
 }

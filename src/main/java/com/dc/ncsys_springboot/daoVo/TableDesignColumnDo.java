@@ -130,6 +130,13 @@ public class TableDesignColumnDo implements Serializable {
     @TableField(exist = false)
     private List<String> fieldEnumArray;
 
+
+    /**
+     * 表名
+     */
+    @TableField(exist = false)
+    private String tableName;
+
     public TableDesignColumnDo setFieldEnum(final String fieldEnum) throws JsonProcessingException {
         this.fieldEnum = fieldEnum;
         if (!ObjectUtils.isEmpty(fieldEnum)) {

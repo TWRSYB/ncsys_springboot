@@ -25,6 +25,10 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
     @Update("${sql}")
     int createTable(@Param("sql") String sql);
 
+
+    @Update("${sql}")
+    int addColumn(@Param("sql") String sql);
+
     @MapKey("Table")
     Map<String, Map<String, String>> showCreateTable(@Param("tableName") String tableName);
 
