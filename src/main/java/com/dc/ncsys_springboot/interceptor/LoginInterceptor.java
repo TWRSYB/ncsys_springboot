@@ -85,23 +85,11 @@ public class LoginInterceptor implements HandlerInterceptor {
             }
         }
 
-//        if (!authResult) {
-//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//            // 处理AJAX请求
-//            if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
-//                log.warn("AJAX请求, 响应401要求前端自己跳转登录页面");
-//                response.setContentType("application/json;charset=UTF-8");
-//                response.getWriter().write("""
-//                        {"code": 401, "message": "未登录，请先登录！"}
-//                        """);
-//            } else {
-//                // 普通请求重定向到登录页，并携带原始请求URL作为参数
-//                log.warn("普通请求重定向到登录页，并携带原始请求URL作为参数");
-//                String redirectUrl = request.getContextPath() + "/login.html?redirect=" + URLEncoder.encode(getOriginalRequestUrl(request), StandardCharsets.UTF_8);
-//                response.sendRedirect(redirectUrl);
-//            }
-//            return false;
-//        }
+        // 登录认证失败响应401
+        if (!authResult) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
+        }
 
         return true;
 
