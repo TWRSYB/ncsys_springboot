@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.controller;
 
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
+import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,12 @@ public class TableDesignController {
     public ResVo saveTableDesign(@RequestBody MixedTableDesign mixedTableDesign) {
         log.info("保存数据库设计接口收到请求: {}", mixedTableDesign);
         return tableDesignService.saveTableDesign(mixedTableDesign);
+    }
+
+    @PostMapping("/deleteTableDesign")
+    public ResVo deleteTableDesign(@RequestBody TableDesignDo TableDesignDo) {
+        log.info("CONT入参: {}", TableDesignDo);
+        return tableDesignService.deleteTableDesign(TableDesignDo);
     }
 
     @GetMapping("/getTableDesignDetail")

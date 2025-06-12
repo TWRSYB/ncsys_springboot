@@ -27,4 +27,6 @@ public interface TableDesignService extends IService<TableDesignDo> {
     ResVo createTableAndEntity(MixedTableDesign mixedTableDesign);
 
     ResVo addColumn(TableDesignColumnDo tableDesignColumnDo);
+
+    ResVo deleteTableDesign(TableDesignDo tableDesignDo);
 }

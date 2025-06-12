@@ -36,4 +36,8 @@
              ) AS t
     </insert>
 
+    <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignSqlDo">
+        select * from s_table_design_sql where table_id = #{tableId}
+    </select>
+
 </mapper>

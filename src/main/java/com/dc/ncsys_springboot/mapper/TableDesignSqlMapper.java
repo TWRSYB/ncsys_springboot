@@ -3,6 +3,9 @@ package com.dc.ncsys_springboot.mapper;
 import com.dc.ncsys_springboot.daoVo.TableDesignSqlDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 
 /**
@@ -17,4 +20,6 @@ import org.apache.ibatis.annotations.Mapper;
 public interface TableDesignSqlMapper extends BaseMapper<TableDesignSqlDo> {
 
     int insertNextRecord(TableDesignSqlDo tableDesignSqlDo);
+
+    List<TableDesignSqlDo> selectByTableId(@Param("tableId") String tableId);
 }

@@ -441,7 +441,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             throw new BusinessException("校验拒绝", "表名对不上");
         }
 
-        List<TableDesignColumnDo> columnDoList = tableDesignColumnMapper.getByTableId(tableDesignColumnDo.getTableId());
+        List<TableDesignColumnDo> columnDoList = tableDesignColumnMapper.selectByTableId(tableDesignColumnDo.getTableId());
         for (TableDesignColumnDo column : columnDoList) {
             if (column.getColumnName().equals(tableDesignColumnDo.getColumnName())) {
                 throw new BusinessException("同名的列已经存在", tableDesignColumnDo.getColumnName());
@@ -525,6 +525,65 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         return ResVo.success("添加字段成功");
 
+    }
+
+    /**
+     * 1 入参检查
+     * 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 sql没有数据
+     * 3 查询表是否存在 存在则拒绝
+     * 4 删除主数据 删除列数据
+     */
+    @Override
+    public ResVo deleteTableDesign(TableDesignDo inDo) {
+
+        // 1 入参检查
+        log.info("↓↓↓ 1 入参检查 ↓↓↓");
+        String tableId = inDo.getTableId();
+        if (ObjectUtils.isEmpty(tableId)) {
+            return ResVo.fail("入参有误");
+        }
+        log.info("↑↑↑ 1 入参检查 ↑↑↑");
+
+        // 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 sql没有数据
+        log.info("↓↓↓ 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 sql没有数据 ↓↓↓");
+        TableDesignDo tableDesignDo = tableDesignMapper.selectById(inDo);
+        if (tableDesignDo == null) {
+            return ResVo.fail("表设计主表不存在");
+        }
+        if (!"0".equals(tableDesignDo.getDataStatus())) {
+            throw new BusinessException("状态异常", "主表状态不是0");
+        }
+        List<TableDesignColumnDo> tableDesignColumnDos = tableDesignColumnMapper.selectByTableId(tableId);
+        if (!ObjectUtils.isEmpty(tableDesignColumnDos)) {
+            for (TableDesignColumnDo tableDesignColumnDo : tableDesignColumnDos) {
+                if (!"0".equals(tableDesignColumnDo.getDataStatus())) {
+                    throw new BusinessException("状态异常", "列状态不是0");
+                }
+            }
+        }
+        List<TableDesignSqlDo> tableDesignSqlDos = tableDesignSqlMapper.selectByTableId(tableId);
+        if (!ObjectUtils.isEmpty(tableDesignSqlDos)) {
+            throw new BusinessException("状态异常", "有SQL记录");
+        }
+        log.info("↑↑↑ 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 sql没有数据 ↑↑↑");
+
+
+        // 3 查询表是否存在 存在则拒绝
+        log.info("↓↓↓ 4 查询表是否存在 存在则拒绝 ↓↓↓");
+        Boolean isTableExist = tableDesignMapper.isTableExist(tableDesignDo.getTableName());
+        if (isTableExist) {
+            throw new BusinessException("状态异常", "表已存在");
+        }
+        log.info("↑↑↑ 4 查询表是否存在 存在则拒绝 ↑↑↑");
+
+
+        // 4 删除主数据 删除列数据
+        log.info("↓↓↓ 5 删除主数据 删除列数据 ↓↓↓");
+        tableDesignMapper.deleteById(tableDesignDo);
+        tableDesignColumnMapper.deleteByTableId(tableId);
+        log.info("↑↑↑ 5 删除主数据 删除列数据 ↑↑↑");
+
+        return ResVo.success("删除表设计成功");
     }
 
     private static void replaceTableId2TableFieldWhenMultiple(String tableName) {

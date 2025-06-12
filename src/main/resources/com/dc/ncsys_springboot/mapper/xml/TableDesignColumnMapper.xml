@@ -45,5 +45,13 @@
             tdc.create_time
     </select>
 
+    <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
+        select * from s_table_design_column where table_id = #{tableId}
+    </select>
+
+    <delete id="deleteByTableId">
+        delete from s_table_design_column where table_id = #{tableId}
+    </delete>
+
 
 </mapper>
