@@ -4,6 +4,7 @@ import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
 import com.dc.ncsys_springboot.vo.ResVo;
 
 /**
@@ -29,4 +30,6 @@ public interface TableDesignService extends IService<TableDesignDo> {
     ResVo addColumn(TableDesignColumnDo tableDesignColumnDo);
 
     ResVo deleteTableDesign(TableDesignDo tableDesignDo);
+
+    ResVo addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
 }

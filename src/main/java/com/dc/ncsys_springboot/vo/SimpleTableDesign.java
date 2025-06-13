@@ -17,5 +17,13 @@ public class SimpleTableDesign {
      */
     private String columnComment;
 
+    /**
+     * 默认值
+     */
     private String columnDefault;
+
+    /**
+     * 列键
+     */
+    private String columnKey;
 }

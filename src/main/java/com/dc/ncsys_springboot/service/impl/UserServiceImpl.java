@@ -7,6 +7,7 @@ import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.mapper.UserMapper;
 import com.dc.ncsys_springboot.service.UserService;
 import com.dc.ncsys_springboot.util.JwtUtil;
+import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.ResVo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -84,5 +85,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         System.out.println("map = " + map);
         List<User> users = userMapper.selectList(new QueryWrapper<>());
         return ResVo.success("查询用户列表成功", users);
+    }
+
+    @Override
+    public ResVo getUserInfo() {
+        User sessionUser = SessionUtils.getSessionUser();
+        User user = new User();
+        user.setUserId(sessionUser.getUserId());
+        user.setLoginCode(sessionUser.getLoginCode());
+        user.setUserName(sessionUser.getUserName());
+        user.setRoleCode(sessionUser.getRoleCode());
+        return ResVo.success("获取用户信息成功", user);
     }
 }

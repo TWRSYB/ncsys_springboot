@@ -3,6 +3,7 @@ package com.dc.ncsys_springboot.controller;
 import com.dc.ncsys_springboot.daoVo.MixedTableDesign;
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
+import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,12 @@ public class TableDesignController {
     public ResVo addColumn(@RequestBody TableDesignColumnDo tableDesignColumnDo) {
         log.info("CONT入参: {}", tableDesignColumnDo);
         return tableDesignService.addColumn(tableDesignColumnDo);
+    }
+
+    @PostMapping("/addUniqueKey")
+    public ResVo addUniqueKey(@RequestBody TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
+        log.info("CONT入参: {}", tableDesignUniqueKeyDo);
+        return tableDesignService.addUniqueKey(tableDesignUniqueKeyDo);
     }
 
 }

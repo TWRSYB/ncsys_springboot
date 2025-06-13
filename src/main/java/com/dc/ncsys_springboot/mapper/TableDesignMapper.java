@@ -35,4 +35,6 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
 
     Boolean isTableExist(@Param("tableName")String tableName);
 
+    @Update("${sql}")
+    int addUniqueKey(@Param("sql") String sql);
 }

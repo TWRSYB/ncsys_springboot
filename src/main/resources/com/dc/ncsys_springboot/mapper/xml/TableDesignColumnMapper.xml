@@ -46,7 +46,7 @@
     </select>
 
     <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
-        select * from s_table_design_column where table_id = #{tableId}
+        select * from s_table_design_column where table_id = #{tableId} order by create_time
     </select>
 
     <delete id="deleteByTableId">

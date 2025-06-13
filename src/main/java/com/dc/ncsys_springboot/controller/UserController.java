@@ -4,15 +4,9 @@ package com.dc.ncsys_springboot.controller;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.service.UserService;
 import com.dc.ncsys_springboot.vo.ResVo;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -37,6 +31,14 @@ public class UserController {
         return userService.login(user);
 
     }
+
+
+    @GetMapping("/getUserInfo")
+    public ResVo getUserInfo() {
+        log.info("CONT入参为空");
+        return userService.getUserInfo();
+    }
+
 
 }
 
