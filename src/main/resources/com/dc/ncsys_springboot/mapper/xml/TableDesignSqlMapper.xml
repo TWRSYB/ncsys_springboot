@@ -39,5 +39,12 @@
     <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignSqlDo">
         select * from s_table_design_sql where table_id = #{tableId}
     </select>
+    <select id="selectLast" resultType="com.dc.ncsys_springboot.daoVo.TableDesignSqlDo">
+        select *
+        from s_table_design_sql
+        where table_id = #{tableId}
+        order by execute_order desc
+        limit 1
+    </select>
 
 </mapper>

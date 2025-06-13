@@ -177,6 +177,12 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         List<TableDesignColumnDo> tableDesignColumnDos = tableDesignColumnMapper.getByTableId(mixedTableDesign.getTableId());
         mixedTableDesign.setList_tableDesignColumn(tableDesignColumnDos);
 
+        TableDesignSqlDo tableDesignSqlDo = tableDesignSqlMapper.selectLast(mixedTableDesign.getTableId());
+        mixedTableDesign.setLast_tableDesignSql(tableDesignSqlDo);
+
+        List<TableDesignUniqueKeyDo> tableDesignUniqueKeyDos = tableDesignUniqueKeyMapper.selectByTableId(mixedTableDesign.getTableId());
+        mixedTableDesign.setList_uniqueKey(tableDesignUniqueKeyDos);
+
         return ResVo.success("获取表详细设计成功", mixedTableDesign);
     }
 

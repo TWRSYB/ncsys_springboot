@@ -22,4 +22,6 @@ public interface TableDesignSqlMapper extends BaseMapper<TableDesignSqlDo> {
     int insertNextRecord(TableDesignSqlDo tableDesignSqlDo);
 
     List<TableDesignSqlDo> selectByTableId(@Param("tableId") String tableId);
+
+    TableDesignSqlDo selectLast(@Param("tableId") String tableId);
 }

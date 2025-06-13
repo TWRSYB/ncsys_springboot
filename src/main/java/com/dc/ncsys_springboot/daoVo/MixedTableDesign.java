@@ -27,6 +27,14 @@ public class MixedTableDesign extends TableDesignDo implements Serializable {
     private String sub_tableName;
 
 
+    // 列设计列表
     private List<TableDesignColumnDo> list_tableDesignColumn;
-//    public TableDesignSql last_tableDesignSql;
+
+    // 最后Sql
+    public TableDesignSqlDo last_tableDesignSql;
+
+    // 唯一约束列表
+    public List<TableDesignUniqueKeyDo> list_uniqueKey;
+
+
 }

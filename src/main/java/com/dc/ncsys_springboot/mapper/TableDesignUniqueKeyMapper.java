@@ -3,7 +3,9 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 
 
 /**
@@ -17,4 +19,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface TableDesignUniqueKeyMapper extends BaseMapper<TableDesignUniqueKeyDo> {
 
+    List<TableDesignUniqueKeyDo> selectByTableId(@Param("tableId") String tableId);
 }
