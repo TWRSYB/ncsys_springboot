@@ -20,7 +20,7 @@ import org.springframework.util.ObjectUtils;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-13 10:48
+ * @since 2025-06-13 17:12
  */
 @Data
 @Accessors(chain = true)
@@ -38,6 +38,7 @@ public class TableDesignUniqueKeyDo implements Serializable {
     /**
      * 约束名称
      */
+    @TableField("unique_key_name")
     private String uniqueKeyName;
 
     /**

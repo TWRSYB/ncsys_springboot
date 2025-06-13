@@ -362,11 +362,17 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
                 for (int k = 1; k < keys.size(); k++) {
                     String fieldName = keys.get(k);
+                    log.info("为第 {} 个key {} 添加注解", k+1, fieldName);
                     // 替换注解
                     for (int i = 10; i < doLines.size() - 2; i++) {
                         String line = doLines.get(i);
-                        if (doLines.get(i + 1).contains(" " + fieldName + ";") && line.contains("@TableId")) {
-                            doLines.set(i, line.replace("@TableId", "@TableField"));
+                        if (line.contains("@TableId")) {
+                            String nextLine = doLines.get(i + 1);
+                            log.info("在第 {} 行扫描的@TableId注解: {}, 其下一行内容为: {}", i+1, line, nextLine);
+                            if (nextLine.contains(" " + fieldName + ";")){
+                                log.info("找到key {} 了, 为其替换注解", fieldName);
+                                doLines.set(i, line.replace("@TableId", "@TableField"));
+                            }
                         }
                     }
                 }

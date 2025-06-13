@@ -1,4 +1,5 @@
 package com.dc.ncsys_springboot.mapper;
+import org.apache.ibatis.annotations.Mapper;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -11,8 +12,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-13 16:55
+ * @since 2025-06-13 17:12
  */
+@Mapper
 public interface TableDesignUniqueKeyMapper extends BaseMapper<TableDesignUniqueKeyDo> {
 
 }
