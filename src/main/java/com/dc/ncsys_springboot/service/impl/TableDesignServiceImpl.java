@@ -119,6 +119,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         return ResVo.success("获取表设计成功", Fields);
     }
 
+    /**
+     * 1_校验表设计
+     * 2_保存表设计
+     */
     @Override
     public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
         if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
@@ -126,22 +130,31 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         return ResVo.success("保存表设计成功");
     }
 
+    /**
+     * 1_获取当前登录账号
+     * 2_保存或更新表数据主表
+     * 3_删除表设计列后再插入
+     * 4_删除表设计唯一约束后再插入
+     */
     private void saveMixedTableDesign(MixedTableDesign mixedTableDesign) {
+
+        // 1_获取当前登录账号
+        log.info("↓↓↓ 1_获取当前登录账号 ↓↓↓");
         User sessionUser = SessionUtils.getSessionUser();
         String nowUserLoginCode = sessionUser.getLoginCode();
-        if (ObjectUtils.isEmpty(mixedTableDesign.getTableId())) {
-            log.info("SVC保存表设计: 当前入参没有tableId, 表名: {}", mixedTableDesign.getTableName());
-            mixedTableDesign.setCreateUser(nowUserLoginCode);
-            mixedTableDesign.setTableId(mixedTableDesign.getTableName() + "_" + DateTimeUtil.getMinuteKey());
-        }
+        log.info("↑↑↑ 1_获取当前登录账号 ↑↑↑");
 
+        // 2_保存或更新表数据主表
+        log.info("↓↓↓ 2_保存或更新表数据主表 ↓↓↓");
         mixedTableDesign.setUpdateUser(nowUserLoginCode);
         boolean insertOrUpdateTableDesign = tableDesignMapper.insertOrUpdate(mixedTableDesign);
         if (!insertOrUpdateTableDesign) {
             throw new BusinessException("保存表设计失败");
         }
+        log.info("↑↑↑ 2_保存或更新表数据主表 ↑↑↑");
 
-        // 删除表设计列后再插入
+        // 3_删除表设计列后再插入
+        log.info("↓↓↓ 3_删除表设计列后再插入 ↓↓↓");
         LambdaQueryWrapper<TableDesignColumnDo> tdcQueryWrapper = new LambdaQueryWrapper<>();
         tdcQueryWrapper.eq(TableDesignColumnDo::getTableId, mixedTableDesign.getTableId());
         int delete = tableDesignColumnMapper.delete(tdcQueryWrapper);
@@ -150,22 +163,44 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         List<TableDesignColumnDo> listTableDesignColumn = mixedTableDesign.getList_tableDesignColumn();
         int fieldIndex = 0;
         for (TableDesignColumnDo tableDesignColumn : listTableDesignColumn) {
-            if (ObjectUtils.isEmpty(tableDesignColumn.getTableId())) {
-                log.info("SVC保存表设计: 当前列没有tableId, 列名: {}", tableDesignColumn.getColumnName());
-                tableDesignColumn.setCreateUser(nowUserLoginCode);
-                tableDesignColumn.setTableId(mixedTableDesign.getTableId());
-            }
             tableDesignColumn.setFieldIndex(++fieldIndex);
             tableDesignColumn.setUpdateUser(nowUserLoginCode);
             tableDesignColumnMapper.insert(tableDesignColumn);
             log.info("SVC保存表设计: 保存列完成, 列名: {}", tableDesignColumn.getColumnName());
         }
+        log.info("↑↑↑ 3_删除表设计列后再插入 ↑↑↑");
+
+        // 4_删除表设计唯一约束后再插入
+        log.info("↓↓↓ 4_删除表设计唯一约束后再插入 ↓↓↓");
+        LambdaQueryWrapper<TableDesignUniqueKeyDo> tdukQueryWrapper = new LambdaQueryWrapper<>();
+        tdukQueryWrapper.eq(TableDesignUniqueKeyDo::getTableId, mixedTableDesign.getTableId());
+        int deleteTduk = tableDesignUniqueKeyMapper.delete(tdukQueryWrapper);
+        log.info("SVC保存表设计: 重新插入列之前删除了{}个唯一约束", deleteTduk);
+
+        List<TableDesignUniqueKeyDo> listUniqueKey = mixedTableDesign.getList_uniqueKey();
+        for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : listUniqueKey) {
+            tableDesignUniqueKeyDo.setUpdateUser(nowUserLoginCode);
+            tableDesignUniqueKeyMapper.insert(tableDesignUniqueKeyDo);
+            log.info("SVC保存表设计: 保存唯一约束完成, 列名: {}", tableDesignUniqueKeyDo.getUniqueKeyName());
+        }
+        log.info("↑↑↑ 4_删除表设计唯一约束后再插入 ↑↑↑");
+
+
     }
 
 
+    /**
+     * 1 查询主表数据
+     * 2 查询列列表
+     * 3 查询最后SQL
+     * 4 查询唯一约束列表
+     */
     @Override
     public ResVo getTableDesignDetail(String tableName) {
+
         MixedTableDesign mixedTableDesign = new MixedTableDesign();
+        // 1 查询主表数据
+        log.info("↓↓↓ 1 查询主表数据 ↓↓↓");
         LambdaQueryWrapper<TableDesignDo> tdQueryWrapper = new LambdaQueryWrapper<>();
         tdQueryWrapper.eq(TableDesignDo::getTableName, tableName);
         TableDesignDo tableDesignDo = tableDesignMapper.selectOne(tdQueryWrapper);
@@ -173,15 +208,25 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             return ResVo.fail("未能查询到当前表的详细设计信息");
         }
         BeanUtils.copyProperties(tableDesignDo, mixedTableDesign);
+        log.info("↑↑↑ 1 查询主表数据 ↑↑↑");
 
+        // 2 查询列列表
+        log.info("↓↓↓ 2 查询列列表 ↓↓↓");
         List<TableDesignColumnDo> tableDesignColumnDos = tableDesignColumnMapper.getByTableId(mixedTableDesign.getTableId());
         mixedTableDesign.setList_tableDesignColumn(tableDesignColumnDos);
+        log.info("↑↑↑ 2 查询列列表 ↑↑↑");
 
+        // 3 查询最后SQL
+        log.info("↓↓↓ 3 查询最后SQL ↓↓↓");
         TableDesignSqlDo tableDesignSqlDo = tableDesignSqlMapper.selectLast(mixedTableDesign.getTableId());
         mixedTableDesign.setLast_tableDesignSql(tableDesignSqlDo);
+        log.info("↑↑↑ 3 查询最后SQL ↑↑↑");
 
+        // 4 查询唯一约束列表
+        log.info("↓↓↓ 4 查询唯一约束列表 ↓↓↓");
         List<TableDesignUniqueKeyDo> tableDesignUniqueKeyDos = tableDesignUniqueKeyMapper.selectByTableId(mixedTableDesign.getTableId());
         mixedTableDesign.setList_uniqueKey(tableDesignUniqueKeyDos);
+        log.info("↑↑↑ 4 查询唯一约束列表 ↑↑↑");
 
         return ResVo.success("获取表详细设计成功", mixedTableDesign);
     }
@@ -250,6 +295,14 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             sqlBuilder.append(",").append(System.lineSeparator()).append("\tPRIMARY KEY (`").append(String.join("`, `", keys)).append("`)");
         }
 
+        List<TableDesignUniqueKeyDo> listUniqueKey = mixedTableDesign.getList_uniqueKey();
+        if (!ObjectUtils.isEmpty(listUniqueKey)) {
+            for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : listUniqueKey) {
+                sqlBuilder.append(",").append(System.lineSeparator()).append("\tUNIQUE KEY (`").append(String.join("`, `", tableDesignUniqueKeyDo.getUniqueKeyColumnArray())).append("`)");
+            }
+        }
+
+
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
 
         String sql = getSql(sqlBuilder);
@@ -291,6 +344,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         mixedTableDesign.setDataStatus("1");
         for (TableDesignColumnDo tableDesignColumnDo : mixedTableDesign.getList_tableDesignColumn()) {
             tableDesignColumnDo.setDataStatus("1");
+        }
+
+        for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : listUniqueKey) {
+            tableDesignUniqueKeyDo.setDataStatus("1");
         }
         saveMixedTableDesign(mixedTableDesign);
         log.info("表设计保存成功: 表名: {}", tableName);
@@ -368,14 +425,14 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
                 for (int k = 1; k < keys.size(); k++) {
                     String fieldName = keys.get(k);
-                    log.info("为第 {} 个key {} 添加注解", k+1, fieldName);
+                    log.info("为第 {} 个key {} 替换注解", k+1, fieldName);
                     // 替换注解
                     for (int i = 10; i < doLines.size() - 2; i++) {
                         String line = doLines.get(i);
                         if (line.contains("@TableId")) {
                             String nextLine = doLines.get(i + 1);
                             log.info("在第 {} 行扫描的@TableId注解: {}, 其下一行内容为: {}", i+1, line, nextLine);
-                            if (nextLine.contains(" " + fieldName + ";")){
+                            if (nextLine.contains(" " + StrUtils.underLine2Camel(fieldName) + ";")){
                                 log.info("找到key {} 了, 为其替换注解", fieldName);
                                 doLines.set(i, line.replace("@TableId", "@TableField"));
                             }
@@ -549,9 +606,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     /**
      * 1 入参检查
-     * 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 sql没有数据
+     * 2 查询主数据 列数据和sql数据 验证数据状态 主数据为0 列数据为0 唯一约束为0 sql没有数据
      * 3 查询表是否存在 存在则拒绝
-     * 4 删除主数据 删除列数据
+     * 4 删除主数据 删除列数据 删除唯一约束数据
      */
     @Override
     public ResVo deleteTableDesign(TableDesignDo inDo) {
@@ -581,6 +638,16 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 }
             }
         }
+
+        List<TableDesignUniqueKeyDo> tableDesignUniqueKeyDos = tableDesignUniqueKeyMapper.selectByTableId(tableId);
+        if (!ObjectUtils.isEmpty(tableDesignUniqueKeyDos)) {
+            for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : tableDesignUniqueKeyDos) {
+                if (!"0".equals(tableDesignUniqueKeyDo.getDataStatus())) {
+                    throw new BusinessException("状态异常", "唯一约束状态不是0");
+                }
+            }
+        }
+
         List<TableDesignSqlDo> tableDesignSqlDos = tableDesignSqlMapper.selectByTableId(tableId);
         if (!ObjectUtils.isEmpty(tableDesignSqlDos)) {
             throw new BusinessException("状态异常", "有SQL记录");
@@ -601,6 +668,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↓↓↓ 5 删除主数据 删除列数据 ↓↓↓");
         tableDesignMapper.deleteById(tableDesignDo);
         tableDesignColumnMapper.deleteByTableId(tableId);
+        tableDesignUniqueKeyMapper.deleteByTableId(tableId);
         log.info("↑↑↑ 5 删除主数据 删除列数据 ↑↑↑");
 
         return ResVo.success("删除表设计成功");
@@ -647,28 +715,11 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         if (!new HashSet<>(columnNameList).containsAll(uniqueKeyColumnArray)) {
             throw new BusinessException("校验拒绝", "约束的列在列设计中不存在");
         }
-
-
         log.info("↑↑↑ 3. 查看表是否已经存在 ↑↑↑");
 
-        // 4. 约束重复校验
-        log.info("↓↓↓ 4. 约束重复校验 ↓↓↓");
+        // 4_重新排序约束字段并生成约束名
+        log.info("↓↓↓ 4_重新排序约束字段并生成约束名 ↓↓↓");
         List<SimpleTableDesign> simpleTableDesigns = tableDesignMapper.getTableDesign(tableName);
-        List<String> keys = simpleTableDesigns.stream().filter(item->"PRI".equals(item.getColumnKey())).map(SimpleTableDesign::getColumnName).toList();
-        // 统计频率并比较
-        Map<String, Long> freq_uniqueKeyNew = uniqueKeyColumnArray.stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        Map<String, Long> freq_key = keys.stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        if (freq_uniqueKeyNew.equals(freq_key)) {
-            throw new BusinessException("校验拒绝", "约束的列与主键一致");
-        }
-        log.info("↑↑↑ 4. 约束重复校验 ↑↑↑");
-
-
-        // 5 重新排序约束字段并生成约束名
-        log.info("↓↓↓ 5. 重新排序约束字段并生成约束名 ↓↓↓");
         List<String> uniqueKeyColumnArrayOrdered = new ArrayList<>();
         for (SimpleTableDesign simpleTableDesign : simpleTableDesigns) {
             if (uniqueKeyColumnArray.contains(simpleTableDesign.getColumnName())) {
@@ -680,11 +731,33 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         try {
             tableDesignUniqueKeyDo.setUniqueKeyColumn(JSONArray.toJSONString(uniqueKeyColumnArrayOrdered));
         } catch (JsonProcessingException e) {
-            throw new BusinessException("校验拒绝", "约束的列与主键一致");
+            throw new BusinessException("校验拒绝", "toJSONString异常");
         }
         String uniqueKeyName = "UNIQUE_KEY_" + String.join("_", uniqueKeyColumnArrayOrdered);
         tableDesignUniqueKeyDo.setUniqueKeyName(uniqueKeyName);
-        log.info("↑↑↑ 4. 重新排序约束字段并生成约束名 ↑↑↑");
+        log.info("↑↑↑ 4_重新排序约束字段并生成约束名 ↑↑↑");
+
+
+        // 5_约束重复校验
+        log.info("↓↓↓ 5_约束重复校验 ↓↓↓");
+        List<String> keys = simpleTableDesigns.stream().filter(item->"PRI".equals(item.getColumnKey())).map(SimpleTableDesign::getColumnName).toList();
+        // 统计频率并比较
+        Map<String, Long> freq_uniqueKeyNew = uniqueKeyColumnArray.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        Map<String, Long> freq_key = keys.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        if (freq_uniqueKeyNew.equals(freq_key)) {
+            throw new BusinessException("校验拒绝", "约束的列与主键一致");
+        }
+        List<TableDesignUniqueKeyDo> tableDesignUniqueKeyDos = tableDesignUniqueKeyMapper.selectByTableId(tableDesignUniqueKeyDo.getTableId());
+        Set<String> uniqueKeyNameSet = tableDesignUniqueKeyDos.stream().map(TableDesignUniqueKeyDo::getUniqueKeyName).collect(Collectors.toSet());
+        // 与已有唯一约束比对
+        if (uniqueKeyNameSet.contains(uniqueKeyName)) {
+            throw new BusinessException("校验拒绝", "已经存在相同的唯一约束");
+        }
+        uniqueKeyNameSet.add(uniqueKeyName);
+        log.info("↑↑↑ 5_约束重复校验 ↑↑↑");
 
         // 6. 拼接 UNIQUEKEY_ADD SQL
         log.info("↓↓↓ 6. 拼接 UNIQUEKEY_ADD SQL ↓↓↓");
@@ -905,14 +978,19 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
 
         Set<String> columnNameSet = new HashSet<>();
+        List<String> keys = new ArrayList<>();
 
         for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
+
             // tableId
             if (!ObjectUtils.isEmpty(newTableId)) {
                 if (!ObjectUtils.isEmpty(tableDesignColumnDo.getTableId())) {
                     throw new BusinessException("校验拒绝", "入参表设计没有tableId但列中有tableId");
                 }
                 tableDesignColumnDo.setTableId(newTableId);
+                tableDesignColumnDo.setCreateUser(nowUserLoginCode);
+            } else if (ObjectUtils.isEmpty(tableDesignColumnDo.getTableId())) {
+                tableDesignColumnDo.setTableId(mixedTableDesign.getTableId());
                 tableDesignColumnDo.setCreateUser(nowUserLoginCode);
             }
 
@@ -933,7 +1011,77 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 return false;
             }
 
+            if ("Y".equals(tableDesignColumnDo.getKeyYn())) {
+                keys.add(tableDesignColumnDo.getColumnName());
+            }
+
             if (!validateTableDesignColumn(tableDesignColumnDo)) return false;
+
+        }
+
+        Set<String> uniqueKeyNameSet = new HashSet<>();
+        List<TableDesignUniqueKeyDo> listUniqueKey = mixedTableDesign.getList_uniqueKey();
+        for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : listUniqueKey) {
+            // tableId
+            if (!ObjectUtils.isEmpty(newTableId)) {
+                if (!ObjectUtils.isEmpty(tableDesignUniqueKeyDo.getTableId())) {
+                    throw new BusinessException("校验拒绝", "入参表设计没有tableId但唯一约束中有tableId");
+                }
+                tableDesignUniqueKeyDo.setTableId(newTableId);
+                tableDesignUniqueKeyDo.setCreateUser(nowUserLoginCode);
+            } else if (ObjectUtils.isEmpty(tableDesignUniqueKeyDo.getTableId())) {
+                tableDesignUniqueKeyDo.setTableId(mixedTableDesign.getTableId());
+                tableDesignUniqueKeyDo.setCreateUser(nowUserLoginCode);
+            }
+
+            if (!tableDesignUniqueKeyDo.getTableId().equals(mixedTableDesign.getTableId())) {
+                throw new BusinessException("校验拒绝", "表设计tableId与唯一约束tableId不一致");
+            }
+
+            //dataStatus
+            String dataStatus = tableDesignUniqueKeyDo.getDataStatus();
+            if (!"0".equals(dataStatus)) {
+                log.info("校验拒绝 dataStatus: {} 唯一约束状态不是待创建", dataStatus);
+                return false;
+            }
+
+            // 重新排序约束字段并生成约束名
+            List<String> uniqueKeyColumnArray = tableDesignUniqueKeyDo.getUniqueKeyColumnArray();
+            List<String> uniqueKeyColumnArrayOrdered = new ArrayList<>();
+            for (TableDesignColumnDo tableDesignColumnDo : listTableDesignColumn) {
+                if (uniqueKeyColumnArray.contains(tableDesignColumnDo.getColumnName())) {
+                    uniqueKeyColumnArrayOrdered.add(tableDesignColumnDo.getColumnName());
+                }
+            }
+            System.out.println("uniqueKeyColumnArrayOrdered = " + uniqueKeyColumnArrayOrdered);
+            tableDesignUniqueKeyDo.setUniqueKeyColumnArray(uniqueKeyColumnArrayOrdered);
+            try {
+                tableDesignUniqueKeyDo.setUniqueKeyColumn(JSONArray.toJSONString(uniqueKeyColumnArrayOrdered));
+            } catch (JsonProcessingException e) {
+                throw new BusinessException("校验拒绝", "toJSONString异常");
+            }
+            String uniqueKeyName = "UNIQUE_KEY_" + String.join("_", uniqueKeyColumnArrayOrdered);
+            tableDesignUniqueKeyDo.setUniqueKeyName(uniqueKeyName);
+
+            // 5_约束重复校验
+            log.info("↓↓↓ 5_约束重复校验 ↓↓↓");
+            // 统计频率并比较
+            Map<String, Long> freq_uniqueKeyNew = uniqueKeyColumnArray.stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+            Map<String, Long> freq_key = keys.stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+            if (freq_uniqueKeyNew.equals(freq_key)) {
+                throw new BusinessException("校验拒绝", "约束的列与主键一致");
+            }
+            // 与已有唯一约束比对
+            if (uniqueKeyNameSet.contains(uniqueKeyName)) {
+                throw new BusinessException("校验拒绝", "存在相同的唯一约束");
+            }
+            uniqueKeyNameSet.add(uniqueKeyName);
+            log.info("↑↑↑ 5_约束重复校验 ↑↑↑");
+
+            if (!validateTableDesignUniqueKey(tableDesignUniqueKeyDo)) return false;
 
         }
 

@@ -19,7 +19,12 @@
         table_id, unique_key_name, unique_key_column, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo">
-        select * from s_table_design_unique_key where table_id = #{tableId}
+        select * from s_table_design_unique_key where table_id = #{tableId} order by create_time
     </select>
+
+<!--    根据 TableId 删除-->
+    <delete id="deleteByTableId">
+        delete from s_table_design_unique_key where table_id = #{tableId}
+    </delete>
 
 </mapper>

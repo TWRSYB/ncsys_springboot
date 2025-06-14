@@ -41,8 +41,9 @@
             and isc.column_name = tdc.column_name
         where tdc.table_id = #{tableId}
         order by
-            ORDINAL_POSITION,
-            tdc.create_time
+            ORDINAL_POSITION
+            , tdc.field_index
+            , tdc.create_time
     </select>
 
     <select id="selectByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">

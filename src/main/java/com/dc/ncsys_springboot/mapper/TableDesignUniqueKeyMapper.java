@@ -20,4 +20,6 @@ import java.util.List;
 public interface TableDesignUniqueKeyMapper extends BaseMapper<TableDesignUniqueKeyDo> {
 
     List<TableDesignUniqueKeyDo> selectByTableId(@Param("tableId") String tableId);
+
+    int deleteByTableId(@Param("tableId") String tableId);
 }

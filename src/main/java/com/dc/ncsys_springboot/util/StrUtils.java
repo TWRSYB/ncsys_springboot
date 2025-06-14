@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.util;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class StrUtils {
@@ -16,6 +17,22 @@ public class StrUtils {
                 .filter(s -> !s.isEmpty())
                 .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase())
                 .collect(Collectors.joining());
+    }
+
+
+    public static String underLine2Camel(String inputStr) {
+        if (inputStr == null || inputStr.isEmpty()) return inputStr;
+        List<String> strings = Arrays.stream(inputStr.toLowerCase().split("_"))
+                .filter(s -> !s.isEmpty()).toList();
+        StringBuilder sb = new StringBuilder(strings.get(0));
+        for (int i = 1; i < strings.size(); i++) {
+            String s = strings.get(i);
+            sb.append(s.substring(0, 1).toUpperCase());
+            if (s.length()>1) {
+                sb.append(s.substring(1));
+            }
+        }
+        return sb.toString();
     }
 
     public static String camel2Constant (String inputStr) {
