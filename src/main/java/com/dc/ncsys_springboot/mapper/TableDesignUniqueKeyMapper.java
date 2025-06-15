@@ -22,4 +22,5 @@ public interface TableDesignUniqueKeyMapper extends BaseMapper<TableDesignUnique
     List<TableDesignUniqueKeyDo> selectByTableId(@Param("tableId") String tableId);
 
     int deleteByTableId(@Param("tableId") String tableId);
+
 }

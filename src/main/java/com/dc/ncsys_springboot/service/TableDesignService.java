@@ -32,4 +32,7 @@ public interface TableDesignService extends IService<TableDesignDo> {
     ResVo deleteTableDesign(TableDesignDo tableDesignDo);
 
     ResVo addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
+
+    ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
+
 }

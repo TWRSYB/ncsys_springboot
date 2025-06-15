@@ -185,9 +185,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
         log.info("↑↑↑ 4_删除表设计唯一约束后再插入 ↑↑↑");
 
-
     }
-
 
     /**
      * 1 查询主表数据
@@ -231,7 +229,6 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         return ResVo.success("获取表详细设计成功", mixedTableDesign);
     }
 
-
     /**
      * 1. 获取SessionUser
      * 2. 表设计验证(如果TableId为空则赋值)
@@ -251,7 +248,6 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         User sessionUser = SessionUtils.getSessionUser();
         String tableName = mixedTableDesign.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
-
 
         // 2. 表设计校验
         log.info("↓↓↓ 2. 表设计校验 ↓↓↓");
@@ -298,14 +294,14 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         List<TableDesignUniqueKeyDo> listUniqueKey = mixedTableDesign.getList_uniqueKey();
         if (!ObjectUtils.isEmpty(listUniqueKey)) {
             for (TableDesignUniqueKeyDo tableDesignUniqueKeyDo : listUniqueKey) {
-                sqlBuilder.append(",").append(System.lineSeparator()).append("\tUNIQUE KEY (`").append(String.join("`, `", tableDesignUniqueKeyDo.getUniqueKeyColumnArray())).append("`)");
+                sqlBuilder.append(",").append(System.lineSeparator()).append("\tUNIQUE KEY ").append(tableDesignUniqueKeyDo.getUniqueKeyName()).append(" (`").append(String.join("`, `", tableDesignUniqueKeyDo.getUniqueKeyColumnArray())).append("`)");
             }
         }
 
 
         sqlBuilder.append(System.lineSeparator()).append(") ENGINE=InnoDB COMMENT='").append(mixedTableDesign.getTableComment()).append("'");
 
-        String sql = getSql(sqlBuilder);
+        String sql = getSql(sqlBuilder, null);
 
         log.info("生成了建表SQL: {}", sql);
 
@@ -534,7 +530,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         sqlBuilder.append(tableName).append("` ADD COLUMN");
         sqlAppendColumn(sqlBuilder, tableDesignColumnDo);
 
-        String sql = getSql(sqlBuilder);
+        String sql = getSql(sqlBuilder, null);
 
         log.info("生成了SQL: {}", sql);
 
@@ -600,7 +596,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.3. 把Do第1个以后的@TableId替换为@TableField ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
-        return ResVo.success("添加字段成功");
+        return ResVo.success("添加字段成功",  tableDesignColumnDo);
 
     }
 
@@ -763,7 +759,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↓↓↓ 6. 拼接 UNIQUEKEY_ADD SQL ↓↓↓");
         StringBuilder sqlBuilder = new StringBuilder("ALTER TABLE `");
         sqlBuilder.append(tableName).append("` ADD UNIQUE KEY `").append(uniqueKeyName).append("` (`").append(String.join("`, `", uniqueKeyColumnArrayOrdered)).append("`)");
-        String sql = getSql(sqlBuilder);
+        String sql = getSql(sqlBuilder, null);
         log.info("生成了SQL: {}", sql);
         log.info("↑↑↑ 6. 拼接 UNIQUEKEY_ADD SQL ↑↑↑");
 
@@ -804,7 +800,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("表设计之列设计保存成功: 表名: {}", tableName);
         log.info("↑↑↑ 9. 更新唯一约束数据状态并落库 ↑↑↑");
 
-        return ResVo.success("添加唯一约束成功");
+        return ResVo.success("添加唯一约束成功", tableDesignUniqueKeyDo);
 
     }
 
@@ -857,13 +853,17 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
     }
 
-    private static String getSql(StringBuilder sqlBuilder) {
+    private static String getSql(StringBuilder sqlBuilder, Set<String> allowedWordsSet) {
         String sql = sqlBuilder.toString();
 
-        Set<String> dangerWordsSet = Set.of(" select ", " * ", " from ", " where "
+        Set<String> dangerWordsSet = new HashSet<>(Set.of(" select ", " * ", " from ", " where "
                 , " set "
                 , " delete "
-                , " drop ", " truncate ");
+                , " drop ", " truncate "));
+
+        if (!ObjectUtils.isEmpty(allowedWordsSet)) {
+            dangerWordsSet.removeAll(allowedWordsSet);
+        }
 
 
         for (String word : dangerWordsSet) {
@@ -1302,4 +1302,86 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
         return -1;
     }
+
+    @Override
+    public ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
+        // 1. 获取SessionUser
+        log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
+        User sessionUser = SessionUtils.getSessionUser();
+        String tableName = tableDesignUniqueKeyDo.getTableName();
+        log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
+
+        // 2. 唯一约束设计验证
+        log.info("↓↓↓ 2. 唯一约束设计验证 ↓↓↓");
+        if (!validateTableDesignUniqueKey(tableDesignUniqueKeyDo)) return ResVo.fail("唯一约束设计验证失败");
+        log.info("↑↑↑ 2. 唯一约束设计验证 ↑↑↑");
+
+        // 3. 查看表是否已经存在+唯一约束是否存在
+        log.info("↓↓↓ 3. 查看表是否已经存在+唯一约束是否存在 ↓↓↓");
+        Boolean isTableExist = tableDesignMapper.isTableExist(tableName);
+        if (!isTableExist) {
+            throw new BusinessException("校验拒绝", "表不存在");
+        }
+        TableDesignDo tableDesignDo = tableDesignMapper.selectById(tableDesignUniqueKeyDo);
+        if (!tableDesignDo.getTableName().equals(tableName)) {
+            throw new BusinessException("校验拒绝", "表名对不上");
+        }
+        LambdaQueryWrapper<TableDesignUniqueKeyDo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TableDesignUniqueKeyDo::getTableId, tableDesignUniqueKeyDo.getTableId())
+                .eq(TableDesignUniqueKeyDo::getUniqueKeyName, tableDesignUniqueKeyDo.getUniqueKeyName());
+        TableDesignUniqueKeyDo existingUniqueKey = tableDesignUniqueKeyMapper.selectOne(queryWrapper);
+        if (existingUniqueKey == null) {
+            throw new BusinessException("校验拒绝", "唯一约束不存在");
+        }
+        log.info("↑↑↑ 3. 查看表是否已经存在+唯一约束是否存在 ↑↑↑");
+
+        // 4. 拼接 UNIQUEKEY_DELETE SQL
+        log.info("↓↓↓ 4. 拼接 UNIQUEKEY_DELETE SQL ↓↓↓");
+        StringBuilder sqlBuilder = new StringBuilder("ALTER TABLE `");
+        sqlBuilder.append(tableName).append("` DROP INDEX `").append(tableDesignUniqueKeyDo.getUniqueKeyName()).append("`");
+        String sql = getSql(sqlBuilder, new HashSet<>(Set.of(" drop ")));
+
+        log.info("生成了SQL: {}", sql);
+
+        log.info("↑↑↑ 4. 拼接 UNIQUEKEY_DELETE SQL ↑↑↑");
+
+        // 5. 执行SQL
+        log.info("↓↓↓ 5. 执行SQL ↓↓↓");
+        try {
+            tableDesignMapper.deleteUniqueKey(sql);
+            log.info("执行SQL成功");
+        } catch (Exception e) {
+            throw new BusinessException("执行SQL时出现异常", e);
+        }
+        log.info("↑↑↑ 5. 执行SQL ↑↑↑");
+
+        // 6. 记录表设计SQL
+        log.info("↓↓↓ 6. 记录表设计SQL ↓↓↓");
+        try {
+            Map<String, Map<String, String>> lastCreateSqlMap = tableDesignMapper.showCreateTable(tableName);
+            String lastCreateSql = lastCreateSqlMap.get(tableName).get("Create Table");
+
+            TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
+            tableDesignSqlDo.setTableId(tableDesignUniqueKeyDo.getTableId()).setSqlType("UNIQUEKEY_DROP");
+            tableDesignSqlDo.setExecuteSql(sql);
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+            int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
+            log.info("记录表设计SQL成功");
+        } catch (Exception e) {
+            throw new BusinessException("执行SQL成功, 但记录表设计SQL异常", e);
+        }
+        log.info("↑↑↑ 6. 记录表设计SQL ↑↑↑");
+
+        // 7. 删除唯一约束数据状态并落库
+        log.info("↓↓↓ 7. 删除唯一约束数据状态并落库 ↓↓↓");
+        int deleteCount = tableDesignUniqueKeyMapper.delete(queryWrapper);
+        if (deleteCount == 0) {
+            throw new BusinessException("校验拒绝", "唯一约束不存在");
+        }
+        log.info("表设计之唯一约束设计删除完成: 表名: {}", tableName);
+        log.info("↑↑↑ 7. 删除唯一约束数据状态并落库 ↑↑↑");
+
+        return ResVo.success("删除唯一约束成功");
+    }
+
 }

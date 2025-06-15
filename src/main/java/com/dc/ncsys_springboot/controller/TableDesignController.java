@@ -71,4 +71,10 @@ public class TableDesignController {
         return tableDesignService.addUniqueKey(tableDesignUniqueKeyDo);
     }
 
+    @PostMapping("/deleteUniqueKey")
+    public ResVo deleteUniqueKey(@RequestBody TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
+        log.info("CONT入参: {}", tableDesignUniqueKeyDo);
+        return tableDesignService.deleteUniqueKey(tableDesignUniqueKeyDo);
+    }
+
 }
