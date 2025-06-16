@@ -1394,10 +1394,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↓↓↓ 2. 检查表设计是否存在 ↓↓↓");        // 检查表设计是否存在
         LambdaQueryWrapper<TableDesignDo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TableDesignDo::getTableName, tableName);
-//        TableDesignDo tableDesignDo = tableDesignMapper.selectOne(queryWrapper);
-//        if (tableDesignDo != null) {
-//            throw new BusinessException("校验拒绝", "表设计已存在");
-//        }
+        TableDesignDo tableDesignDo = tableDesignMapper.selectOne(queryWrapper);
+        if (tableDesignDo != null) {
+            throw new BusinessException("校验拒绝", "表设计已存在");
+        }
         // 生成 tableId（这里假设使用表名 + 时间戳生成唯一ID）
         MixedTableDesign mixedTableDesign = new MixedTableDesign();
         String tableId = tableName + "_" + DateTimeUtil.getMinuteKey();
