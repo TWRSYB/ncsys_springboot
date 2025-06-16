@@ -7,9 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.util.ObjectUtils;
@@ -137,11 +135,16 @@ public class TableDesignColumnDo implements Serializable {
     @TableField(exist = false)
     private String tableName;
 
-    public TableDesignColumnDo setFieldEnum(final String fieldEnum) throws JsonProcessingException {
+    public TableDesignColumnDo setFieldEnum(final String fieldEnum) {
         this.fieldEnum = fieldEnum;
         if (!ObjectUtils.isEmpty(fieldEnum)) {
-            this.fieldEnumArray = new ObjectMapper().readValue(fieldEnum, new TypeReference<List<String>>() {});
+            this.fieldEnumArray = List.of(fieldEnum.split(","));
         }
         return this;
     }
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" + JsonUtils.toJson(this);
+    }
+
 }

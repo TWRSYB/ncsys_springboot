@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+
+import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -74,4 +76,9 @@ public class TableDesignSqlDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
+    }
+
 }

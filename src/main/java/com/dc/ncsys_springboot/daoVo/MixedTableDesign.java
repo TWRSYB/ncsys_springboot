@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -36,5 +37,8 @@ public class MixedTableDesign extends TableDesignDo implements Serializable {
     // 唯一约束列表
     public List<TableDesignUniqueKeyDo> list_uniqueKey;
 
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
+    }
 
 }

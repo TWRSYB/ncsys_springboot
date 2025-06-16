@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.dc.ncsys_springboot.util.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -71,4 +72,9 @@ public class TableDesignDo implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
+    }
+
 }

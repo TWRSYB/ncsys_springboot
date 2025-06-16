@@ -35,4 +35,5 @@ public interface TableDesignService extends IService<TableDesignDo> {
 
     ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
 
+    ResVo generateTableDesign(String tableName);
 }

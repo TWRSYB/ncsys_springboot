@@ -26,4 +26,10 @@ public class SimpleTableDesign {
      * 列键
      */
     private String columnKey;
+
+    /**
+     * 字段类型
+     */
+    private String columnType;
+
 }

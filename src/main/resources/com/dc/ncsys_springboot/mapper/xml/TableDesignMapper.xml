@@ -20,9 +20,10 @@
         table_id, table_name, table_comment, table_type, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="getTableDesign" resultType="com.dc.ncsys_springboot.vo.SimpleTableDesign">
-        select ORDINAL_POSITION, COLUMN_NAME, COLUMN_COMMENT, COLUMN_DEFAULT, COLUMN_KEY
+        select ORDINAL_POSITION, COLUMN_NAME, COLUMN_COMMENT, COLUMN_DEFAULT, COLUMN_KEY, COLUMN_TYPE
         from INFORMATION_SCHEMA.Columns
-        where table_name = #{tableName}
+        where TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = #{tableName}
         order by ORDINAL_POSITION
     </select>
 

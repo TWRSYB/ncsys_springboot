@@ -11,16 +11,11 @@ import com.dc.ncsys_springboot.mapper.TableDesignUniqueKeyMapper;
 import com.dc.ncsys_springboot.service.TableDesignColumnService;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dc.ncsys_springboot.util.DateTimeUtil;
-import com.dc.ncsys_springboot.util.FieldUtil;
-import com.dc.ncsys_springboot.util.SessionUtils;
-import com.dc.ncsys_springboot.util.StrUtils;
+import com.dc.ncsys_springboot.util.*;
 import com.dc.ncsys_springboot.vo.Field;
 import com.dc.ncsys_springboot.vo.ResVo;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mybatis_plus_generator.CodeGenerator;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,8 +30,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -421,14 +418,14 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
                 for (int k = 1; k < keys.size(); k++) {
                     String fieldName = keys.get(k);
-                    log.info("为第 {} 个key {} 替换注解", k+1, fieldName);
+                    log.info("为第 {} 个key {} 替换注解", k + 1, fieldName);
                     // 替换注解
                     for (int i = 10; i < doLines.size() - 2; i++) {
                         String line = doLines.get(i);
                         if (line.contains("@TableId")) {
                             String nextLine = doLines.get(i + 1);
-                            log.info("在第 {} 行扫描的@TableId注解: {}, 其下一行内容为: {}", i+1, line, nextLine);
-                            if (nextLine.contains(" " + StrUtils.underLine2Camel(fieldName) + ";")){
+                            log.info("在第 {} 行扫描的@TableId注解: {}, 其下一行内容为: {}", i + 1, line, nextLine);
+                            if (nextLine.contains(" " + StrUtils.underLine2Camel(fieldName) + ";")) {
                                 log.info("找到key {} 了, 为其替换注解", fieldName);
                                 doLines.set(i, line.replace("@TableId", "@TableField"));
                             }
@@ -596,7 +593,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.3. 把Do第1个以后的@TableId替换为@TableField ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
-        return ResVo.success("添加字段成功",  tableDesignColumnDo);
+        return ResVo.success("添加字段成功", tableDesignColumnDo);
 
     }
 
@@ -724,11 +721,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         }
         System.out.println("uniqueKeyColumnArrayOrdered = " + uniqueKeyColumnArrayOrdered);
         tableDesignUniqueKeyDo.setUniqueKeyColumnArray(uniqueKeyColumnArrayOrdered);
-        try {
-            tableDesignUniqueKeyDo.setUniqueKeyColumn(JSONArray.toJSONString(uniqueKeyColumnArrayOrdered));
-        } catch (JsonProcessingException e) {
-            throw new BusinessException("校验拒绝", "toJSONString异常");
-        }
+        tableDesignUniqueKeyDo.setUniqueKeyColumn(String.join(",", uniqueKeyColumnArrayOrdered));
+
         String uniqueKeyName = "UNIQUE_KEY_" + String.join("_", uniqueKeyColumnArrayOrdered);
         tableDesignUniqueKeyDo.setUniqueKeyName(uniqueKeyName);
         log.info("↑↑↑ 4_重新排序约束字段并生成约束名 ↑↑↑");
@@ -736,7 +730,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 5_约束重复校验
         log.info("↓↓↓ 5_约束重复校验 ↓↓↓");
-        List<String> keys = simpleTableDesigns.stream().filter(item->"PRI".equals(item.getColumnKey())).map(SimpleTableDesign::getColumnName).toList();
+        List<String> keys = simpleTableDesigns.stream().filter(item -> "PRI".equals(item.getColumnKey())).map(SimpleTableDesign::getColumnName).toList();
         // 统计频率并比较
         Map<String, Long> freq_uniqueKeyNew = uniqueKeyColumnArray.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -819,7 +813,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 int importInsertIndex = findImportInsertIndex(doLines);
                 doLines.add(importInsertIndex, "import com.baomidou.mybatisplus.annotation.TableField;");
             }
-            
+
             // 替换注解
             int tableIdIndex = 0;
             for (int i = 10; i < doLines.size() - 2; i++) {
@@ -1055,11 +1049,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             }
             System.out.println("uniqueKeyColumnArrayOrdered = " + uniqueKeyColumnArrayOrdered);
             tableDesignUniqueKeyDo.setUniqueKeyColumnArray(uniqueKeyColumnArrayOrdered);
-            try {
-                tableDesignUniqueKeyDo.setUniqueKeyColumn(JSONArray.toJSONString(uniqueKeyColumnArrayOrdered));
-            } catch (JsonProcessingException e) {
-                throw new BusinessException("校验拒绝", "toJSONString异常");
-            }
+            tableDesignUniqueKeyDo.setUniqueKeyColumn(String.join(",", uniqueKeyColumnArrayOrdered));
+
             String uniqueKeyName = "UNIQUE_KEY_" + String.join("_", uniqueKeyColumnArrayOrdered);
             tableDesignUniqueKeyDo.setUniqueKeyName(uniqueKeyName);
 
@@ -1383,5 +1374,153 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         return ResVo.success("删除唯一约束成功");
     }
+
+
+    @Override
+    public ResVo generateTableDesign(String tableName) {
+        // 1. 获取SessionUser
+        log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
+        User sessionUser = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUser.getLoginCode();
+        log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
+
+        // 2. 检查表是否存在
+        log.info("↓↓↓ 2. 检查表是否存在 ↓↓↓");
+        Boolean isTableExist = tableDesignMapper.isTableExist(tableName);
+        if (!isTableExist) {
+            throw new BusinessException("校验拒绝", "表不存在");
+        }
+        // 检查表设计是否存在
+        log.info("↓↓↓ 2. 检查表设计是否存在 ↓↓↓");        // 检查表设计是否存在
+        LambdaQueryWrapper<TableDesignDo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TableDesignDo::getTableName, tableName);
+//        TableDesignDo tableDesignDo = tableDesignMapper.selectOne(queryWrapper);
+//        if (tableDesignDo != null) {
+//            throw new BusinessException("校验拒绝", "表设计已存在");
+//        }
+        // 生成 tableId（这里假设使用表名 + 时间戳生成唯一ID）
+        MixedTableDesign mixedTableDesign = new MixedTableDesign();
+        String tableId = tableName + "_" + DateTimeUtil.getMinuteKey();
+        log.info("↑↑↑ 2. 检查表是否存在 ↑↑↑");
+
+
+        // 4. 获取列信息
+        log.info("↓↓↓ 4. 获取列信息 ↓↓↓");
+        List<SimpleTableDesign> simpleTableDesigns = tableDesignMapper.getTableDesign(tableName);
+        // 字段设计
+        List<TableDesignColumnDo> columnDos = new ArrayList<>();
+        for (SimpleTableDesign std : simpleTableDesigns) {
+            TableDesignColumnDo columnDo = new TableDesignColumnDo();
+            columnDo.setTableId(tableId)
+                    .setColumnName(std.getColumnName())
+                    .setColumnComment(std.getColumnComment())
+                    .setFieldEnum(getFieldEnum(std.getColumnComment()))
+                    .setKeyYn("PRI".equals(std.getColumnKey()) ? "Y" : "N")
+                    .setNullAbleYn("YES".equals(std.getColumnDefault()) ? "Y" : "N") // 简化处理
+                    .setFieldType(determineFieldType(std.getColumnType())) // 类型映射函数
+                    .setFieldLength(determineFieldLength(std.getColumnType()))
+                    .setDefaultValue(std.getColumnDefault())
+                    .setDataStatus("1")
+                    .setCreateUser(nowUserLoginCode)
+                    .setUpdateUser(nowUserLoginCode)
+                    .setFieldIndex(std.getOrdinalPosition());
+            columnDos.add(columnDo);
+        }
+        log.info("↑↑↑ 4. 获取列信息 ↑↑↑");
+
+        // 6. 获取唯一约束信息
+        log.info("↓↓↓ 6. 获取唯一约束信息 ↓↓↓");
+        Map<String, Map<String, String>> createTableMap = tableDesignMapper.showCreateTable(tableName);
+        String createTableSql = createTableMap.get(tableName).get("Create Table");
+        List<TableDesignUniqueKeyDo> uniqueKeys = new ArrayList<>();
+
+        // 解析SQL语句中的UNIQUE KEY部分
+        Pattern pattern = Pattern.compile("UNIQUE KEY `([^`]+)` \\(([^)]+)");
+        Stream<String> sqlLines = createTableSql.lines();
+        sqlLines.forEach(line -> {
+            if (line.contains("UNIQUE KEY")) {
+                System.out.println("line = " + line);
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    String uniqueKeyName = matcher.group(1);
+                    String columnsStr = matcher.group(2).replaceAll("`", "");
+                    System.out.println("columnsStr = " + columnsStr);
+                    List<String> columns = Arrays.asList(columnsStr.replaceAll("[`]", "").split(","));
+                    System.out.println("uniqueKeyName = " + uniqueKeyName);
+                    TableDesignUniqueKeyDo keyDo = new TableDesignUniqueKeyDo();
+                    keyDo.setTableId(tableId)
+                            .setUniqueKeyName(uniqueKeyName)
+                            .setUniqueKeyColumn(columnsStr) // JSON字符串转换
+                            .setDataStatus("1") // 初始状态为未生效
+                            .setCreateUser(nowUserLoginCode)
+                            .setUpdateUser(nowUserLoginCode);
+                    uniqueKeys.add(keyDo);
+                }
+            } else if (line.contains(") ENGINE")) {
+                System.out.println("line = " + line);
+                mixedTableDesign.setTableComment(line.substring(line.indexOf("COMMENT='") + 9, line.length() - 1));
+            }
+
+        });
+
+
+        log.info("↑↑↑ 6. 获取唯一约束信息 ↑↑↑");
+
+        // 7. 构造 MixedTableDesign 对象
+        log.info("↓↓↓ 7. 构造 MixedTableDesign 对象 ↓↓↓");
+
+
+        // 主表设计
+        mixedTableDesign.setTableId(tableId)
+                .setTableName(tableName)
+                .setTableType(tableName.substring(0, tableName.indexOf("_")))
+                .setDataStatus("1") // 初始状态为未生效
+                .setCreateUser(nowUserLoginCode)
+                .setUpdateUser(nowUserLoginCode)
+        ;
+
+
+        mixedTableDesign.setList_tableDesignColumn(columnDos);
+
+
+        mixedTableDesign.setList_uniqueKey(uniqueKeys);
+        log.info("↑↑↑ 7. 构造 MixedTableDesign 对象 ↑↑↑");
+
+        // 8. 保存表设计
+        log.info("↓↓↓ 8. 保存表设计 ↓↓↓");
+        log.info("表设计: {}", mixedTableDesign);
+        saveMixedTableDesign(mixedTableDesign);
+        log.info("↑↑↑ 8. 保存表设计 ↑↑↑");
+
+        return ResVo.success("逆向生成并保存表设计成功", mixedTableDesign);
+    }
+
+    private String getFieldEnum(String columnComment) {
+        if (!columnComment.contains(":")) {
+            return null;
+        }
+        String[] split = columnComment.split(":")[1].split(",");
+        return String.join(",", split);
+    }
+
+    private Integer determineFieldLength(String columnType) {
+        if (columnType.contains("(")) {
+            return Integer.parseInt(columnType.substring(columnType.indexOf("(") + 1, columnType.indexOf(")")));
+        }
+        return null;
+    }
+
+    private String determineFieldType(String columnType) {
+        // 根据columnType做简单类型映射
+        if (columnType.contains("varchar")) return "varchar";
+        else if (columnType.contains("char")) return "char";
+        else if (columnType.contains("int")) return "int";
+        else if (columnType.contains("timestamp")) return "timestamp";
+        else if (columnType.contains("TEXT")) return "TEXT";
+        else if (columnType.contains("BLOB")) return "BLOB";
+        else if (columnType.contains("JSON")) return "JSON";
+        else return "varchar"; // 默认类型
+    }
+
 
 }

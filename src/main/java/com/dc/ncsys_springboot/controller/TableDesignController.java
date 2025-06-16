@@ -77,4 +77,11 @@ public class TableDesignController {
         return tableDesignService.deleteUniqueKey(tableDesignUniqueKeyDo);
     }
 
+
+    @GetMapping("/generateTableDesign")
+    public ResVo generateTableDesign(String tableName) {
+        log.info("CONT入参: {}", tableName);
+        return tableDesignService.generateTableDesign(tableName);
+    }
+
 }

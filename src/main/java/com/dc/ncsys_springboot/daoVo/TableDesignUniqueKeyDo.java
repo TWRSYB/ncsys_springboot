@@ -7,9 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.util.ObjectUtils;
@@ -83,11 +81,15 @@ public class TableDesignUniqueKeyDo implements Serializable {
     @TableField(exist = false)
     private List<String> uniqueKeyColumnArray;
 
-    public TableDesignUniqueKeyDo setUniqueKeyColumn(String uniqueKeyColumn) throws JsonProcessingException {
+    public TableDesignUniqueKeyDo setUniqueKeyColumn(String uniqueKeyColumn) {
         this.uniqueKeyColumn = uniqueKeyColumn;
         if (!ObjectUtils.isEmpty(uniqueKeyColumn)) {
-            this.uniqueKeyColumnArray = new ObjectMapper().readValue(uniqueKeyColumn, new TypeReference<List<String>>() {});
+            this.uniqueKeyColumnArray = List.of(uniqueKeyColumn.split(","));
         }
         return this;
+    }
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" + JsonUtils.toJson(this);
     }
 }
