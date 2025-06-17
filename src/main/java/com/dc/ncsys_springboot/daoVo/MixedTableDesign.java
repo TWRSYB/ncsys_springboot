@@ -37,6 +37,7 @@ public class MixedTableDesign extends TableDesignDo implements Serializable {
     // 唯一约束列表
     public List<TableDesignUniqueKeyDo> list_uniqueKey;
 
+    @Override
     public String toString() {
         return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
     }

@@ -397,50 +397,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.2. 将Mapper.xml移动到resources目录下 ↑↑↑");
 
 
-        // 9.3 如果keys>1, 则把Do后面的key的@TableId替换为@TableField
-        log.info("↓↓↓ 9.3. 如果keys>1, 则把Do后面的key的@TableId替换为@TableField ↓↓↓");
-        if (keys.size() > 1) {
-            log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField");
-            String generateDoDir = "src/main/java/com/dc/ncsys_springboot/daoVo/";
-            String doName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Do.java";
-            Path doPath = Path.of(generateDoDir, doName);
-            List<String> doLines;
-            try {
-                doLines = Files.readAllLines(doPath);
-                boolean hasTableFieldImport = doLines.stream()
-                        .anyMatch(line -> line.contains("import com.baomidou.mybatisplus.annotation.TableField;"));
-
-                // 添加TableField import（如果需要）
-                if (!hasTableFieldImport) {
-                    int importInsertIndex = findImportInsertIndex(doLines);
-                    doLines.add(importInsertIndex, "import com.baomidou.mybatisplus.annotation.TableField;");
-                }
-
-                for (int k = 1; k < keys.size(); k++) {
-                    String fieldName = keys.get(k);
-                    log.info("为第 {} 个key {} 替换注解", k + 1, fieldName);
-                    // 替换注解
-                    for (int i = 10; i < doLines.size() - 2; i++) {
-                        String line = doLines.get(i);
-                        if (line.contains("@TableId")) {
-                            String nextLine = doLines.get(i + 1);
-                            log.info("在第 {} 行扫描的@TableId注解: {}, 其下一行内容为: {}", i + 1, line, nextLine);
-                            if (nextLine.contains(" " + StrUtils.underLine2Camel(fieldName) + ";")) {
-                                log.info("找到key {} 了, 为其替换注解", fieldName);
-                                doLines.set(i, line.replace("@TableId", "@TableField"));
-                            }
-                        }
-                    }
-                }
-                Files.write(doPath, doLines);
-                log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换成功");
-            } catch (IOException e) {
-                log.error("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常: ", e);
-                throw new BusinessException("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常");
-            }
-
-        }
-        log.info("↑↑↑ 9.3. 如果keys>1, 则把Do后面的key的@TableId替换为@TableField ↑↑↑");
+        // 9.3 处理实体类文件
+        log.info("↓↓↓ 9.3. 处理实体类文件 ↓↓↓");
+        dealDo(tableName, keys.size() > 1);
+        log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
         return ResVo.success("创建表和实体类成功");
@@ -585,12 +545,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.1. 将Mapper.xml移动到resources目录下 ↑↑↑");
 
 
-        // 9.3 把Do第1个以后的@TableId替换为@TableField
-        log.info("↓↓↓ 9.3. 把Do第1个以后的@TableId替换为@TableField ↓↓↓");
-        if (tableDesignColumnDo.getKeyYn().equals("Y")) {
-            replaceTableId2TableFieldWhenMultiple(tableName);
-        }
-        log.info("↑↑↑ 9.3. 把Do第1个以后的@TableId替换为@TableField ↑↑↑");
+        // 9.3 处理实体类文件
+        log.info("↓↓↓ 9.3. 处理实体类文件 ↓↓↓");
+        dealDo(tableName, tableDesignColumnDo.getKeyYn().equals("Y"));
+        log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
         return ResVo.success("添加字段成功", tableDesignColumnDo);
@@ -798,37 +756,60 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     }
 
-    private static void replaceTableId2TableFieldWhenMultiple(String tableName) {
+    /**
+     * 处理实体类文件
+     * 1 添加toString方法
+     * 2 替换@TableId为@TableField
+     *
+     * @param tableName      表名
+     * @param replaceTableId 是否替换TableId为TableField
+     */
+    private static void dealDo(String tableName, boolean replaceTableId) {
         String generateDoDir = "src/main/java/com/dc/ncsys_springboot/daoVo/";
         String doName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Do.java";
         Path doPath = Path.of(generateDoDir, doName);
         List<String> doLines;
         try {
             doLines = Files.readAllLines(doPath);
-            boolean hasTableFieldImport = doLines.stream()
-                    .anyMatch(line -> line.contains("import com.baomidou.mybatisplus.annotation.TableField;"));
 
-            // 添加TableField import（如果需要）
-            if (!hasTableFieldImport) {
-                int importInsertIndex = findImportInsertIndex(doLines);
-                doLines.add(importInsertIndex, "import com.baomidou.mybatisplus.annotation.TableField;");
-            }
+            log.info("↓↓↓ 为Do添加toString方法 ↓↓↓");
+            doLines.add(2, "import com.dc.ncsys_springboot.util.JsonUtils;");
+            doLines.add(doLines.size() - 1, "");
+            doLines.add(doLines.size() - 1, "\t@Override");
+            doLines.add(doLines.size() - 1, "\tpublic String toString() {");
+            doLines.add(doLines.size() - 1, "\t\treturn this.getClass().getSimpleName() + \"=\" +JsonUtils.toJson(this);");
+            doLines.add(doLines.size() - 1, "\t}");
+            doLines.add(doLines.size() - 1, "");
+            log.info("↑↑↑ 为Do添加toString方法 ↑↑↑");
 
-            // 替换注解
-            int tableIdIndex = 0;
-            for (int i = 10; i < doLines.size() - 2; i++) {
-                String line = doLines.get(i);
-                if (line.contains("@TableId")) {
-                    if (++tableIdIndex > 1) {
-                        doLines.set(i, line.replace("@TableId", "@TableField"));
+            if (replaceTableId) {
+                log.info("↓↓↓ 当前表包含多个key, 需要替换后面的@TableId为@TableField ↓↓↓");
+                boolean hasTableFieldImport = doLines.stream()
+                        .anyMatch(line -> line.contains("import com.baomidou.mybatisplus.annotation.TableField;"));
+
+                // 添加TableField import（如果需要）
+                if (!hasTableFieldImport) {
+                    int importInsertIndex = findImportInsertIndex(doLines);
+                    doLines.add(importInsertIndex, "import com.baomidou.mybatisplus.annotation.TableField;");
+                }
+
+                // 替换注解
+                int tableIdIndex = 0;
+                for (int i = 10; i < doLines.size() - 2; i++) {
+                    String line = doLines.get(i);
+                    if (line.contains("@TableId")) {
+                        if (++tableIdIndex > 1) {
+                            doLines.set(i, line.replace("@TableId", "@TableField"));
+                        }
                     }
                 }
+                log.info("↑↑↑ 当前表包含多个key, 需要替换后面的@TableId为@TableField ↑↑↑");
             }
+
             Files.write(doPath, doLines);
-            log.info("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换成功");
+
         } catch (IOException e) {
-            log.error("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常: ", e);
-            throw new BusinessException("当前表包含多个key, 需要替换后面的@TableId为@TableField, 替换出现异常");
+            throw new BusinessException("处理实体类文件出现异常", e);
         }
     }
 
