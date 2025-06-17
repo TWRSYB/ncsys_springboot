@@ -20,7 +20,7 @@
         table_id, table_name, table_comment, table_type, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="getTableDesign" resultType="com.dc.ncsys_springboot.vo.SimpleTableDesign">
-        select ORDINAL_POSITION, COLUMN_NAME, COLUMN_COMMENT, COLUMN_DEFAULT, COLUMN_KEY, COLUMN_TYPE
+        select ORDINAL_POSITION, COLUMN_NAME, COLUMN_COMMENT, COLUMN_DEFAULT, COLUMN_KEY, COLUMN_TYPE, IS_NULLABLE
         from INFORMATION_SCHEMA.Columns
         where TABLE_SCHEMA = DATABASE()
           AND TABLE_NAME = #{tableName}
@@ -37,6 +37,12 @@
                        WHERE TABLE_SCHEMA = DATABASE()
                          AND TABLE_NAME = #{tableName}
                    ) AS table_exists
+    </select>
+
+    <select id="getTableDesignList" resultType="com.dc.ncsys_springboot.daoVo.TableDesignDo">
+        SELECT *
+        FROM s_table_design
+        order by create_time desc
     </select>
 
 

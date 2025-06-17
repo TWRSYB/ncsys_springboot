@@ -65,7 +65,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     @Override
     public ResVo getTableDesignList() {
-        List<TableDesignDo> tableDesigns = tableDesignMapper.selectList(new QueryWrapper<>());
+        List<TableDesignDo> tableDesigns = tableDesignMapper.getTableDesignList();
         return ResVo.success("获取表设计成功", tableDesigns);
     }
 
@@ -527,7 +527,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         tableDesignColumnDo.setDataStatus("1");
         tableDesignColumnDo.setCreateUser(sessionUser.getLoginCode());
         tableDesignColumnDo.setUpdateUser(sessionUser.getLoginCode());
-        tableDesignColumnMapper.insert(tableDesignColumnDo);
+        tableDesignColumnMapper.insertNext(tableDesignColumnDo);
         log.info("表设计之列设计保存成功: 表名: {}", tableName);
         log.info("↑↑↑ 7. 更新列数据状态并落库 ↑↑↑");
 
@@ -551,7 +551,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
-        return ResVo.success("添加字段成功", tableDesignColumnDo);
+        return ResVo.success("添加字段成功", tableDesignColumnMapper.selectByTableIdAndColumnName(tableDesignColumnDo));
 
     }
 
@@ -1394,10 +1394,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             TableDesignColumnDo columnDo = new TableDesignColumnDo();
             columnDo.setTableId(tableId)
                     .setColumnName(std.getColumnName())
-                    .setColumnComment(std.getColumnComment())
+                    .setColumnComment(std.getColumnComment().contains(":") ? std.getColumnComment().split(":")[0] : std.getColumnComment())
                     .setFieldEnum(getFieldEnum(std.getColumnComment()))
                     .setKeyYn("PRI".equals(std.getColumnKey()) ? "Y" : "N")
-                    .setNullAbleYn("YES".equals(std.getColumnDefault()) ? "Y" : "N") // 简化处理
+                    .setNullAbleYn("YES".equals(std.getIsNullable()) ? "Y" : "N") // 简化处理
                     .setFieldType(determineFieldType(std.getColumnType())) // 类型映射函数
                     .setFieldLength(determineFieldLength(std.getColumnType()))
                     .setDefaultValue(std.getColumnDefault())
@@ -1473,7 +1473,113 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         saveMixedTableDesign(mixedTableDesign);
         log.info("↑↑↑ 8. 保存表设计 ↑↑↑");
 
+        // 9. 记录表设计SQL
+        log.info("↓↓↓ 9. 记录表设计SQL ↓↓↓");
+        TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
+        tableDesignSqlDo.setTableId(tableId).setSqlType("TABLE_CREATE");
+        tableDesignSqlDo.setExecuteSql(createTableSql);
+        tableDesignSqlDo.setLastCreateSql(createTableSql).setDataStatus("1").setCreateUser(nowUserLoginCode).setUpdateUser(nowUserLoginCode);
+        int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
+        log.info("↑↑↑ 9. 记录表设计SQL ↑↑↑");
+
+
         return ResVo.success("逆向生成并保存表设计成功", mixedTableDesign);
+    }
+
+    /**
+     * 修改字段
+     * 1 获取SessionUser
+     * 2 字段设计验证
+     * 3 查看表是否已经存在+表名校验+字段存在校验
+     * 4 拼接 ALTER TABLE SQL
+     * 5 执行SQL
+     * 6 记录表设计SQL
+     * 7 修改字段数据状态并落库
+     *
+     * @param tableDesignColumnDo 要修改的字段
+     * @return ResVo
+     */
+    @Override
+    public ResVo changeColumn(TableDesignColumnDo tableDesignColumnDo) {
+
+        // 1. 获取SessionUser
+        log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
+        User sessionUser = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUser.getLoginCode();
+        String tableName = tableDesignColumnDo.getTableName();
+        log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
+
+        // 2. 字段设计验证
+        log.info("↓↓↓ 2. 字段设计验证 ↓↓↓");
+        if (!validateTableDesignColumn(tableDesignColumnDo)) {
+            return ResVo.fail("字段设计验证失败");
+        }
+        log.info("↑↑↑ 2. 字段设计验证 ↑↑↑");
+
+        // 3. 查看表是否已经存在+表名校验+字段存在校验
+        log.info("↓↓↓ 3. 查看表是否已经存在+表名校验+字段存在校验 ↓↓↓");
+
+        Boolean isTableExist = tableDesignMapper.isTableExist(tableName);
+        if (!isTableExist) {
+            throw new BusinessException("校验拒绝", "表不存在");
+        }
+
+        TableDesignDo tableDesignDo = tableDesignMapper.selectById(tableDesignColumnDo);
+        if (!tableDesignDo.getTableName().equals(tableName)) {
+            throw new BusinessException("校验拒绝", "表名对不上");
+        }
+
+        TableDesignColumnDo tableDesignColumnDo1 = tableDesignColumnMapper.selectByTableIdAndFieldIndex(tableDesignColumnDo);
+        if (tableDesignColumnDo1 == null) {
+            throw new BusinessException("校验拒绝", "字段不存在");
+        }
+
+        log.info("↑↑↑ 3. 查看表是否已经存在+表名校验+字段存在校验 ↑↑↑");
+
+
+        // 4. 拼接 ALTER TABLE SQL
+        log.info("↓↓↓ 4. 拼接 ALTER TABLE SQL ↓↓↓");
+        StringBuilder sqlBuilder = new StringBuilder("ALTER TABLE `");
+        sqlBuilder.append(tableName).append("` CHANGE COLUMN `").append(tableDesignColumnDo.getColumnName()).append("` ");
+        sqlAppendColumn(sqlBuilder, tableDesignColumnDo);
+
+        String sql = getSql(sqlBuilder, null);
+        log.info("生成了SQL: {}", sql);
+        log.info("↑↑↑ 4. 拼接 ALTER TABLE SQL ↑↑↑");
+
+        // 5. 执行SQL
+        log.info("↓↓↓ 5. 执行SQL ↓↓↓");
+        try {
+            tableDesignMapper.changeColumn(sql);
+        } catch (Exception e) {
+            throw new BusinessException("执行SQL时出现异常", e);
+        }
+        log.info("↑↑↑ 5. 执行SQL ↑↑↑");
+
+        // 6. 记录表设计SQL
+        log.info("↓↓↓ 6. 记录表设计SQL ↓↓↓");
+        try {
+            Map<String, Map<String, String>> lastCreateSqlMap = tableDesignMapper.showCreateTable(tableName);
+            String lastCreateSql = lastCreateSqlMap.get(tableName).get("Create Table");
+            TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
+            tableDesignSqlDo.setTableId(tableDesignColumnDo.getTableId()).setSqlType("COLUMN_CHANGE");
+            tableDesignSqlDo.setExecuteSql(sql);
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(nowUserLoginCode).setUpdateUser(nowUserLoginCode);
+            int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
+        } catch (Exception e) {
+            throw new BusinessException("执行SQL成功, 但记录表设计SQL异常", e);
+        }
+        log.info("↑↑↑ 6. 记录表设计SQL ↑↑↑");
+
+        // 7. 修改字段数据状态并落库
+        log.info("↓↓↓ 7. 修改字段数据状态并落库 ↓↓↓");
+        tableDesignColumnDo.setDataStatus("1").setUpdateUser(nowUserLoginCode);
+        int updateNum = tableDesignColumnMapper.updateByTableIdAndFieldIndex(tableDesignColumnDo);
+        log.info("表设计之字段设计修改完成: 表名: {}", tableName);
+        log.info("↑↑↑ 7. 修改字段数据状态并落库 ↑↑↑");
+
+        return ResVo.success("修改字段成功", tableDesignColumnDo);
+
     }
 
     private String getFieldEnum(String columnComment) {

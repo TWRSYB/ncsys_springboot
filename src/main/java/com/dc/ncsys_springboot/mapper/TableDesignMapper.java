@@ -42,4 +42,9 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
     @Update("${sql}")
     int deleteUniqueKey(@Param("sql") String sql);
 
+    List<TableDesignDo> getTableDesignList();
+
+    @Update("${sql}")
+    int changeColumn(@Param("sql") String sql);
+
 }

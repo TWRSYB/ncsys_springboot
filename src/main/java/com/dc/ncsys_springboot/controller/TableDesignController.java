@@ -84,4 +84,9 @@ public class TableDesignController {
         return tableDesignService.generateTableDesign(tableName);
     }
 
+    @PostMapping("/changeColumn")
+    public ResVo changeColumn(@RequestBody TableDesignColumnDo tableDesignColumnDo) {
+        log.info("CONT入参: {}", tableDesignColumnDo);
+        return tableDesignService.changeColumn(tableDesignColumnDo);
+    }
 }

@@ -25,4 +25,12 @@ public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumnDo>
     int deleteByTableId(@Param("tableId") String tableId);
 
     List<TableDesignColumnDo> selectByTableId(@Param("tableId") String tableId);
+
+    int insertNext(TableDesignColumnDo tableDesignColumnDo);
+
+    TableDesignColumnDo selectByTableIdAndColumnName(TableDesignColumnDo tableDesignColumnDo);
+
+    TableDesignColumnDo selectByTableIdAndFieldIndex(TableDesignColumnDo tableDesignColumnDo);
+
+    int updateByTableIdAndFieldIndex(TableDesignColumnDo tableDesignColumnDo);
 }

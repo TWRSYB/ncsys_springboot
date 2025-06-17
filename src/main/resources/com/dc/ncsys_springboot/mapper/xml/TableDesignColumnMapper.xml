@@ -25,6 +25,22 @@
     <sql id="Base_Column_List">
         table_id, field_index, column_name, column_comment, key_yn, null_able, field_type, field_length, field_enum, default_value, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <update id="updateByTableIdAndFieldIndex">
+        update s_table_design_column
+        set column_name = #{columnName},
+            column_comment = #{columnComment},
+            key_yn = #{keyYn},
+            null_able_yn = #{nullAbleYn},
+            field_type = #{fieldType},
+            field_length = #{fieldLength},
+            field_enum = #{fieldEnum},
+            default_value = #{defaultValue},
+            update_user = #{updateUser}
+        where table_id = #{tableId}
+          and field_index = #{fieldIndex}
+    </update>
+
+
     <select id="getByTableId" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         select
             tdc.*,
@@ -50,9 +66,33 @@
         select * from s_table_design_column where table_id = #{tableId} order by create_time
     </select>
 
+    <select id="selectByTableIdAndColumnName" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
+        select * from s_table_design_column where table_id = #{tableId} and column_name = #{columnName}
+    </select>
+    <select id="selectByTableIdAndFieldIndex" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
+        select * from s_table_design_column where table_id = #{tableId} and field_index = #{fieldIndex}
+    </select>
+
     <delete id="deleteByTableId">
         delete from s_table_design_column where table_id = #{tableId}
     </delete>
 
+    <insert id="insertNext">
+        insert into s_table_design_column
+        (table_id, field_index, column_name, column_comment, key_yn
+        , null_able_yn, field_type, field_length, field_enum, default_value
+        , data_status, create_user, update_user)
+        values (
+            #{tableId},
+            (select ORDINAL_POSITION from INFORMATION_SCHEMA.Columns
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = #{tableName}
+               AND column_name = #{columnName}),
+            #{columnName}, #{columnComment}, #{keyYn}
+            , #{nullAbleYn}, #{fieldType}, #{fieldLength}, #{fieldEnum}, #{defaultValue}
+            , #{dataStatus}, #{createUser}, #{updateUser}
+        )
+
+    </insert>
 
 </mapper>

@@ -32,4 +32,9 @@ public class SimpleTableDesign {
      */
     private String columnType;
 
+    /**
+     * 是否为空
+     */
+    private String isNullable;
+
 }
