@@ -97,4 +97,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setRoleCode(sessionUser.getRoleCode());
         return ResVo.success("获取用户信息成功", user);
     }
+
+    @Override
+    public ResVo refreshToken() {
+        // 将登录用户的信息放到session中
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
+        HttpSession session = request.getSession();
+        User loginUser = (User)session.getAttribute("loginUser");
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("loginCode", loginUser.getLoginCode());
+
+        return ResVo.success("刷新token成功", jwtUtil.genToken(claims));
+    }
+
+    @Override
+    public ResVo logout() {
+        // 将登录用户的信息放到session中
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
+        HttpSession session = request.getSession();
+        session.removeAttribute("loginUser");
+        return ResVo.success("退出登录成功");
+    }
 }

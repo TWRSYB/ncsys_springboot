@@ -39,6 +39,17 @@ public class UserController {
         return userService.getUserInfo();
     }
 
+    @GetMapping("/refreshToken")
+    public ResVo refreshToken() {
+        log.info("CONT入参为空");
+        return userService.refreshToken();
+    }
+
+    @GetMapping("/logout")
+    public ResVo logout() {
+        log.info("CONT入参为空");
+        return userService.logout();
+    }
 
 }
 

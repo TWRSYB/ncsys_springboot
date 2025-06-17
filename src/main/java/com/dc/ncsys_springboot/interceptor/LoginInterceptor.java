@@ -11,8 +11,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -27,6 +25,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             "/ncsys/test/loginPage",          // DeepSeek建议登录的友好Url, 可以进行拓展处理, 但仍需要放行login.html
             "/ncsys/login.html",          // 登录页面
             "/ncsys/user/login",     // 登录接口
+            "/ncsys/user/logout",     // 登录接口
             "/ncsys/static/**"      // 静态资源
     ));
 

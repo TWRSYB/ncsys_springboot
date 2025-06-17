@@ -19,4 +19,8 @@ public interface UserService extends IService<User> {
     ResVo getUserList();
 
     ResVo getUserInfo();
+
+    ResVo refreshToken();
+
+    ResVo logout();
 }
