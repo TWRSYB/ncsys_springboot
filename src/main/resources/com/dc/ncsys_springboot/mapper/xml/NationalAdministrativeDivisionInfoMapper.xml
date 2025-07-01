@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.NationalAdministrativeDivisionInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.NationalAdministrativeDivisionInfoDo">
+        <id column="area_lv" property="areaLv" />
+        <id column="area_name" property="areaName" />
+        <id column="area_code" property="areaCode" />
+        <result column="up_code" property="upCode" />
+        <result column="area_path" property="areaPath" />
+        <result column="area_name_full" property="areaNameFull" />
+        <result column="zhudi" property="zhudi" />
+        <result column="renkou" property="renkou" />
+        <result column="mianji" property="mianji" />
+        <result column="quhao" property="quhao" />
+        <result column="youbian" property="youbian" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        area_lv, area_name, area_code, up_code, area_path, area_name_full, zhudi, renkou, mianji, quhao, youbian, data_status, create_user, create_time, update_user, update_time
+    </sql>
+
+</mapper>
