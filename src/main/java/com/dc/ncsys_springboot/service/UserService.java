@@ -23,4 +23,6 @@ public interface UserService extends IService<User> {
     ResVo refreshToken();
 
     ResVo logout();
+
+    ResVo addUser(User user);
 }

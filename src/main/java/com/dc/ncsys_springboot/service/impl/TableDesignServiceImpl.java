@@ -81,7 +81,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             String columnComment = simpleTableDesign.getColumnComment();
             String type = "";   //"text" input; "lv" 页面铺数字 [0-未收录,1-xx,2-xx,3-xx,4-xx,5-xx];  "type" selection [未收录, xx, xx, xx, xx]; "YMD" dataPicker;
             ArrayList<String> types = new ArrayList<>();
-            HashMap<String, String> lvs = new HashMap<>();
+            Map<String, String> lvs = new LinkedHashMap<>();
             String columnDefault = simpleTableDesign.getColumnDefault();
 
             String[] split = columnComment.split(":");
@@ -409,7 +409,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     private static void sqlAppendColumn(StringBuilder sqlBuilder, TableDesignColumnDo tableDesignColumnDo) {
         sqlBuilder.append("\t`").append(tableDesignColumnDo.getColumnName()).append("`\t").append(tableDesignColumnDo.getFieldType());
 
-        if (ObjectUtils.isEmpty(tableDesignColumnDo.getFieldLength())) {
+        // 处理字段长度
+        if ("DECIMAL".equals(tableDesignColumnDo.getFieldType())) {
+            sqlBuilder.append("(14,4)\t");
+        } else if (ObjectUtils.isEmpty(tableDesignColumnDo.getFieldLength())) {
             sqlBuilder.append("\t");
         } else {
             sqlBuilder.append("(").append(tableDesignColumnDo.getFieldLength()).append(")\t");
@@ -853,7 +856,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     private final String COLUMN_NAME_REG = "^[a-z][a-z0-9]*(_[a-z0-9]+)*$";
     private final Pattern PATTERN_NOT_IN_COLUMN_COMMENT = Pattern.compile("[ ,:]"); // 匹配空格、冒号、逗号
     private final Set<String> YN_SET = Set.of("Y", "N");
-    private final Set<String> FIELD_TYPE_SET = Set.of("varchar", "char", "int", "timestamp", "TEXT", "BLOB", "JSON");
+//    private final Set<String> FIELD_TYPE_SET = Set.of("varchar", "char", "int", "timestamp", "TEXT", "BLOB", "JSON");
     private final Set<String> NEED_LENGTH_SET = Set.of("varchar", "char");
     private final Set<String> CAN_ENUM_SET = Set.of("varchar", "char");
     private final Pattern PATTERN_NOT_IN_FIELD_ENUM = Pattern.compile("[ ,:;]"); // 匹配空格、冒号、逗号
@@ -1120,7 +1123,11 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         if (ObjectUtils.isEmpty(fieldType)) {
             throw new BusinessException("校验拒绝", "fieldType 为空");
         }
-        if (!FIELD_TYPE_SET.contains(fieldType)) {
+
+        ResVo option = tableDesignColumnService.getOption("s_table_design_column", "field_type");
+        @SuppressWarnings("unchecked")
+        List<String> optionList = (List<String>) option.getData();
+        if (!optionList.contains(fieldType)) {
             throw new BusinessException("校验拒绝", "fieldType 非允许的值: " + fieldType);
         }
 
@@ -1540,7 +1547,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         // 4. 拼接 ALTER TABLE SQL
         log.info("↓↓↓ 4. 拼接 ALTER TABLE SQL ↓↓↓");
         StringBuilder sqlBuilder = new StringBuilder("ALTER TABLE `");
-        sqlBuilder.append(tableName).append("` CHANGE COLUMN `").append(tableDesignColumnDo.getColumnName()).append("` ");
+        sqlBuilder.append(tableName).append("` CHANGE COLUMN `").append(tableDesignColumnDo1.getColumnName()).append("` ");
         sqlAppendColumn(sqlBuilder, tableDesignColumnDo);
 
         String sql = getSql(sqlBuilder, null);

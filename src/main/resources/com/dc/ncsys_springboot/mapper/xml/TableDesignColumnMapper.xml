@@ -72,6 +72,13 @@
     <select id="selectByTableIdAndFieldIndex" resultType="com.dc.ncsys_springboot.daoVo.TableDesignColumnDo">
         select * from s_table_design_column where table_id = #{tableId} and field_index = #{fieldIndex}
     </select>
+    <select id="getColumn" resultType="com.dc.ncsys_springboot.vo.SimpleTableDesign">
+        select ORDINAL_POSITION, COLUMN_NAME, COLUMN_COMMENT, COLUMN_DEFAULT, COLUMN_KEY, COLUMN_TYPE, IS_NULLABLE
+        from INFORMATION_SCHEMA.Columns
+        where TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = #{tableName}
+          AND column_name = #{columnName}
+    </select>
 
     <delete id="deleteByTableId">
         delete from s_table_design_column where table_id = #{tableId}

@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.vo.ResVo;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface TableDesignColumnService extends IService<TableDesignColumnDo> {
 
+    ResVo getOption(String tableName, String columnName);
 }

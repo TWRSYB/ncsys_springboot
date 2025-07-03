@@ -1,12 +1,11 @@
 package com.dc.ncsys_springboot.controller;
 
+import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.service.UserService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -18,7 +17,13 @@ public class SysController {
 
     @GetMapping("/getUserList")
     public ResVo getUserList() {
-        log.info("获取用户列表接口");
+        log.info("CONT入参为空");
         return userService.getUserList();
+    }
+
+    @PostMapping("/addUser")
+    public ResVo addUser(@RequestBody User user) {
+        log.info("CONT入参:{}", user);
+        return userService.addUser(user);
     }
 }

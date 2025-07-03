@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.UserMapper;
+import com.dc.ncsys_springboot.service.TableDesignColumnService;
 import com.dc.ncsys_springboot.service.UserService;
+import com.dc.ncsys_springboot.util.DateTimeUtil;
 import com.dc.ncsys_springboot.util.JwtUtil;
 import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -18,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private TableDesignColumnService tableDesignColumnService;
+
     @Override
     public ResVo login(User user) {
         LambdaQueryWrapper<User> lambdaWrapper = new LambdaQueryWrapper<>();
@@ -49,7 +56,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User queryUser = userMapper.selectOne(lambdaWrapper); // 第二个参数：是否允许多条结果时抛出异常
 
 
-        log.info("用户登录->查询登录用户结果: {}", user);
+        log.info("用户登录->查询登录用户结果: {}", queryUser);
 
         if (ObjectUtils.isEmpty(queryUser)) {
             log.warn("登录账号未查询到用户: {}", user.getLoginCode());
@@ -62,7 +69,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         if (!queryUser.getDataStatus().equals("1")) {
-            log.warn("用户状态不可用: {}", user.getDataStatus());
+            log.warn("用户状态不可用: {}", queryUser.getDataStatus());
             return ResVo.fail("当前用户不可用, 请联系管理员!");
         }
 
@@ -121,4 +128,95 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         session.removeAttribute("loginUser");
         return ResVo.success("退出登录成功");
     }
+
+    @Override
+    public ResVo addUser(User user) {
+
+        User sessionUser = SessionUtils.getSessionUser();
+
+        // 入参校验
+        checkUser(user);
+
+        // 检查用户是否已存在
+        User existingUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getLoginCode, user.getLoginCode()));
+        if (existingUser != null) {
+            return ResVo.fail("用户已存在");
+        }
+
+        user.setUserId(user.getPhoneNum() + DateTimeUtil.getMinuteKey());
+        user.setDataStatus("1");
+        user.setCreateUser(sessionUser.getLoginCode());
+        user.setUpdateUser(sessionUser.getLoginCode());
+
+        // 插入用户信息
+        int rows = userMapper.insert(user);
+        if (rows > 0) {
+            return ResVo.success("添加用户成功");
+        } else {
+            return ResVo.fail("添加用户失败");
+        }
+
+    }
+
+    /**
+     * 入参校验
+     * @param user 用户信息
+     */
+    private void checkUser(User user) {
+        if (user == null) {
+            throw new BusinessException("用户信息不能为空");
+        }
+
+        String loginCode = user.getLoginCode();
+        if (loginCode == null || loginCode.isEmpty()) {
+            throw new BusinessException("登录账号不能为空");
+        }
+
+        // 登录账号由 8~10位 数字和字母组成, 且必需同时包含数字和字母
+        if (!loginCode.matches("^(?=.*[0-9])(?=.*[a-zA-Z])[0-9a-zA-Z]{8,10}$")) {
+            throw new BusinessException("登录账号格式不正确");
+        }
+
+        String loginPassword = user.getLoginPassword();
+        if (loginPassword == null || loginPassword.isEmpty()) {
+            throw new BusinessException("登录密码不能为空");
+        }
+
+        // 登录密码由 8~16位 数字/字母/特殊符号组成, 且必需同时包含数字/小写字母/大写字母和特殊符号
+        if (!loginPassword.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_-])[0-9a-zA-Z!@#$%^&*()_-]{8,16}$")) {
+            throw new BusinessException("登录密码格式不正确");
+        }
+
+        String userName = user.getUserName();
+        if (userName == null || userName.isEmpty()) {
+            throw new BusinessException("用户名不能为空");
+        }
+
+        // 用户名长度2~10位
+        if (userName.length() < 2 || userName.length() > 10) {
+            throw new BusinessException("用户名长度不正确");
+        }
+
+        // 用户名不能包含空格
+        if (userName.contains(" ")) {
+            throw new BusinessException("用户名不能包含空格");
+        }
+
+        String roleCode = user.getRoleCode();
+        if (roleCode == null || roleCode.isEmpty()) {
+            throw new BusinessException("角色编码不能为空");
+        }
+
+        // 必须指定的角色编码
+        ResVo option = tableDesignColumnService.getOption("m_user", "role_code");
+        @SuppressWarnings("unchecked")
+        Map<String, String> roleCodeMap = (Map<String, String>) option.getData();
+        if (!roleCodeMap.containsKey(roleCode)) {
+            throw new BusinessException("角色编码不正确");
+        }
+
+
+    }
+
+
 }

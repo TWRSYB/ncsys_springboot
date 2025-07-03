@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.mapper;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.dc.ncsys_springboot.vo.SimpleTableDesign;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,4 +34,6 @@ public interface TableDesignColumnMapper extends BaseMapper<TableDesignColumnDo>
     TableDesignColumnDo selectByTableIdAndFieldIndex(TableDesignColumnDo tableDesignColumnDo);
 
     int updateByTableIdAndFieldIndex(TableDesignColumnDo tableDesignColumnDo);
+
+    SimpleTableDesign getColumn(@Param("tableName") String tableName, @Param("columnName") String columnName);
 }
