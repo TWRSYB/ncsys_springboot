@@ -20,7 +20,6 @@ public class GlobalResponseFilter implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
-        System.out.println("supports 方法被调用，返回类型: " + returnType.getParameterType().getSimpleName());
         return true;  // 对所有响应生效
     }
 

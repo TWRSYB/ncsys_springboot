@@ -31,5 +31,24 @@
     <sql id="Base_Column_List">
         serno, trade_date, seller_id, quality_mould_rate, quality_humidity, trade_status, threshing_yn, clearing_form, unit_price, total_weight, total_price, premium, remark, data_status, create_user, create_time, update_user, update_time, actual_clearing_date, clearing_amount, plan_clearing_date
     </sql>
+    <select id="getList" resultType="com.dc.ncsys_springboot.daoVo.CornCobPurchaseDo">
+        SELECT * FROM t_corn_cob_purchase
+        WHERE data_status = 1
+        <if test="tradeDate != null">
+            AND trade_date = #{tradeDate}
+        </if>
+        <if test="sellerId!= null">
+            AND seller_id = #{sellerId}
+        </if>
+        <if test="tradeStatus!= null">
+            AND trade_status = #{tradeStatus}
+        </if>
+        <if test="threshingYn!= null">
+            AND threshing_yn = #{threshingYn}
+        </if>
+        <if test="clearingForm!= null">
+            AND clearing_form = #{clearingForm}
+        </if>
+    </select>
 
 </mapper>

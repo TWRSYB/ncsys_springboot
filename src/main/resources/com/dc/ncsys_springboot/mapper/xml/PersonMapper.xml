@@ -23,5 +23,10 @@
     <sql id="Base_Column_List">
         person_id, person_name, phone_num, id_num, privace, city, area, address, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <select id="getByPhoneNum" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT * FROM m_person
+        WHERE data_status = 1
+            AND phone_num = #{phoneNum}
+    </select>
 
 </mapper>

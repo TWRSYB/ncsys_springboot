@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.vo;
 
+import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -24,6 +25,11 @@ public class ResVo {
     }
     public static ResVo fail(String message) {
         return new ResVo(500, message, null);
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "=" + JsonUtils.toJson(this);
     }
 
 }

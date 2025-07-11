@@ -2,6 +2,10 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.CornCobPurchaseDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.daoVo.MixedCornCobPurchaseDo;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
+import com.dc.ncsys_springboot.vo.ResVo;
 
 /**
  * <p>
@@ -13,4 +17,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CornCobPurchaseService extends IService<CornCobPurchaseDo> {
 
+    PageResVo<CornCobPurchaseDo> getList(PageQueryVo<CornCobPurchaseDo> queryVo);
+
+    ResVo saveTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo);
 }

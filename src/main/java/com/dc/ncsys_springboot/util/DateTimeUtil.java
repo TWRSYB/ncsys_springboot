@@ -160,4 +160,16 @@ public class DateTimeUtil {
     public static LocalDateTime firstDayOfWeek() {
         return LocalDateTime.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
+
+    /**
+     * 判断字符串是否是日期格式
+     */
+    public static boolean isDateStr(String text) {
+        try {
+            LocalDateTime.parse(text, DATE_FORMATTER);
+            return true;
+        } catch (DateTimeParseException ignored) {
+            return false;
+        }
+    }
 }

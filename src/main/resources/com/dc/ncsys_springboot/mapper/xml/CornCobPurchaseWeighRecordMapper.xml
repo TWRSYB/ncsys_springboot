@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.CornCobPurchaseWeighRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.CornCobPurchaseWeighRecordDo">
+        <id column="weigh_id" property="weighId" />
+        <result column="trade_date" property="tradeDate" />
+        <result column="carrier" property="carrier" />
+        <result column="verhicle_num" property="verhicleNum" />
+        <result column="gross_weight" property="grossWeight" />
+        <result column="tare_weight" property="tareWeight" />
+        <result column="net_weight" property="netWeight" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="remark" property="remark" />
+        <result column="trade_serno" property="tradeSerno" />
+        <result column="weigh_type" property="weighType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        weigh_id, trade_date, carrier, verhicle_num, gross_weight, tare_weight, net_weight, data_status, create_user, create_time, update_user, update_time, remark, trade_serno, weigh_type
+    </sql>
+    <delete id="deleteByTradeSerno">
+        DELETE FROM ts_corn_cob_purchase_weigh_record
+        WHERE trade_serno = #{tradeSerno}
+    </delete>
+
+</mapper>
