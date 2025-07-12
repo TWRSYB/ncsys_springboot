@@ -1,10 +1,14 @@
 package com.dc.ncsys_springboot.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+
+@Slf4j
 public class DateTimeUtil {
 
     // 线程安全的格式化工具（预定义常用格式）
@@ -166,9 +170,10 @@ public class DateTimeUtil {
      */
     public static boolean isDateStr(String text) {
         try {
-            LocalDateTime.parse(text, DATE_FORMATTER);
+            LocalDate.parse(text, DATE_FORMATTER);
             return true;
         } catch (DateTimeParseException ignored) {
+            log.error("日期格式错误:{}", text, ignored);
             return false;
         }
     }

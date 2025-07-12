@@ -15,4 +15,6 @@ import com.dc.ncsys_springboot.vo.ResVo;
 public interface PersonService extends IService<PersonDo> {
 
     ResVo getPersonList(PersonDo personDo);
+
+    ResVo<Object> updateNameByPhoneNum(PersonDo personDo);
 }

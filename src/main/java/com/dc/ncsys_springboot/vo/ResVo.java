@@ -6,25 +6,25 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ResVo {
+public class ResVo<T> {
     private Integer code;
     private String message;
     private Object data;
 
-    public static ResVo success(String message, Object data){
-        return new ResVo(200, message, data);
+    public static <T> ResVo<T> success(String message, T data){
+        return new ResVo<>(200, message, data);
     }
-    public static ResVo success(String message){
-        return new ResVo(200, message, null);
+    public static <T> ResVo<T> success(String message){
+        return new ResVo<>(200, message, null);
     }
-    public static ResVo success(){
-        return new ResVo(200, "操作成功", null);
+    public static <T> ResVo<T> success(){
+        return new ResVo<>(200, "操作成功", null);
     }
-    public static ResVo fail(Integer code, String message) {
-        return new ResVo(code, message, null);
+    public static <T> ResVo<T> fail(Integer code, String message) {
+        return new ResVo<>(code, message, null);
     }
-    public static ResVo fail(String message) {
-        return new ResVo(500, message, null);
+    public static <T> ResVo<T> fail(String message) {
+        return new ResVo<>(500, message, null);
     }
 
     @Override

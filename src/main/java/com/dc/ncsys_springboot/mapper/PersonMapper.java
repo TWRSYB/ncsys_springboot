@@ -18,4 +18,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface PersonMapper extends BaseMapper<PersonDo> {
 
     PersonDo getByPhoneNum(String phoneNum);
+
+    PersonDo getByPhoneNumOrName(String phoneNumOrName);
+
+    PersonDo selectByPhoneNum(String phoneNum);
 }

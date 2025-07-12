@@ -28,5 +28,15 @@
         WHERE data_status = 1
             AND phone_num = #{phoneNum}
     </select>
+    <select id="getByPhoneNumOrName" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT * FROM m_person
+        WHERE data_status = 1
+            AND (phone_num = #{phoneNumOrName} OR person_name like CONCAT('%', #{phoneNumOrName}, '%'))
+    </select>
+    <select id="selectByPhoneNum" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT * FROM m_person
+        WHERE data_status = 1
+            AND phone_num = #{phoneNum}
+    </select>
 
 </mapper>

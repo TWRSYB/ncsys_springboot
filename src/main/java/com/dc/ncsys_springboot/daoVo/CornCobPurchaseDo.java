@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -130,7 +131,13 @@ public class CornCobPurchaseDo implements Serializable {
      */
     private String planClearingDate;
 
-	@Override
+    /**
+     * 出售人名称
+     */
+    @TableField(exist = false)
+    private String sellerName;
+
+    @Override
 	public String toString() {
 		return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
 	}

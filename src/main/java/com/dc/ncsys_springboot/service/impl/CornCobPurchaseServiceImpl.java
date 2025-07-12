@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.dc.ncsys_springboot.daoVo.*;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.CornCobPurchaseMapper;
@@ -13,6 +14,7 @@ import com.dc.ncsys_springboot.vo.ResVo;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,12 +54,22 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
     @Override
     public PageResVo<CornCobPurchaseDo> getList(PageQueryVo<CornCobPurchaseDo> queryVo) {
         PageHelper.startPage(queryVo.getPageNum(), queryVo.getPageSize());
-        Page<CornCobPurchaseDo> cornCobPurchaseDoList = cornCobPurchaseMapper.getList(queryVo.getQuery());
+        // 根据姓名或手机号码查询出售人
+        if (!ObjectUtils.isEmpty(queryVo.getParams()) && !ObjectUtils.isEmpty(queryVo.getParams().get("seller"))) {
+            String seller = queryVo.getParams().get("seller");
+            PersonDo sellerDo = personMapper.getByPhoneNumOrName(seller);
+            if (sellerDo != null) {
+                queryVo.getParams().put("sellerId", sellerDo.getPersonId());
+            } else {
+                queryVo.getParams().put("sellerId", seller);
+            }
+        }
+        Page<CornCobPurchaseDo> cornCobPurchaseDoList = cornCobPurchaseMapper.getList(queryVo.getParams());
         return PageResVo.success(cornCobPurchaseDoList);
     }
 
     @Override
-    public ResVo saveTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo) {
+    public ResVo<Object> saveTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo) {
         // 获取当前登录用户
         User sessionUser = SessionUtils.getSessionUser();
         if (!validateMixedTrade(mixedCornCobPurchaseDo, "save")) {
@@ -70,10 +82,14 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
 
         if (existingSeller != null) {
             // 如果存在，使用已存在的ID
+            if (!existingSeller.getPersonName().equals(sellerInfo.getPersonName())) {
+                return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingSeller.getPersonName() + " 的客户，请检查");
+            }
             sellerInfo = existingSeller;
+
         } else {
             // 如果不存在，插入新记录并获取ID
-            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + System.currentTimeMillis());
+            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
             sellerInfo.setCreateUser(sessionUser.getUserId());
             sellerInfo.setUpdateUser(sessionUser.getUserId());
             sellerInfo.setDataStatus("1");
@@ -88,6 +104,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
         }
         mixedCornCobPurchaseDo.setUpdateUser(sessionUser.getUserId());
         mixedCornCobPurchaseDo.setDataStatus("0");
+        mixedCornCobPurchaseDo.setTradeStatus("收购中");
         boolean insertOrUpdate = cornCobPurchaseMapper.insertOrUpdate(mixedCornCobPurchaseDo);
         if (!insertOrUpdate) {
             throw new BusinessException("交易记录插入失败");
@@ -103,6 +120,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
                 record.setCreateUser(sessionUser.getUserId());
             }
             record.setTradeSerno(mixedCornCobPurchaseDo.getSerno());
+            record.setTradeDate(mixedCornCobPurchaseDo.getTradeDate());
             record.setWeighType("脱粒前");
             record.setUpdateUser(sessionUser.getUserId());
             record.setUpdateTime(new Date());
@@ -119,6 +137,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
                     record.setCreateUser(sessionUser.getUserId());
                 }
                 record.setTradeSerno(mixedCornCobPurchaseDo.getSerno());
+                record.setTradeDate(mixedCornCobPurchaseDo.getTradeDate());
                 record.setWeighType("脱粒后");
                 record.setUpdateUser(sessionUser.getUserId());
                 record.setUpdateTime(new Date());
@@ -126,7 +145,44 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
                 cornCobPurchaseWeighRecordMapper.insert(record);
             }
         }
-        return ResVo.success("交易记录插入成功");
+        return ResVo.success("收购记录保存成功");
+    }
+
+    @Override
+    public ResVo<MixedCornCobPurchaseDo> getTradeDetail(CornCobPurchaseDo cornCobPurchaseDo) {
+        if (ObjectUtils.isEmpty(cornCobPurchaseDo.getSerno())) {
+            throw new BusinessException("交易流水号不能为空");
+        }
+        CornCobPurchaseDo cornCobPurchaseDo1 = cornCobPurchaseMapper.selectById(cornCobPurchaseDo);
+        if (cornCobPurchaseDo1 == null) {
+            throw new BusinessException("交易记录不存在");
+        }
+
+        // 查询出售人信息
+        PersonDo sellerInfo = personMapper.selectById(cornCobPurchaseDo1.getSellerId());
+        if (sellerInfo == null) {
+            throw new BusinessException("出售人信息不存在");
+        }
+        // 查询脱粒前过磅记录
+        LambdaQueryWrapper<CornCobPurchaseWeighRecordDo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CornCobPurchaseWeighRecordDo::getTradeSerno, cornCobPurchaseDo1.getSerno());
+        wrapper.eq(CornCobPurchaseWeighRecordDo::getWeighType, "脱粒前");
+        wrapper.orderByAsc(CornCobPurchaseWeighRecordDo::getCreateTime);
+        List<CornCobPurchaseWeighRecordDo> beforeWeighRecordList = cornCobPurchaseWeighRecordMapper.selectList(wrapper);
+        // 查询脱粒后过磅记录
+        wrapper.clear();
+        wrapper.eq(CornCobPurchaseWeighRecordDo::getTradeSerno, cornCobPurchaseDo1.getSerno());
+        wrapper.eq(CornCobPurchaseWeighRecordDo::getWeighType, "脱粒后");
+        wrapper.orderByAsc(CornCobPurchaseWeighRecordDo::getCreateTime);
+        List<CornCobPurchaseWeighRecordDo> afterWeighRecordList = cornCobPurchaseWeighRecordMapper.selectList(wrapper);
+        // 组装返回结果
+        MixedCornCobPurchaseDo mixedCornCobPurchaseDo = new MixedCornCobPurchaseDo();
+        BeanUtils.copyProperties(cornCobPurchaseDo1, mixedCornCobPurchaseDo);
+        mixedCornCobPurchaseDo.setSellerInfo(sellerInfo);
+        mixedCornCobPurchaseDo.setList_weighBeforeThresh(beforeWeighRecordList);
+        mixedCornCobPurchaseDo.setList_weighAfterThresh(afterWeighRecordList);
+        return ResVo.success("查询交易详情成功", mixedCornCobPurchaseDo);
+
     }
 
 
@@ -164,7 +220,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             throw new BusinessException("出售人手机号不能为空");
         }
         // 出售人手机号格式校验
-        if (PHONE_PATTERN.matcher(sellerPhone).matches()) {
+        if (!PHONE_PATTERN.matcher(sellerPhone).matches()) {
             throw new BusinessException("出售人手机号格式不正确");
         }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Map;
 
 
 /**
@@ -18,5 +19,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface CornCobPurchaseMapper extends BaseMapper<CornCobPurchaseDo> {
 
-    Page<CornCobPurchaseDo> getList(CornCobPurchaseDo cornCobPurchaseDo);
+    Page<CornCobPurchaseDo> getList(Map<String, String> params);
 }

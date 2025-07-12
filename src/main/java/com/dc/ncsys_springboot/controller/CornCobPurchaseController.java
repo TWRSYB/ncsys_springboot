@@ -41,4 +41,10 @@ public class CornCobPurchaseController {
         return cornCobPurchaseService.saveTrade(mixedCornCobPurchaseDo);
     }
 
+    @PostMapping("/getTradeDetail")
+    public ResVo<MixedCornCobPurchaseDo> getTradeDetail(@RequestBody CornCobPurchaseDo cornCobPurchaseDo) {
+        log.info("CONT入参:{}", cornCobPurchaseDo);
+        return cornCobPurchaseService.getTradeDetail(cornCobPurchaseDo);
+    }
+
 }

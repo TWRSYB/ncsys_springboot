@@ -31,4 +31,10 @@ public class PersonController {
         log.info("CONT入参: {}", personDo);
         return personService.getPersonList(personDo);
     }
+
+    @PostMapping("/updateNameByPhoneNum")
+    public ResVo<Object> updateNameByPhoneNum(@RequestBody PersonDo personDo) {
+        log.info("CONT入参: {}", personDo);
+        return personService.updateNameByPhoneNum(personDo);
+    }
 }
