@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * <p>
  * 人员主表 前端控制器
@@ -36,5 +38,11 @@ public class PersonController {
     public ResVo<Object> updateNameByPhoneNum(@RequestBody PersonDo personDo) {
         log.info("CONT入参: {}", personDo);
         return personService.updateNameByPhoneNum(personDo);
+    }
+
+    @PostMapping("/getPersonLike")
+    public ResVo<List<PersonDo>> getPersonLike(@RequestBody PersonDo personDo) {
+        log.info("CONT入参: {}", personDo);
+        return personService.getPersonLike(personDo);
     }
 }

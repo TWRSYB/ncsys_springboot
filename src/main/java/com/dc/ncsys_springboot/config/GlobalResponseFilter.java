@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.config;
 
 import com.dc.ncsys_springboot.constants.ComConst;
+import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -69,8 +70,12 @@ public class GlobalResponseFilter implements ResponseBodyAdvice<Object> {
 
         // 过滤 User 对象
         filterUser(body);
+        // 过滤 Person 对象
+        filterPerson(body);
 
     }
+
+
 
     private void filterUser(Object body) {
         if (body instanceof User user) {
@@ -89,6 +94,20 @@ public class GlobalResponseFilter implements ResponseBodyAdvice<Object> {
                 return;
             }
             user = null;
+        }
+    }
+
+    private void filterPerson(Object body) {
+        if (body instanceof PersonDo personDo) {
+            User sessionUser = SessionUtils.getSessionUser();
+            if (sessionUser == null) {
+                personDo = null;
+                return;
+            }
+            if (ComConst.ROLE_OPERATOR.equals(sessionUser.getRoleCode())) {
+                personDo.setPersonId(null);
+                return;
+            }
         }
     }
 

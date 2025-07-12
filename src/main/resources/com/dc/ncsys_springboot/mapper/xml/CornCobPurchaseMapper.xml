@@ -25,11 +25,12 @@
         <result column="actual_clearing_date" property="actualClearingDate" />
         <result column="clearing_amount" property="clearingAmount" />
         <result column="plan_clearing_date" property="planClearingDate" />
+        <result column="address" property="address" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        serno, trade_date, seller_id, quality_mould_rate, quality_humidity, trade_status, threshing_yn, clearing_form, unit_price, total_weight, total_price, premium, remark, data_status, create_user, create_time, update_user, update_time, actual_clearing_date, clearing_amount, plan_clearing_date
+        serno, trade_date, seller_id, quality_mould_rate, quality_humidity, trade_status, threshing_yn, clearing_form, unit_price, total_weight, total_price, premium, remark, data_status, create_user, create_time, update_user, update_time, actual_clearing_date, clearing_amount, plan_clearing_date, address
     </sql>
     <select id="getList" resultType="com.dc.ncsys_springboot.daoVo.CornCobPurchaseDo">
         SELECT tccp.*, mp.person_name as sellerName FROM t_corn_cob_purchase tccp

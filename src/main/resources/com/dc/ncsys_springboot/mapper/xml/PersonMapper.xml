@@ -38,5 +38,28 @@
         WHERE data_status = 1
             AND phone_num = #{phoneNum}
     </select>
+    <select id="getPersonLike" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT * FROM m_person
+        WHERE data_status = 1
+          <if test="phoneNum!= null and phoneNum!= ''">
+            AND phone_num like CONCAT('%', #{phoneNum}, '%')
+          </if>
+          <if test="personName != null and personName != ''">
+            AND person_name like CONCAT('%', #{personName}, '%')
+          </if>
+    </select>
+    <select id="getPersonAddressList" resultType="java.lang.String">
+        SELECT address
+        FROM (SELECT address,
+                     create_time,
+                     ROW_NUMBER() OVER (PARTITION BY address ORDER BY create_time DESC) AS rn
+              FROM (SELECT address, create_time
+                    FROM t_corn_cob_purchase tccp
+                    WHERE tccp.seller_id = #{personId}
+                    ) AS merged_table
+              ) AS ranked_table
+        WHERE rn = 1
+        ORDER BY create_time DESC;
+    </select>
 
 </mapper>

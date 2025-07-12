@@ -1,9 +1,11 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.Data;
@@ -89,6 +91,12 @@ public class PersonDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    /**
+     * 地址列表
+     */
+    @TableField(exist = false)
+    private List<String> addressList;
 
     public String toString() {
         return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);

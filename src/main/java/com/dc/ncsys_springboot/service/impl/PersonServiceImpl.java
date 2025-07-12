@@ -24,7 +24,7 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
 
     @Autowired
     private PersonMapper personMapper;
-    
+
 
     @Override
     public ResVo getPersonList(PersonDo personDo) {
@@ -35,7 +35,7 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
     @Override
     public ResVo<Object> updateNameByPhoneNum(PersonDo personDo) {
         // 校验入参
-        if (ObjectUtils.isEmpty(personDo)||ObjectUtils.isEmpty(personDo.getPhoneNum()) || ObjectUtils.isEmpty(personDo.getPersonName())) {
+        if (ObjectUtils.isEmpty(personDo) || ObjectUtils.isEmpty(personDo.getPhoneNum()) || ObjectUtils.isEmpty(personDo.getPersonName())) {
             return ResVo.fail("参数异常");
         }
 
@@ -53,5 +53,25 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         }
 
         return ResVo.fail("更新人员名称失败");
+    }
+
+    @Override
+    public ResVo<List<PersonDo>> getPersonLike(PersonDo personDo) {
+        if (ObjectUtils.isEmpty(personDo)) {
+            return ResVo.fail("参数异常");
+        }
+        if (ObjectUtils.isEmpty(personDo.getPersonName()) && ObjectUtils.isEmpty(personDo.getPhoneNum())) {
+            return ResVo.fail("查询条件不能为空");
+        }
+
+        List<PersonDo> personDos = personMapper.getPersonLike(personDo);
+
+        // 查询人员地址列表
+        for (PersonDo person : personDos) {
+            // 查询人员地址列表
+            List<String> addressList = personMapper.getPersonAddressList(person.getPersonId());
+            person.setAddressList(addressList);
+        }
+        return ResVo.success("查询人员列表成功", personDos);
     }
 }

@@ -132,6 +132,11 @@ public class CornCobPurchaseDo implements Serializable {
     private String planClearingDate;
 
     /**
+     * 地址
+     */
+    private String address;
+
+    /**
      * 出售人名称
      */
     @TableField(exist = false)

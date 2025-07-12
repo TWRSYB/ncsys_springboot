@@ -19,7 +19,11 @@ public interface CornCobPurchaseService extends IService<CornCobPurchaseDo> {
 
     PageResVo<CornCobPurchaseDo> getList(PageQueryVo<CornCobPurchaseDo> queryVo);
 
-    ResVo saveTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo);
+    ResVo<Object> saveTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo);
 
     ResVo<MixedCornCobPurchaseDo> getTradeDetail(CornCobPurchaseDo cornCobPurchaseDo);
+
+    ResVo<Object> purchaseComplete(MixedCornCobPurchaseDo mixedCornCobPurchaseDo);
+
+    ResVo<Object> settleTrade(MixedCornCobPurchaseDo mixedCornCobPurchaseDo);
 }

@@ -47,4 +47,17 @@ public class CornCobPurchaseController {
         return cornCobPurchaseService.getTradeDetail(cornCobPurchaseDo);
     }
 
+    @PostMapping("/purchaseComplete")
+    public ResVo<Object> purchaseComplete(@RequestBody MixedCornCobPurchaseDo mixedCornCobPurchaseDo) {
+        log.info("CONT入参:{}", mixedCornCobPurchaseDo);
+        return cornCobPurchaseService.purchaseComplete(mixedCornCobPurchaseDo);
+    }
+
+
+    @PostMapping("/settleTrade")
+    public ResVo<Object> settleTrade(@RequestBody MixedCornCobPurchaseDo mixedCornCobPurchaseDo) {
+        log.info("CONT入参:{}", mixedCornCobPurchaseDo);
+        return cornCobPurchaseService.settleTrade(mixedCornCobPurchaseDo);
+    }
+
 }

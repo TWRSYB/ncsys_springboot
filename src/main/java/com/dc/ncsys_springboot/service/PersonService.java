@@ -4,6 +4,8 @@ import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dc.ncsys_springboot.vo.ResVo;
 
+import java.util.List;
+
 /**
  * <p>
  * 人员主表 服务类
@@ -17,4 +19,6 @@ public interface PersonService extends IService<PersonDo> {
     ResVo getPersonList(PersonDo personDo);
 
     ResVo<Object> updateNameByPhoneNum(PersonDo personDo);
+
+    ResVo<List<PersonDo>> getPersonLike(PersonDo personDo);
 }

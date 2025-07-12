@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
 
 
 /**
@@ -22,4 +23,8 @@ public interface PersonMapper extends BaseMapper<PersonDo> {
     PersonDo getByPhoneNumOrName(String phoneNumOrName);
 
     PersonDo selectByPhoneNum(String phoneNum);
+
+    List<PersonDo> getPersonLike(PersonDo personDo);
+
+    List<String> getPersonAddressList(String personId);
 }
