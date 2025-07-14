@@ -44,12 +44,12 @@ public class CornCobPurchaseDo implements Serializable {
     /**
      * 霉菌率
      */
-    private Double qualityMouldRate;
+    private String qualityMouldRate;
 
     /**
      * 湿度
      */
-    private Double qualityHumidity;
+    private String qualityHumidity;
 
     /**
      * 交易状态:收购中,待结算,已结算
@@ -72,7 +72,7 @@ public class CornCobPurchaseDo implements Serializable {
     private BigDecimal unitPrice;
 
     /**
-     * 总重(吨)
+     * 总重(kg)
      */
     private BigDecimal totalWeight;
 

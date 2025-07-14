@@ -1502,6 +1502,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 5 执行SQL
      * 6 记录表设计SQL
      * 7 修改字段数据状态并落库
+     * 8 生成实体类
+     * 9 文件处理
      *
      * @param tableDesignColumnDo 要修改的字段
      * @return ResVo
@@ -1584,6 +1586,25 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         int updateNum = tableDesignColumnMapper.updateByTableIdAndFieldIndex(tableDesignColumnDo);
         log.info("表设计之字段设计修改完成: 表名: {}", tableName);
         log.info("↑↑↑ 7. 修改字段数据状态并落库 ↑↑↑");
+
+        // 8. 生成实体类
+        log.info("↓↓↓ 8. 生成实体类 ↓↓↓");
+        CodeGenerator.generator(tableName);
+        log.info("↑↑↑ 8. 生成实体类 ↑↑↑");
+
+        // 9. 文件处理
+        log.info("↓↓↓ 9. 文件处理 ↓↓↓");
+
+        // 9.1. 将Mapper.xml移动到resources目录下
+        log.info("↓↓↓ 9.1. 将Mapper.xml移动到resources目录下 ↓↓↓");
+        moveMapperXml(tableName);
+        log.info("↑↑↑ 9.1. 将Mapper.xml移动到resources目录下 ↑↑↑");
+
+        // 9.3 处理实体类文件
+        log.info("↓↓↓ 9.3. 处理实体类文件 ↓↓↓");
+        dealDo(tableName, tableDesignColumnDo.getKeyYn().equals("Y"));
+        log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
+        log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
         return ResVo.success("修改字段成功", tableDesignColumnDo);
 
