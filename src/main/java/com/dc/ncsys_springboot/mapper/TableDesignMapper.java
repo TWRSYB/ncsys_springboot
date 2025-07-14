@@ -3,6 +3,7 @@ package com.dc.ncsys_springboot.mapper;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dc.ncsys_springboot.vo.SimpleTableDesign;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public interface TableDesignMapper extends BaseMapper<TableDesignDo> {
     @Update("${sql}")
     int deleteUniqueKey(@Param("sql") String sql);
 
-    List<TableDesignDo> getTableDesignList();
+    Page<TableDesignDo> getTableDesignList(Map<String, String> params);
 
     @Update("${sql}")
     int changeColumn(@Param("sql") String sql);

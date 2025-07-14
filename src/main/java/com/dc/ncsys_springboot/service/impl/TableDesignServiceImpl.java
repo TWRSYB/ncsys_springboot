@@ -1,7 +1,6 @@
 package com.dc.ncsys_springboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dc.ncsys_springboot.daoVo.*;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.TableDesignColumnMapper;
@@ -12,14 +11,14 @@ import com.dc.ncsys_springboot.service.TableDesignColumnService;
 import com.dc.ncsys_springboot.service.TableDesignService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.util.*;
-import com.dc.ncsys_springboot.vo.Field;
-import com.dc.ncsys_springboot.vo.ResVo;
+import com.dc.ncsys_springboot.vo.*;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.mybatis_plus_generator.CodeGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.dc.ncsys_springboot.vo.SimpleTableDesign;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
@@ -64,9 +63,10 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     private TableDesignColumnService tableDesignColumnService;
 
     @Override
-    public ResVo getTableDesignList() {
-        List<TableDesignDo> tableDesigns = tableDesignMapper.getTableDesignList();
-        return ResVo.success("获取表设计成功", tableDesigns);
+    public PageResVo<TableDesignDo> getTableDesignList(PageQueryVo<TableDesignDo> pageQueryVo) {
+        PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
+        Page<TableDesignDo> tableDesigns = tableDesignMapper.getTableDesignList(pageQueryVo.getParams());
+        return PageResVo.success(tableDesigns);
     }
 
     @Override

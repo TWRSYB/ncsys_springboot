@@ -5,6 +5,8 @@ import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
 import com.dc.ncsys_springboot.service.TableDesignService;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +28,9 @@ public class TableDesignController {
     @Autowired
     private TableDesignService tableDesignService;
 
-    @GetMapping("/getTableDesignList")
-    public ResVo getTableDesignList() {
-        return tableDesignService.getTableDesignList();
+    @PostMapping("/getTableDesignList")
+    public PageResVo<TableDesignDo> getTableDesignList(@RequestBody PageQueryVo<TableDesignDo> pageQueryVo) {
+        return tableDesignService.getTableDesignList(pageQueryVo);
     }
 
     @GetMapping("/getTableDesign")

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.CornGrainPurchaseMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.CornGrainPurchaseDo">
+        <id column="serno" property="serno" />
+        <result column="trade_date" property="tradeDate" />
+        <result column="seller_id" property="sellerId" />
+        <result column="address" property="address" />
+        <result column="quality_mould_rate" property="qualityMouldRate" />
+        <result column="quality_humidity" property="qualityHumidity" />
+        <result column="impurity" property="impurity" />
+        <result column="unit_price" property="unitPrice" />
+        <result column="total_weight" property="totalWeight" />
+        <result column="total_price" property="totalPrice" />
+        <result column="remark" property="remark" />
+        <result column="trade_status" property="tradeStatus" />
+        <result column="clearing_form" property="clearingForm" />
+        <result column="plan_clearing_date" property="planClearingDate" />
+        <result column="actual_clearing_date" property="actualClearingDate" />
+        <result column="premium" property="premium" />
+        <result column="clearing_amount" property="clearingAmount" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        serno, trade_date, seller_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, remark, trade_status, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, data_status, create_user, create_time, update_user, update_time
+    </sql>
+    <select id="getList" resultType="com.dc.ncsys_springboot.daoVo.CornGrainPurchaseDo">
+        SELECT tccp.*, mp.person_name as sellerName FROM t_corn_grain_purchase tccp
+        inner join m_person mp on tccp.seller_id = mp.person_id
+        <where>
+            <if test="tradeDate!= null and tradeDate!= ''">
+                AND trade_date = #{tradeDate}
+            </if>
+            <if test="sellerId!= null and sellerId!= ''">
+                AND seller_id = #{sellerId}
+            </if>
+            <if test="tradeStatus!= null and tradeStatus!= ''">
+                AND trade_status = #{tradeStatus}
+            </if>
+        </where>
+
+    </select>
+
+</mapper>

@@ -419,8 +419,9 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
                 if (ObjectUtils.isEmpty(record.getCarrier())) {
                     throw new BusinessException("承运方不能为空");
                 }
+                sumBeforeNetWeight = sumBeforeNetWeight.add(record.getNetWeight());
             }
-            sumBeforeNetWeight = sumBeforeNetWeight.add(record.getNetWeight());
+
         }
         if ("Y".equals(mixedCornCobPurchaseDo.getThreshingYn())) {
             List<CornCobPurchaseWeighRecordDo> weighAfterThreshList = mixedCornCobPurchaseDo.getList_weighAfterThresh();
@@ -428,16 +429,22 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             BigDecimal sumAfterNetWeight = BigDecimal.ZERO;
             for (CornCobPurchaseWeighRecordDo record : weighAfterThreshList) {
                 validateWeighRecord(record, step);
-                sumAfterNetWeight = sumAfterNetWeight.add(record.getNetWeight());
+                if (!"save".equals(step)) {
+                    sumAfterNetWeight = sumAfterNetWeight.add(record.getNetWeight());
+                }
             }
-            // 总重需要等于脱粒后过磅净重求和
-            if (totalWeight.compareTo(sumAfterNetWeight)!= 0) {
-                throw new BusinessException("总重量必须等于脱粒后过磅净重求和");
+            // 非保存时，总重必须等于脱粒后过磅净重求和
+            if (!"save".equals(step)) {
+                if (totalWeight.compareTo(sumAfterNetWeight)!= 0) {
+                    throw new BusinessException("总重量必须等于脱粒后过磅净重求和");
+                }
             }
         } else {
-            // 总重需要等于脱粒前过磅净重求和
-            if (totalWeight.compareTo(sumBeforeNetWeight)!= 0) {
-                throw new BusinessException("总重量必须等于脱粒前过磅净重求和");
+            // 非保存时，总重必须等于脱粒前过磅净重求和
+            if (!"save".equals(step)) {
+                if (totalWeight.compareTo(sumBeforeNetWeight)!= 0) {
+                    throw new BusinessException("总重量必须等于脱粒前过磅净重求和");
+                }
             }
         }
         return true;

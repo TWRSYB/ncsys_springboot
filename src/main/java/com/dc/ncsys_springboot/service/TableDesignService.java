@@ -5,6 +5,8 @@ import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
 
 /**
@@ -17,7 +19,7 @@ import com.dc.ncsys_springboot.vo.ResVo;
  */
 public interface TableDesignService extends IService<TableDesignDo> {
 
-    ResVo getTableDesignList();
+    PageResVo<TableDesignDo> getTableDesignList(PageQueryVo<TableDesignDo> pageQueryVo);
 
     ResVo getTableDesign(String tableName);
 

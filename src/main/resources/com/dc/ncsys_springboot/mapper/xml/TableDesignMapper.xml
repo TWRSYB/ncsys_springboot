@@ -42,6 +42,17 @@
     <select id="getTableDesignList" resultType="com.dc.ncsys_springboot.daoVo.TableDesignDo">
         SELECT *
         FROM s_table_design
+        <where>
+            <if test="tableLike!= null and tableLike!= ''">
+                AND (table_name like CONCAT('%', #{tableLike}, '%') OR table_comment like CONCAT('%', #{tableLike}, '%'))
+            </if>
+            <if test="tableType!= null and tableType!= ''">
+                AND table_type like CONCAT('%', #{tableType}, '%')
+            </if>
+            <if test="dataStatus!= null and dataStatus!= ''">
+                AND data_status = #{dataStatus}
+            </if>
+        </where>
         order by create_time desc
     </select>
 
