@@ -37,6 +37,7 @@ logging:
         jdbc:
           datasource: TRACE
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %line : %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %line : %replace(%msg){'\"avatar\":\".*?\"', '\"avatar\":\"[FILTERED]\"'}n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %line : %replace(%msg){'\"avatar\":\".*?\"', '\"avatar\":\"[FILTERED]\"'}n"
 
 
