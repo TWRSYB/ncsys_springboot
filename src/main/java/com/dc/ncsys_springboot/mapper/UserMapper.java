@@ -5,6 +5,7 @@ import com.dc.ncsys_springboot.daoVo.User;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,4 +21,6 @@ public interface UserMapper extends BaseMapper<User> {
 
     @MapKey("Table")
     Map<String, String> getTableDesign();
+
+    List<User> getSubAccountList(String userId);
 }

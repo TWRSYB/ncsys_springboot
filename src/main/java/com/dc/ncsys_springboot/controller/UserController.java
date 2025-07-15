@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * <p>
  * 登录用户 前端控制器
@@ -49,6 +51,12 @@ public class UserController {
     public ResVo logout() {
         log.info("CONT入参为空");
         return userService.logout();
+    }
+
+    @GetMapping("/getSubAccountList")
+    public ResVo<List<User>> getSubAccountList(@RequestParam("userId") String userId) {
+        log.info("CONT入参: {}", userId);
+        return userService.getSubAccountList(userId);
     }
 
 }

@@ -24,6 +24,19 @@
     <select id="getTableDesign" resultType="Map">
         show create table m_user
     </select>
+    <select id="getSubAccountList" resultType="com.dc.ncsys_springboot.daoVo.User">
+        SELECT b.*
+        FROM m_user a
+        inner join m_user b on a.phone_num = b.phone_num
+        where a.user_id = #{userId}
+          and a.data_status = 1
+          and b.data_status = 1
+          AND (
+                (a.role_code = 'sysAdmin' AND b.role_code IN ('manager', 'operator')) OR
+                (a.role_code = 'manager' AND b.role_code = 'operator')
+            )
+
+    </select>
 
 
 </mapper>

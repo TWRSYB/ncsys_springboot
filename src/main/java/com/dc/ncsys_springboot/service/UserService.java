@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.vo.ResVo;
 
+import java.util.List;
+
 /**
  * <p>
  * 登录用户 服务类
@@ -25,4 +27,6 @@ public interface UserService extends IService<User> {
     ResVo logout();
 
     ResVo addUser(User user);
+
+    ResVo<List<User>> getSubAccountList(String userId);
 }

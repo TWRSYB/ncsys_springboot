@@ -3,6 +3,7 @@ package com.dc.ncsys_springboot.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dc.ncsys_springboot.constants.ComConst;
 import com.dc.ncsys_springboot.daoVo.User;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.UserMapper;
@@ -156,6 +157,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResVo.fail("添加用户失败");
         }
 
+    }
+
+    @Override
+    public ResVo<List<User>> getSubAccountList(String userId) {
+        // 获取当前登录用户的信息
+        User sessionUser = SessionUtils.getSessionUser();
+
+        // 匹配userId
+        if (!sessionUser.getUserId().equals(userId)) {
+            throw new BusinessException("查询子账号失败", "用户ID不匹配");
+        }
+
+        // 如果用户不是系统管理员或管理员则直接返回空数据
+        if (!sessionUser.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) && !sessionUser.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
+            return ResVo.success("查询子账号列表成功", new ArrayList<>());
+        }
+
+        // 查询子账号信息
+        List<User> subAccountList = userMapper.getSubAccountList(userId);
+
+        return ResVo.success("查询子账号列表成功", subAccountList);
     }
 
     /**
