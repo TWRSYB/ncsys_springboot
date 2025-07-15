@@ -1,7 +1,7 @@
 package com.dc.ncsys_springboot.service.impl;
 
 import com.dc.ncsys_springboot.daoVo.AreaCodeDo;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.AreaCodeMapper;
 import com.dc.ncsys_springboot.service.AreaCodeService;
@@ -33,7 +33,7 @@ public class AreaCodeServiceImpl extends ServiceImpl<AreaCodeMapper, AreaCodeDo>
     @Override
     public ResVo readJsonToDb() {
 
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
 
         // 读取配置文件中的地区Json数据
         String areaJson = "src/main/resources/jsons/ChinaAreas3465.json";
@@ -58,8 +58,8 @@ public class AreaCodeServiceImpl extends ServiceImpl<AreaCodeMapper, AreaCodeDo>
                 provinceDo.setAreaName(provinceName);
                 provinceDo.setAreaLv("1");
                 provinceDo.setUpCode("0");
-                provinceDo.setCreateUser(sessionUser.getLoginCode());
-                provinceDo.setUpdateUser(sessionUser.getLoginCode());
+                provinceDo.setCreateUser(sessionUserDo.getLoginCode());
+                provinceDo.setUpdateUser(sessionUserDo.getLoginCode());
                 save(provinceDo);
 
                 // 处理市
@@ -74,8 +74,8 @@ public class AreaCodeServiceImpl extends ServiceImpl<AreaCodeMapper, AreaCodeDo>
                     cityDo.setAreaName(cityName);
                     cityDo.setAreaLv("2");
                     cityDo.setUpCode(provinceCode);
-                    cityDo.setCreateUser(sessionUser.getLoginCode());
-                    cityDo.setUpdateUser(sessionUser.getLoginCode());
+                    cityDo.setCreateUser(sessionUserDo.getLoginCode());
+                    cityDo.setUpdateUser(sessionUserDo.getLoginCode());
                     save(cityDo);
 
                     // 处理区县
@@ -90,8 +90,8 @@ public class AreaCodeServiceImpl extends ServiceImpl<AreaCodeMapper, AreaCodeDo>
                         areaDo.setAreaName(areaName);
                         areaDo.setAreaLv("3");
                         areaDo.setUpCode(cityCode);
-                        areaDo.setCreateUser(sessionUser.getLoginCode());
-                        areaDo.setUpdateUser(sessionUser.getLoginCode());
+                        areaDo.setCreateUser(sessionUserDo.getLoginCode());
+                        areaDo.setUpdateUser(sessionUserDo.getLoginCode());
                         save(areaDo);
                     }
                 }

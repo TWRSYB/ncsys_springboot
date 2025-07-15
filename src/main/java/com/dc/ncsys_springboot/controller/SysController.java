@@ -1,6 +1,6 @@
 package com.dc.ncsys_springboot.controller;
 
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.service.UserService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ public class SysController {
     }
 
     @PostMapping("/addUser")
-    public ResVo addUser(@RequestBody User user) {
-        log.info("CONT入参:{}", user);
-        return userService.addUser(user);
+    public ResVo addUser(@RequestBody UserDo userDo) {
+        log.info("CONT入参:{}", userDo);
+        return userService.addUser(userDo);
     }
 }

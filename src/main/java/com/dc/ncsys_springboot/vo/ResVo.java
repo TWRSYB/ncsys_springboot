@@ -9,7 +9,7 @@ import lombok.Data;
 public class ResVo<T> {
     private Integer code;
     private String message;
-    private Object data;
+    private T data;
 
     public static <T> ResVo<T> success(String message, T data){
         return new ResVo<>(200, message, data);

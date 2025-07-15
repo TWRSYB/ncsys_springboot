@@ -1,7 +1,7 @@
 package com.dc.ncsys_springboot.service.impl;
 
 import com.dc.ncsys_springboot.daoVo.NationalAdministrativeDivisionInfoDo;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.NationalAdministrativeDivisionInfoMapper;
 import com.dc.ncsys_springboot.service.NationalAdministrativeDivisionInfoService;
@@ -33,7 +33,7 @@ public class NationalAdministrativeDivisionInfoServiceImpl extends ServiceImpl<N
     @Override
     public ResVo readJsonToDb() {
 
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
 
         // 读取配置文件中的地区Json数据
         String areaJson = "src/main/resources/jsons/JSON_AREA.json";
@@ -65,8 +65,8 @@ public class NationalAdministrativeDivisionInfoServiceImpl extends ServiceImpl<N
                 provinceDo.setMianji(province.get("mianji").toString());
                 provinceDo.setQuhao((String) province.get("quhao"));
                 provinceDo.setYoubian((String) province.get("youbian"));
-                provinceDo.setCreateUser(sessionUser.getLoginCode());
-                provinceDo.setUpdateUser(sessionUser.getLoginCode());
+                provinceDo.setCreateUser(sessionUserDo.getLoginCode());
+                provinceDo.setUpdateUser(sessionUserDo.getLoginCode());
                 save(provinceDo);
 
                 // 处理市
@@ -88,8 +88,8 @@ public class NationalAdministrativeDivisionInfoServiceImpl extends ServiceImpl<N
                     cityDo.setMianji(city.get("mianji").toString());
                     cityDo.setQuhao((String) city.get("quhao"));
                     cityDo.setYoubian((String) city.get("youbian"));
-                    cityDo.setCreateUser(sessionUser.getLoginCode());
-                    cityDo.setUpdateUser(sessionUser.getLoginCode());
+                    cityDo.setCreateUser(sessionUserDo.getLoginCode());
+                    cityDo.setUpdateUser(sessionUserDo.getLoginCode());
                     save(cityDo);
 
                     // 处理区县
@@ -111,8 +111,8 @@ public class NationalAdministrativeDivisionInfoServiceImpl extends ServiceImpl<N
                         areaDo.setMianji(area.get("mianji").toString());
                         areaDo.setQuhao((String) area.get("quhao"));
                         areaDo.setYoubian((String) area.get("youbian"));
-                        areaDo.setCreateUser(sessionUser.getLoginCode());
-                        areaDo.setUpdateUser(sessionUser.getLoginCode());
+                        areaDo.setCreateUser(sessionUserDo.getLoginCode());
+                        areaDo.setUpdateUser(sessionUserDo.getLoginCode());
                         save(areaDo);
                     }
                 }

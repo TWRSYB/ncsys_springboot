@@ -1,6 +1,6 @@
 package com.dc.ncsys_springboot.interceptor;
 
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -63,22 +63,23 @@ public class LoginInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession(false);
 
 
-        User loginUser = session != null ? (User) session.getAttribute("loginUser") : null;
-        log.info("当前session中的loginUser: {}", loginUser);
+        UserDo loginUserDo = session != null ? (UserDo) session.getAttribute("loginUser") : null;
+        log.info("当前session中的loginUser: {}", loginUserDo);
 
         // 检查用户是否登录（假设用户信息存储在"user"属性中）
-        if (loginUser == null ) {
+        if (loginUserDo == null) {
             log.warn("登录状态验证拒绝: session中不存在loginUser");
         } else {
             // 继续执行
             try {
                 Map<String, Object> token = jwtUtil.parseToken(request.getHeader("Authorization"));
                 log.info("解析token成功: {}", token);
-                if (!loginUser.getLoginCode().equals(token.get("loginCode"))) {
+                if (!loginUserDo.getLoginCode().equals(token.get("loginCode"))) {
                     log.error("登录状态验证拒绝: 警告, 请求携带的令牌与session用户不一致");
+                } else {
+                    log.info("登录状态验证通过: token验证通过, 放行至控制器");
+                    authResult = true;
                 }
-                log.info("登录状态验证通过: token验证通过, 放行至控制器");
-                authResult = true;
             } catch (Exception e) {
                 log.error("登录状态验证拒绝: token验证异常", e);
             }

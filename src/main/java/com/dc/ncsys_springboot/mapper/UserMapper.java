@@ -1,7 +1,7 @@
 package com.dc.ncsys_springboot.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -17,10 +17,12 @@ import java.util.Map;
  * @since 2025-05-27 11:55
  */
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
+public interface UserMapper extends BaseMapper<UserDo> {
 
     @MapKey("Table")
     Map<String, String> getTableDesign();
 
-    List<User> getSubAccountList(String userId);
+    List<UserDo> getSubAccountList(String userId);
+
+    int updateAvatar(UserDo userDo);
 }

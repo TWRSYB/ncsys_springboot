@@ -2,7 +2,7 @@ package com.dc.ncsys_springboot.config;
 
 import com.dc.ncsys_springboot.constants.ComConst;
 import com.dc.ncsys_springboot.daoVo.PersonDo;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.util.SessionUtils;
 import com.dc.ncsys_springboot.vo.ResVo;
 import org.springframework.core.MethodParameter;
@@ -78,33 +78,33 @@ public class GlobalResponseFilter implements ResponseBodyAdvice<Object> {
 
 
     private void filterUser(Object body) {
-        if (body instanceof User user) {
-            User sessionUser = SessionUtils.getSessionUser();
-            if (sessionUser == null) {
-                user = null;
+        if (body instanceof UserDo userDo) {
+            UserDo sessionUserDo = SessionUtils.getSessionUser();
+            if (sessionUserDo == null) {
+                userDo = null;
                 return;
             }
-            if (ComConst.ROLE_SYS_ADMIN.equals(sessionUser.getRoleCode())) {
-                user.setLoginPassword(null);
+            if (ComConst.ROLE_SYS_ADMIN.equals(sessionUserDo.getRoleCode())) {
+                userDo.setLoginPassword(null);
                 return;
             }
-            if (ComConst.ROLE_MANAGER.equals(sessionUser.getRoleCode())) {
-                user.setLoginPassword(null);
-                user.setPhoneNum(null);
+            if (ComConst.ROLE_MANAGER.equals(sessionUserDo.getRoleCode())) {
+                userDo.setLoginPassword(null);
+                userDo.setPhoneNum(null);
                 return;
             }
-            user = null;
+            userDo = null;
         }
     }
 
     private void filterPerson(Object body) {
         if (body instanceof PersonDo personDo) {
-            User sessionUser = SessionUtils.getSessionUser();
-            if (sessionUser == null) {
+            UserDo sessionUserDo = SessionUtils.getSessionUser();
+            if (sessionUserDo == null) {
                 personDo = null;
                 return;
             }
-            if (ComConst.ROLE_OPERATOR.equals(sessionUser.getRoleCode())) {
+            if (ComConst.ROLE_OPERATOR.equals(sessionUserDo.getRoleCode())) {
                 personDo.setPersonId(null);
                 return;
             }

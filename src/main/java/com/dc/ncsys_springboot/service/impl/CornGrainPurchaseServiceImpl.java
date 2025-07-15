@@ -73,7 +73,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
     @Override
     public ResVo<Object> saveTrade(MixedCornGrainPurchaseDo mixedCornGrainPurchaseDo) {
         // 获取当前登录用户
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         if (!validateMixedTrade(mixedCornGrainPurchaseDo, "save")) {
             return ResVo.fail("数据校验失败");
         }
@@ -92,8 +92,8 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         } else {
             // 如果不存在，插入新记录并获取ID
             sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
-            sellerInfo.setCreateUser(sessionUser.getLoginCode());
-            sellerInfo.setUpdateUser(sessionUser.getLoginCode());
+            sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
+            sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setDataStatus("1");
             personMapper.insert(sellerInfo);
         }
@@ -102,9 +102,9 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornGrainPurchaseDo.getSerno())) {
             mixedCornGrainPurchaseDo.setSerno("CornGrainPurchase_" + DateTimeUtil.getMinuteKey());
-            mixedCornGrainPurchaseDo.setCreateUser(sessionUser.getLoginCode());
+            mixedCornGrainPurchaseDo.setCreateUser(sessionUserDo.getLoginCode());
         }
-        mixedCornGrainPurchaseDo.setUpdateUser(sessionUser.getLoginCode());
+        mixedCornGrainPurchaseDo.setUpdateUser(sessionUserDo.getLoginCode());
         mixedCornGrainPurchaseDo.setDataStatus("0");
         mixedCornGrainPurchaseDo.setTradeStatus("收购中");
         boolean insertOrUpdate = cornGrainPurchaseMapper.insertOrUpdate(mixedCornGrainPurchaseDo);
@@ -120,11 +120,11 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
             CornGrainPurchaseWeighRecordDo record = beforeWeighRecordList.get(i);
             if (ObjectUtils.isEmpty(record.getWeighId())) {
                 record.setWeighId("CornGrainPurchase_WeighRecord_BeforeThresh" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
-                record.setCreateUser(sessionUser.getLoginCode());
+                record.setCreateUser(sessionUserDo.getLoginCode());
             }
             record.setTradeSerno(mixedCornGrainPurchaseDo.getSerno());
             record.setTradeDate(mixedCornGrainPurchaseDo.getTradeDate());
-            record.setUpdateUser(sessionUser.getLoginCode());
+            record.setUpdateUser(sessionUserDo.getLoginCode());
             record.setUpdateTime(new Date());
             record.setDataStatus("0");
             cornGrainPurchaseWeighRecordMapper.insert(record);
@@ -166,7 +166,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
     @Override
     public ResVo<Object> purchaseComplete(MixedCornGrainPurchaseDo mixedCornGrainPurchaseDo) {
         // 获取当前登录用户
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         if (!validateMixedTrade(mixedCornGrainPurchaseDo, "complete")) {
             return ResVo.fail("数据校验失败");
         }
@@ -185,8 +185,8 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         } else {
             // 如果不存在，插入新记录并获取ID
             sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
-            sellerInfo.setCreateUser(sessionUser.getLoginCode());
-            sellerInfo.setUpdateUser(sessionUser.getLoginCode());
+            sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
+            sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setDataStatus("1");
             personMapper.insert(sellerInfo);
         }
@@ -195,9 +195,9 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornGrainPurchaseDo.getSerno())) {
             mixedCornGrainPurchaseDo.setSerno("CornGrainPurchase_" + DateTimeUtil.getMinuteKey());
-            mixedCornGrainPurchaseDo.setCreateUser(sessionUser.getLoginCode());
+            mixedCornGrainPurchaseDo.setCreateUser(sessionUserDo.getLoginCode());
         }
-        mixedCornGrainPurchaseDo.setUpdateUser(sessionUser.getLoginCode());
+        mixedCornGrainPurchaseDo.setUpdateUser(sessionUserDo.getLoginCode());
         mixedCornGrainPurchaseDo.setDataStatus("1");
         mixedCornGrainPurchaseDo.setTradeStatus("待结算");
         boolean insertOrUpdate = cornGrainPurchaseMapper.insertOrUpdate(mixedCornGrainPurchaseDo);
@@ -213,11 +213,11 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
             CornGrainPurchaseWeighRecordDo record = beforeWeighRecordList.get(i);
             if (ObjectUtils.isEmpty(record.getWeighId())) {
                 record.setWeighId("CornGrainPurchase_WeighRecord_BeforeThresh" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
-                record.setCreateUser(sessionUser.getLoginCode());
+                record.setCreateUser(sessionUserDo.getLoginCode());
             }
             record.setTradeSerno(mixedCornGrainPurchaseDo.getSerno());
             record.setTradeDate(mixedCornGrainPurchaseDo.getTradeDate());
-            record.setUpdateUser(sessionUser.getLoginCode());
+            record.setUpdateUser(sessionUserDo.getLoginCode());
             record.setUpdateTime(new Date());
             record.setDataStatus("1");
             cornGrainPurchaseWeighRecordMapper.insert(record);
@@ -230,7 +230,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
     @Override
     public ResVo<Object> settleTrade(MixedCornGrainPurchaseDo mixedCornGrainPurchaseDo) {
         // 获取当前登录用户
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         // 校验数据
         if (!validateMixedTrade(mixedCornGrainPurchaseDo, "settle")) {
             return ResVo.fail("数据校验失败");
@@ -266,7 +266,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         cornGrainPurchaseDo.setClearingAmount(mixedCornGrainPurchaseDo.getClearingAmount());
         cornGrainPurchaseDo.setRemark(mixedCornGrainPurchaseDo.getRemark());
         cornGrainPurchaseDo.setTradeStatus("已结算");
-        mixedCornGrainPurchaseDo.setUpdateUser(sessionUser.getLoginCode());
+        mixedCornGrainPurchaseDo.setUpdateUser(sessionUserDo.getLoginCode());
 
         int update = cornGrainPurchaseMapper.updateById(cornGrainPurchaseDo);
         if (update == 0) {

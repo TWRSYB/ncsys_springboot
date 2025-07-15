@@ -1,10 +1,11 @@
 package com.dc.ncsys_springboot.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.vo.ResVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -14,19 +15,25 @@ import java.util.List;
  * @author sysAdmin
  * @since 2025-05-27 11:55
  */
-public interface UserService extends IService<User> {
+public interface UserService extends IService<UserDo> {
 
-    ResVo login(User user);
+    ResVo<UserDo> login(UserDo userDo);
 
     ResVo getUserList();
 
     ResVo getUserInfo();
 
-    ResVo refreshToken();
+    ResVo<UserDo> refreshToken();
 
     ResVo logout();
 
-    ResVo addUser(User user);
+    ResVo addUser(UserDo userDo);
 
-    ResVo<List<User>> getSubAccountList(String userId);
+    ResVo<List<UserDo>> getSubAccountList(String userId);
+
+    ResVo updateAvatar(UserDo userDo);
+
+    ResVo changePassword(Map<String, String> map);
+
+    ResVo<UserDo> changeAccount(UserDo userDo);
 }

@@ -137,8 +137,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 1_获取当前登录账号
         log.info("↓↓↓ 1_获取当前登录账号 ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
-        String nowUserLoginCode = sessionUser.getLoginCode();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUserDo.getLoginCode();
         log.info("↑↑↑ 1_获取当前登录账号 ↑↑↑");
 
         // 2_保存或更新表数据主表
@@ -242,7 +242,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         String tableName = mixedTableDesign.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
@@ -324,7 +324,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
             tableDesignSqlDo.setTableId(mixedTableDesign.getTableId()).setSqlType("TABLE_CREATE").setExecuteOrder(1);
             tableDesignSqlDo.setExecuteSql(sql);
-            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUserDo.getLoginCode()).setUpdateUser(sessionUserDo.getLoginCode());
             tableDesignSqlMapper.insert(tableDesignSqlDo);
             log.info("记录表设计SQL成功");
         } catch (Exception e) {
@@ -451,7 +451,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     public ResVo addColumn(TableDesignColumnDo tableDesignColumnDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         String tableName = tableDesignColumnDo.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
@@ -516,7 +516,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
             tableDesignSqlDo.setTableId(tableDesignColumnDo.getTableId()).setSqlType("COLUMN_ADD");
             tableDesignSqlDo.setExecuteSql(sql);
-            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUserDo.getLoginCode()).setUpdateUser(sessionUserDo.getLoginCode());
             int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
             log.info("记录表设计SQL成功");
         } catch (Exception e) {
@@ -528,8 +528,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         // 7. 更新列数据状态并落库
         log.info("↓↓↓ 7. 更新列数据状态并落库 ↓↓↓");
         tableDesignColumnDo.setDataStatus("1");
-        tableDesignColumnDo.setCreateUser(sessionUser.getLoginCode());
-        tableDesignColumnDo.setUpdateUser(sessionUser.getLoginCode());
+        tableDesignColumnDo.setCreateUser(sessionUserDo.getLoginCode());
+        tableDesignColumnDo.setUpdateUser(sessionUserDo.getLoginCode());
         tableDesignColumnMapper.insertNext(tableDesignColumnDo);
         log.info("表设计之列设计保存成功: 表名: {}", tableName);
         log.info("↑↑↑ 7. 更新列数据状态并落库 ↑↑↑");
@@ -643,7 +643,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     public ResVo addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         String tableName = tableDesignUniqueKeyDo.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
@@ -738,7 +738,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
             tableDesignSqlDo.setTableId(tableDesignUniqueKeyDo.getTableId()).setSqlType("UNIQUEKEY_ADD");
             tableDesignSqlDo.setExecuteSql(sql);
-            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUserDo.getLoginCode()).setUpdateUser(sessionUserDo.getLoginCode());
             int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
             log.info("记录表设计SQL成功");
         } catch (Exception e) {
@@ -749,8 +749,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         // 9. 更新唯一约束数据状态并落库
         log.info("↓↓↓ 9. 更新唯一约束数据状态并落库 ↓↓↓");
         tableDesignUniqueKeyDo.setDataStatus("1");
-        tableDesignUniqueKeyDo.setCreateUser(sessionUser.getLoginCode());
-        tableDesignUniqueKeyDo.setUpdateUser(sessionUser.getLoginCode());
+        tableDesignUniqueKeyDo.setCreateUser(sessionUserDo.getLoginCode());
+        tableDesignUniqueKeyDo.setUpdateUser(sessionUserDo.getLoginCode());
         tableDesignUniqueKeyMapper.insert(tableDesignUniqueKeyDo);
         log.info("表设计之列设计保存成功: 表名: {}", tableName);
         log.info("↑↑↑ 9. 更新唯一约束数据状态并落库 ↑↑↑");
@@ -864,8 +864,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     private boolean validateMixedTableDesign(MixedTableDesign mixedTableDesign) {
 
-        User sessionUser = SessionUtils.getSessionUser();
-        String nowUserLoginCode = sessionUser.getLoginCode();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUserDo.getLoginCode();
 
         // 如果没有TableId则生成一个
         String newTableId = "";
@@ -1286,7 +1286,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     public ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
         String tableName = tableDesignUniqueKeyDo.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
@@ -1343,7 +1343,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             TableDesignSqlDo tableDesignSqlDo = new TableDesignSqlDo();
             tableDesignSqlDo.setTableId(tableDesignUniqueKeyDo.getTableId()).setSqlType("UNIQUEKEY_DROP");
             tableDesignSqlDo.setExecuteSql(sql);
-            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUser.getLoginCode()).setUpdateUser(sessionUser.getLoginCode());
+            tableDesignSqlDo.setLastCreateSql(lastCreateSql).setDataStatus("1").setCreateUser(sessionUserDo.getLoginCode()).setUpdateUser(sessionUserDo.getLoginCode());
             int insertNum = tableDesignSqlMapper.insertNextRecord(tableDesignSqlDo);
             log.info("记录表设计SQL成功");
         } catch (Exception e) {
@@ -1368,8 +1368,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     public ResVo generateTableDesign(String tableName) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
-        String nowUserLoginCode = sessionUser.getLoginCode();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUserDo.getLoginCode();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 
         // 2. 检查表是否存在
@@ -1513,8 +1513,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
-        User sessionUser = SessionUtils.getSessionUser();
-        String nowUserLoginCode = sessionUser.getLoginCode();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        String nowUserLoginCode = sessionUserDo.getLoginCode();
         String tableName = tableDesignColumnDo.getTableName();
         log.info("↑↑↑ 1. 获取SessionUser ↑↑↑");
 

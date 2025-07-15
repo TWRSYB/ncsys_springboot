@@ -3,7 +3,7 @@
 <mapper namespace="com.dc.ncsys_springboot.mapper.UserMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.User">
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.UserDo">
         <id column="user_id" property="userId" />
         <result column="login_code" property="loginCode" />
         <result column="login_password" property="loginPassword" />
@@ -15,16 +15,18 @@
         <result column="create_time" property="createTime" />
         <result column="update_user" property="updateUser" />
         <result column="update_time" property="updateTime" />
+        <result column="avatar" property="avatar" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        user_id, login_code, login_password, user_name, phone_num, role_code, data_status, create_user, create_time, update_user, update_time
+        user_id, login_code, login_password, user_name, phone_num, role_code, data_status, create_user, create_time, update_user, update_time, avatar
     </sql>
+
     <select id="getTableDesign" resultType="Map">
         show create table m_user
     </select>
-    <select id="getSubAccountList" resultType="com.dc.ncsys_springboot.daoVo.User">
+    <select id="getSubAccountList" resultType="com.dc.ncsys_springboot.daoVo.UserDo">
         SELECT b.*
         FROM m_user a
         inner join m_user b on a.phone_num = b.phone_num
@@ -37,6 +39,13 @@
             )
 
     </select>
+
+    <update id="updateAvatar">
+        update m_user
+        set avatar = #{avatar},
+            update_user = #{updateUser}
+        where user_id = #{userId}
+    </update>
 
 
 </mapper>

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.constants.ComConst;
-import com.dc.ncsys_springboot.daoVo.User;
+import com.dc.ncsys_springboot.daoVo.UserDo;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.UserMapper;
 import com.dc.ncsys_springboot.service.TableDesignColumnService;
@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -37,7 +38,8 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+@Transactional
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserDo> implements UserService {
 
     @Autowired
     private UserMapper userMapper;
@@ -49,28 +51,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private TableDesignColumnService tableDesignColumnService;
 
     @Override
-    public ResVo login(User user) {
-        LambdaQueryWrapper<User> lambdaWrapper = new LambdaQueryWrapper<>();
-        lambdaWrapper.eq(User::getLoginCode, user.getLoginCode()); // 直接引用实体类的字段方法
+    public ResVo<UserDo> login(UserDo userDo) {
+        LambdaQueryWrapper<UserDo> lambdaWrapper = new LambdaQueryWrapper<>();
+        lambdaWrapper.eq(UserDo::getLoginCode, userDo.getLoginCode()); // 直接引用实体类的字段方法
 
         // 查询一条记录（可设置是否抛出异常）
-        User queryUser = userMapper.selectOne(lambdaWrapper); // 第二个参数：是否允许多条结果时抛出异常
+        UserDo queryUserDo = userMapper.selectOne(lambdaWrapper); // 第二个参数：是否允许多条结果时抛出异常
 
 
-        log.info("用户登录->查询登录用户结果: {}", queryUser);
+        log.info("用户登录->查询登录用户结果: {}", queryUserDo);
 
-        if (ObjectUtils.isEmpty(queryUser)) {
-            log.warn("登录账号未查询到用户: {}", user.getLoginCode());
+        if (ObjectUtils.isEmpty(queryUserDo)) {
+            log.warn("登录账号未查询到用户: {}", userDo.getLoginCode());
             return ResVo.fail("账号或密码错误!");
         }
 
-        if (!queryUser.getLoginPassword().equals(user.getLoginPassword())) {
-            log.warn("上送密码与用户密码不一致: {}", user.getLoginCode());
+        if (!queryUserDo.getLoginPassword().equals(userDo.getLoginPassword())) {
+            log.warn("上送密码与用户密码不一致: {}", userDo.getLoginCode());
             return ResVo.fail("账号或密码错误!");
         }
 
-        if (!queryUser.getDataStatus().equals("1")) {
-            log.warn("用户状态不可用: {}", queryUser.getDataStatus());
+        if (!queryUserDo.getDataStatus().equals("1")) {
+            log.warn("用户状态不可用: {}", queryUserDo.getDataStatus());
             return ResVo.fail("当前用户不可用, 请联系管理员!");
         }
 
@@ -78,46 +80,81 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .getRequest();
         HttpSession session = request.getSession();
-        session.setAttribute("loginUser", queryUser);
+        session.setAttribute("loginUser", queryUserDo);
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("loginCode", queryUser.getLoginCode());
+        claims.put("loginCode", queryUserDo.getLoginCode());
+
+        UserDo resUserDo = new UserDo();
+        resUserDo.setUserId(queryUserDo.getUserId());
+        resUserDo.setLoginCode(queryUserDo.getLoginCode());
+        resUserDo.setUserName(queryUserDo.getUserName());
+        resUserDo.setRoleCode(queryUserDo.getRoleCode());
+        resUserDo.setAvatar(queryUserDo.getAvatar());
+        resUserDo.setToken(jwtUtil.genToken(claims));
 
 
-        return ResVo.success("登录成功", jwtUtil.genToken(claims));
+        return ResVo.success("登录成功", resUserDo);
     }
 
     @Override
     public ResVo getUserList() {
         Map<String, String> map = userMapper.getTableDesign();
         System.out.println("map = " + map);
-        List<User> users = userMapper.selectList(new QueryWrapper<>());
-        return ResVo.success("查询用户列表成功", users);
+        List<UserDo> userDos = userMapper.selectList(new QueryWrapper<>());
+        return ResVo.success("查询用户列表成功", userDos);
     }
 
     @Override
     public ResVo getUserInfo() {
-        User sessionUser = SessionUtils.getSessionUser();
-        User user = new User();
-        user.setUserId(sessionUser.getUserId());
-        user.setLoginCode(sessionUser.getLoginCode());
-        user.setUserName(sessionUser.getUserName());
-        user.setRoleCode(sessionUser.getRoleCode());
-        return ResVo.success("获取用户信息成功", user);
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        LambdaQueryWrapper<UserDo> lambdaWrapper = new LambdaQueryWrapper<>();
+        lambdaWrapper.eq(UserDo::getLoginCode, sessionUserDo.getLoginCode()); // 直接引用实体类的字段方法
+
+        // 查询一条记录（可设置是否抛出异常）
+        UserDo queryUserDo = userMapper.selectOne(lambdaWrapper); // 第二个参数：是否允许多条结果时抛出异常
+        UserDo userDo = new UserDo();
+        userDo.setUserId(queryUserDo.getUserId());
+        userDo.setLoginCode(queryUserDo.getLoginCode());
+        userDo.setUserName(queryUserDo.getUserName());
+        userDo.setRoleCode(queryUserDo.getRoleCode());
+        userDo.setAvatar(queryUserDo.getAvatar());
+
+        sessionUserDo = queryUserDo;
+
+        return ResVo.success("获取用户信息成功", userDo);
     }
 
     @Override
-    public ResVo refreshToken() {
+    public ResVo<UserDo> refreshToken() {
         // 将登录用户的信息放到session中
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .getRequest();
         HttpSession session = request.getSession();
-        User loginUser = (User)session.getAttribute("loginUser");
+        UserDo loginUserDo = (UserDo) session.getAttribute("loginUser");
+
+        // 查询登录用户信息
+        LambdaQueryWrapper<UserDo> lambdaWrapper = new LambdaQueryWrapper<>();
+        lambdaWrapper.eq(UserDo::getLoginCode, loginUserDo.getLoginCode()); // 直接引用实体类的字段方法
+        UserDo queryUserDo = userMapper.selectOne(lambdaWrapper);
+        if (ObjectUtils.isEmpty(queryUserDo)) {
+            throw new BusinessException("刷新token失败", "用户不存在");
+        }
+
+        loginUserDo = queryUserDo;
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("loginCode", loginUser.getLoginCode());
+        claims.put("loginCode", loginUserDo.getLoginCode());
 
-        return ResVo.success("刷新token成功", jwtUtil.genToken(claims));
+        UserDo resUserDo = new UserDo();
+        resUserDo.setUserId(loginUserDo.getUserId());
+        resUserDo.setLoginCode(loginUserDo.getLoginCode());
+        resUserDo.setUserName(loginUserDo.getUserName());
+        resUserDo.setRoleCode(loginUserDo.getRoleCode());
+        resUserDo.setAvatar(loginUserDo.getAvatar());
+        resUserDo.setToken(jwtUtil.genToken(claims));
+
+        return ResVo.success("刷新token成功", resUserDo);
     }
 
     @Override
@@ -131,26 +168,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResVo addUser(User user) {
+    public ResVo addUser(UserDo userDo) {
 
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
 
         // 入参校验
-        checkUser(user);
+        checkUser(userDo);
 
         // 检查用户是否已存在
-        User existingUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getLoginCode, user.getLoginCode()));
-        if (existingUser != null) {
+        UserDo existingUserDo = userMapper.selectOne(new LambdaQueryWrapper<UserDo>().eq(UserDo::getLoginCode, userDo.getLoginCode()));
+        if (existingUserDo != null) {
             return ResVo.fail("用户已存在");
         }
 
-        user.setUserId(user.getPhoneNum() + DateTimeUtil.getMinuteKey());
-        user.setDataStatus("1");
-        user.setCreateUser(sessionUser.getLoginCode());
-        user.setUpdateUser(sessionUser.getLoginCode());
+        userDo.setUserId(userDo.getPhoneNum() + DateTimeUtil.getMinuteKey());
+        userDo.setDataStatus("1");
+        userDo.setCreateUser(sessionUserDo.getLoginCode());
+        userDo.setUpdateUser(sessionUserDo.getLoginCode());
 
         // 插入用户信息
-        int rows = userMapper.insert(user);
+        int rows = userMapper.insert(userDo);
         if (rows > 0) {
             return ResVo.success("添加用户成功");
         } else {
@@ -160,36 +197,165 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResVo<List<User>> getSubAccountList(String userId) {
+    public ResVo<List<UserDo>> getSubAccountList(String userId) {
         // 获取当前登录用户的信息
-        User sessionUser = SessionUtils.getSessionUser();
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
 
         // 匹配userId
-        if (!sessionUser.getUserId().equals(userId)) {
+        if (!sessionUserDo.getUserId().equals(userId)) {
             throw new BusinessException("查询子账号失败", "用户ID不匹配");
         }
 
         // 如果用户不是系统管理员或管理员则直接返回空数据
-        if (!sessionUser.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) && !sessionUser.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
+        if (!sessionUserDo.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) && !sessionUserDo.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
             return ResVo.success("查询子账号列表成功", new ArrayList<>());
         }
 
         // 查询子账号信息
-        List<User> subAccountList = userMapper.getSubAccountList(userId);
+        List<UserDo> subAccountList = userMapper.getSubAccountList(userId);
 
         return ResVo.success("查询子账号列表成功", subAccountList);
     }
 
+    @Override
+    public ResVo<Object> updateAvatar(UserDo userDo) {
+        // 获取当前登录用户的信息
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        // 验证被更新的用户是否为当前登录用户或者当前用户的子账号
+        if (!sessionUserDo.getUserId().equals(userDo.getUserId())) {
+            // 如果不是当前登录用户，则验证是否为当前登录用户的子账号
+            List<UserDo> subAccount = getSubAccountList(sessionUserDo.getUserId()).getData();
+            boolean isSubAccount = subAccount.stream().anyMatch(sub -> sub.getUserId().equals(userDo.getUserId()));
+            if (!isSubAccount) {
+                throw new BusinessException("更新头像失败", "用户ID不匹配");
+            }
+        }
+        // 更新用户头像
+        userDo.setUpdateUser(sessionUserDo.getLoginCode());
+        int rows = userMapper.updateAvatar(userDo);
+        if (rows != 1) {
+            throw new BusinessException("更新头像失败", "更新数量不是1");
+        }
+        return ResVo.success("更新头像成功");
+    }
+
+    @Override
+    public ResVo changePassword(Map<String, String> map) {
+        // 获取当前登录用户的信息
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        // 入参校验
+        if (map == null || map.isEmpty()) {
+            throw new BusinessException("修改密码失败", "入参为空");
+        }
+        if (map.get("userId") == null || map.get("userId").isEmpty()) {
+            throw new BusinessException("修改密码失败", "用户ID不能为空");
+        }
+        if (map.get("oldPwd") == null || map.get("oldPwd").isEmpty()) {
+            throw new BusinessException("修改密码失败", "原密码不能为空");
+        }
+        if (map.get("newPwd") == null || map.get("newPwd").isEmpty()) {
+            throw new BusinessException("修改密码失败", "新密码不能为空");
+        }
+        if (map.get("phoneNumber") == null || map.get("phoneNumber").isEmpty()) {
+            throw new BusinessException("修改密码失败", "手机号码不能为空");
+        }
+        // 检查新密码是否符合要求
+        if (!map.get("newPwd").matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_-])[0-9a-zA-Z!@#$%^&*_-]{8,16}$")) {
+            throw new BusinessException("修改密码失败", "新密码格式不正确");
+        }
+        // 确认密码不能为空
+        if (map.get("confirmPwd") == null || map.get("confirmPwd").isEmpty()) {
+            throw new BusinessException("修改密码失败", "确认密码不能为空");
+        }
+        // 确认密码与新密码不一致
+        if (!map.get("newPwd").equals(map.get("confirmPwd"))) {
+            throw new BusinessException("修改密码失败", "新密码与确认密码不一致");
+        }
+
+        // 如果当前登录人是操作者则返回失败
+        if (ComConst.ROLE_OPERATOR.equals(sessionUserDo.getRoleCode())) {
+            throw new BusinessException("修改密码失败", "当前登录人是操作者, 无法修改密码");
+        }
+
+        // 验证被更新的用户是否为当前登录用户或者当前用户的子账号
+        if (!sessionUserDo.getUserId().equals(map.get("userId"))) {
+            // 如果不是当前登录用户，则验证是否为当前登录用户的子账号
+            List<UserDo> subAccount = getSubAccountList(sessionUserDo.getUserId()).getData();
+            boolean isSubAccount = subAccount.stream().anyMatch(sub -> sub.getUserId().equals(map.get("userId")));
+            if (!isSubAccount) {
+                throw new BusinessException("修改密码失败", "用户ID不匹配");
+            }
+        }
+
+        // 检查原密码是否正确
+        UserDo existingUserDo = userMapper.selectOne(new LambdaQueryWrapper<UserDo>().eq(UserDo::getUserId, map.get("userId")));
+        if (existingUserDo == null) {
+            throw new BusinessException("修改密码失败", "用户不存在");
+        }
+        if (!existingUserDo.getLoginPassword().equals(map.get("oldPwd"))) {
+            throw new BusinessException("修改密码失败", "原密码错误");
+        }
+        // 匹配手机号码
+        if (!existingUserDo.getPhoneNum().equals(map.get("phoneNumber"))) {
+            throw new BusinessException("修改密码失败", "手机号码不匹配");
+        }
+
+        // 更新用户密码
+        existingUserDo.setLoginPassword(map.get("newPwd"));
+        existingUserDo.setUpdateUser(sessionUserDo.getLoginCode());
+        int rows = userMapper.updateById(existingUserDo);
+        if (rows != 1) {
+            throw new BusinessException("修改密码失败", "更新数量不是1");
+        }
+        return ResVo.success("修改密码成功");
+    }
+
+    @Override
+    public ResVo<UserDo> changeAccount(UserDo userDo) {
+        // 获取当前登录用户的信息
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        // 验证要切换的用户是否为当前用户的子账号
+        List<UserDo> subAccount = getSubAccountList(sessionUserDo.getUserId()).getData();
+        UserDo targetUser = subAccount.stream().filter(sub -> sub.getUserId().equals(userDo.getUserId())).findFirst().orElse(null);
+        if (targetUser == null) {
+            throw new BusinessException("切换账号失败", "用户ID未匹配到子账号");
+        }
+        // 匹配登录码
+        if (!targetUser.getLoginCode().equals(userDo.getLoginCode())) {
+            throw new BusinessException("切换账号失败", "登录码不匹配");
+        }
+        // 切换账号
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
+        HttpSession session = request.getSession();
+        session.setAttribute("loginUser", targetUser);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("loginCode", targetUser.getLoginCode());
+
+        UserDo resUserDo = new UserDo();
+        resUserDo.setUserId(targetUser.getUserId());
+        resUserDo.setLoginCode(targetUser.getLoginCode());
+        resUserDo.setUserName(targetUser.getUserName());
+        resUserDo.setRoleCode(targetUser.getRoleCode());
+        resUserDo.setAvatar(targetUser.getAvatar());
+        resUserDo.setToken(jwtUtil.genToken(claims));
+
+        return ResVo.success("切换成功", resUserDo);
+
+    }
+
     /**
      * 入参校验
-     * @param user 用户信息
+     *
+     * @param userDo 用户信息
      */
-    private void checkUser(User user) {
-        if (user == null) {
+    private void checkUser(UserDo userDo) {
+        if (userDo == null) {
             throw new BusinessException("用户信息不能为空");
         }
 
-        String loginCode = user.getLoginCode();
+        String loginCode = userDo.getLoginCode();
         if (loginCode == null || loginCode.isEmpty()) {
             throw new BusinessException("登录账号不能为空");
         }
@@ -199,7 +365,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("登录账号格式不正确");
         }
 
-        String loginPassword = user.getLoginPassword();
+        String loginPassword = userDo.getLoginPassword();
         if (loginPassword == null || loginPassword.isEmpty()) {
             throw new BusinessException("登录密码不能为空");
         }
@@ -209,7 +375,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("登录密码格式不正确");
         }
 
-        String userName = user.getUserName();
+        String userName = userDo.getUserName();
         if (userName == null || userName.isEmpty()) {
             throw new BusinessException("用户名不能为空");
         }
@@ -224,7 +390,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("用户名不能包含空格");
         }
 
-        String roleCode = user.getRoleCode();
+        String roleCode = userDo.getRoleCode();
         if (roleCode == null || roleCode.isEmpty()) {
             throw new BusinessException("角色编码不能为空");
         }
