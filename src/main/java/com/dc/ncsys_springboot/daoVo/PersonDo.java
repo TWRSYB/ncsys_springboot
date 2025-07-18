@@ -17,7 +17,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-06-14 15:14
+ * @since 2025-07-18 09:44
  */
 @Data
 @TableName("m_person")
@@ -93,13 +93,24 @@ public class PersonDo implements Serializable {
     private Date updateTime;
 
     /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 别名
+     */
+    private String alias;
+
+    /**
      * 地址列表
      */
     @TableField(exist = false)
     private List<String> addressList;
 
-    public String toString() {
-        return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
-    }
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
+	}
 
 }
