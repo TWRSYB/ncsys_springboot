@@ -4,7 +4,11 @@ import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.PersonService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -73,5 +77,12 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
             person.setAddressList(addressList);
         }
         return ResVo.success("查询人员列表成功", personDos);
+    }
+
+    @Override
+    public PageResVo<PersonDo> pageQuery(PageQueryVo<PersonDo> pageQueryVo) {
+        PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
+        Page<PersonDo> page = personMapper.pageQuery(pageQueryVo.getParams());
+        return PageResVo.success(page);
     }
 }

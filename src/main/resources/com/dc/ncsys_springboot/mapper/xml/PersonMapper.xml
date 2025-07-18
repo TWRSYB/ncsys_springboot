@@ -61,5 +61,22 @@
         WHERE rn = 1
         ORDER BY create_time DESC;
     </select>
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT *
+        FROM m_person
+        WHERE data_status = '1'
+        <if test="personName != null and personName != ''">
+            AND person_name LIKE CONCAT('%', #{personName}, '%')
+        </if>
+        <if test="phoneNum != null and phoneNum != ''">
+            AND phone_num LIKE CONCAT('%', #{phoneNum}, '%')
+        </if>
+        <if test="idNum != null and idNum != ''">
+            AND id_num = #{idNum}
+        </if>
+        <if test="address != null and address !=''">
+            AND address LIKE CONCAT('%', #{address}, '%')
+        </if>
+    </select>
 
 </mapper>

@@ -2,6 +2,8 @@ package com.dc.ncsys_springboot.controller;
 
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.service.PersonService;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,12 @@ public class PersonController {
 
     @Autowired
     private PersonService personService;
+
+    @PostMapping("/pageQuery")
+    public PageResVo<PersonDo> pageQuery(@RequestBody PageQueryVo<PersonDo> pageQueryVo) {
+        log.info("CONT入参: {}", pageQueryVo);
+        return personService.pageQuery(pageQueryVo);
+    }
 
     @PostMapping("/getPersonList")
     public ResVo getPersonList(@RequestBody PersonDo personDo) {
