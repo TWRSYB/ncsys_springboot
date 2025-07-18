@@ -19,11 +19,12 @@
         <result column="update_time" property="updateTime" />
         <result column="remark" property="remark" />
         <result column="alias" property="alias" />
+        <result column="sex" property="sex" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        person_id, person_name, phone_num, id_num, privace, city, area, address, data_status, create_user, create_time, update_user, update_time, remark, alias
+        person_id, person_name, phone_num, id_num, privace, city, area, address, data_status, create_user, create_time, update_user, update_time, remark, alias, sex
     </sql>
     <select id="getByPhoneNum" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
         SELECT * FROM m_person

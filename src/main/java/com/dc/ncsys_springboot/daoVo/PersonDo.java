@@ -1,13 +1,13 @@
 package com.dc.ncsys_springboot.daoVo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
+import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import com.dc.ncsys_springboot.util.JsonUtils;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,7 +17,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-18 09:44
+ * @since 2025-07-18 10:34
  */
 @Data
 @TableName("m_person")
@@ -101,6 +101,11 @@ public class PersonDo implements Serializable {
      * 别名
      */
     private String alias;
+
+    /**
+     * 性别:男,女
+     */
+    private String sex;
 
     /**
      * 地址列表
