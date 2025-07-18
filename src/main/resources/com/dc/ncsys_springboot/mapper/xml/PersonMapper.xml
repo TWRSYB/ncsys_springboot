@@ -68,7 +68,11 @@
         FROM m_person
         WHERE data_status = '1'
         <if test="personName != null and personName != ''">
-            AND person_name LIKE CONCAT('%', #{personName}, '%')
+            AND (
+                person_name LIKE CONCAT('%', #{personName}, '%')
+                OR
+                alias LIKE CONCAT('%', #{personName}, '%')
+            )
         </if>
         <if test="phoneNum != null and phoneNum != ''">
             AND phone_num LIKE CONCAT('%', #{phoneNum}, '%')
