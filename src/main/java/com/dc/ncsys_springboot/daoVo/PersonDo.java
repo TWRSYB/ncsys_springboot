@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.dc.ncsys_springboot.vo.AddressVo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,7 +18,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-18 10:34
+ * @since 2025-07-18 11:52
  */
 @Data
 @TableName("m_person")
@@ -50,7 +51,7 @@ public class PersonDo implements Serializable {
     /**
      * 省
      */
-    private String privace;
+    private String province;
 
     /**
      * 市
@@ -111,7 +112,11 @@ public class PersonDo implements Serializable {
      * 地址列表
      */
     @TableField(exist = false)
-    private List<String> addressList;
+    private List<AddressVo> addressList;
+
+    private String provinceName;
+    private String cityName;
+    private String areaName;
 
 	@Override
 	public String toString() {

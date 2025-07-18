@@ -8,7 +8,7 @@
         <result column="person_name" property="personName" />
         <result column="phone_num" property="phoneNum" />
         <result column="id_num" property="idNum" />
-        <result column="privace" property="privace" />
+        <result column="province" property="province" />
         <result column="city" property="city" />
         <result column="area" property="area" />
         <result column="address" property="address" />
@@ -24,7 +24,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        person_id, person_name, phone_num, id_num, privace, city, area, address, data_status, create_user, create_time, update_user, update_time, remark, alias, sex
+        person_id, person_name, phone_num, id_num, province, city, area, address, data_status, create_user, create_time, update_user, update_time, remark, alias, sex
     </sql>
     <select id="getByPhoneNum" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
         SELECT * FROM m_person
@@ -51,38 +51,56 @@
             AND person_name like CONCAT('%', #{personName}, '%')
           </if>
     </select>
-    <select id="getPersonAddressList" resultType="java.lang.String">
-        SELECT address
+    <select id="getPersonAddressList" resultType="com.dc.ncsys_springboot.vo.AddressVo">
+        SELECT address,
+               create_time
         FROM (SELECT address,
                      create_time,
                      ROW_NUMBER() OVER (PARTITION BY address ORDER BY create_time DESC) AS rn
               FROM (SELECT address, create_time
                     FROM t_corn_cob_purchase tccp
                     WHERE tccp.seller_id = #{personId}
+                    AND address IS NOT NULL
+                    AND address != ''
                     ) AS merged_table
               ) AS ranked_table
         WHERE rn = 1
         ORDER BY create_time DESC;
     </select>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
-        SELECT *
-        FROM m_person
-        WHERE data_status = '1'
+        SELECT mp.*,
+               sac.area_name AS province_name,
+               sac2.area_name AS city_name,
+               sac3.area_name AS area_name
+        FROM m_person mp
+        LEFT JOIN s_area_code sac ON mp.province = sac.area_code AND sac.area_lv = 1
+        LEFT JOIN s_area_code sac2 ON mp.city = sac2.area_code AND sac2.area_lv = 2
+        LEFT JOIN s_area_code sac3 ON mp.area = sac3.area_code AND sac3.area_lv = 3
+        WHERE mp.data_status = '1'
         <if test="personName != null and personName != ''">
             AND (
-                person_name LIKE CONCAT('%', #{personName}, '%')
+            mp.person_name LIKE CONCAT('%', #{personName}, '%')
                 OR
-                alias LIKE CONCAT('%', #{personName}, '%')
+            mp.alias LIKE CONCAT('%', #{personName}, '%')
             )
         </if>
         <if test="phoneNum != null and phoneNum != ''">
-            AND phone_num LIKE CONCAT('%', #{phoneNum}, '%')
+            AND mp.phone_num LIKE CONCAT('%', #{phoneNum}, '%')
         </if>
         <if test="idNum != null and idNum != ''">
-            AND id_num = #{idNum}
+            AND mp.id_num = #{idNum}
         </if>
         <if test="address != null and address !=''">
-            AND address LIKE CONCAT('%', #{address}, '%')
+            AND mp.address LIKE CONCAT('%', #{address}, '%')
+        </if>
+        ORDER BY mp.create_time DESC
+    </select>
+    <select id="selectByIdNum" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT *
+        FROM m_person
+        WHERE data_status = '1'
+        <if test="idNum!= null and idNum!= ''">
+            AND id_num = #{idNum}
         </if>
     </select>
 

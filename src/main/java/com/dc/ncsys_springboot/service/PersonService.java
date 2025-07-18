@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.vo.AddressVo;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -25,4 +26,8 @@ public interface PersonService extends IService<PersonDo> {
     ResVo<List<PersonDo>> getPersonLike(PersonDo personDo);
 
     PageResVo<PersonDo> pageQuery(PageQueryVo<PersonDo> pageQueryVo);
+
+    ResVo savePerson(PersonDo personDo);
+
+    ResVo<List<AddressVo>> getPersonAddressList(PersonDo personDo);
 }

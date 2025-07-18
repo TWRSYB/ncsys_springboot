@@ -1,4 +1,5 @@
 package com.dc.ncsys_springboot.mapper;
+import com.dc.ncsys_springboot.vo.AddressVo;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -28,7 +29,9 @@ public interface PersonMapper extends BaseMapper<PersonDo> {
 
     List<PersonDo> getPersonLike(PersonDo personDo);
 
-    List<String> getPersonAddressList(String personId);
+    List<AddressVo> getPersonAddressList(String personId);
 
     Page<PersonDo> pageQuery(Map<String, String> params);
+
+    PersonDo selectByIdNum(String idNum);
 }

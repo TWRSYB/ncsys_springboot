@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.controller;
 
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.service.PersonService;
+import com.dc.ncsys_springboot.vo.AddressVo;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -52,5 +53,17 @@ public class PersonController {
     public ResVo<List<PersonDo>> getPersonLike(@RequestBody PersonDo personDo) {
         log.info("CONT入参: {}", personDo);
         return personService.getPersonLike(personDo);
+    }
+
+    @PostMapping("/savePerson")
+    public ResVo savePerson(@RequestBody PersonDo personDo) {
+        log.info("CONT入参: {}", personDo);
+        return personService.savePerson(personDo);
+    }
+
+    @PostMapping("/getPersonAddressList")
+    public ResVo<List<AddressVo>> getPersonAddressList(@RequestBody PersonDo personDo) {
+        log.info("CONT入参: {}", personDo);
+        return personService.getPersonAddressList(personDo);
     }
 }
