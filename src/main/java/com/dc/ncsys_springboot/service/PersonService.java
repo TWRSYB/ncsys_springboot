@@ -30,4 +30,6 @@ public interface PersonService extends IService<PersonDo> {
     ResVo savePerson(PersonDo personDo);
 
     ResVo<List<AddressVo>> getPersonAddressList(PersonDo personDo);
+
+    ResVo updatePerson(PersonDo personDo);
 }

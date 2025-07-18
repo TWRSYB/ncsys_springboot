@@ -3,6 +3,7 @@ package com.dc.ncsys_springboot.service.impl;
 import com.dc.ncsys_springboot.constants.ComConst;
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.daoVo.UserDo;
+import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.PersonService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -101,30 +102,7 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         // 获取当前登录用户信息
         UserDo sessionUser = SessionUtils.getSessionUser();
 
-        // 校验入参
-        if (ObjectUtils.isEmpty(personDo)) {
-            return ResVo.fail("参数异常");
-        }
-        // 姓名不能为空
-        if (ObjectUtils.isEmpty(personDo.getPersonName())) {
-            return ResVo.fail("姓名不能为空");
-        }
-        // 姓名长度2-10
-        if (personDo.getPersonName().length() < 2 || personDo.getPersonName().length() > 10) {
-            return ResVo.fail("姓名由2-10个汉字组成");
-        }
-        // 姓名只能是汉字
-        if (!personDo.getPersonName().matches("^[\u4e00-\u9fa5]+$")) {
-            return ResVo.fail("姓名只能是汉字");
-        }
-        // 手机号不能为空
-        if (ObjectUtils.isEmpty(personDo.getPhoneNum())) {
-            return ResVo.fail("手机号不能为空");
-        }
-        // 手机号正则匹配
-        if (!personDo.getPhoneNum().matches("^1[3-9]\\d{9}$")) {
-            return ResVo.fail("手机号格式不正确");
-        }
+        validatePerson(personDo);
 
         // 校验手机号是否已存在
         PersonDo person = personMapper.selectByPhoneNum(personDo.getPhoneNum());
@@ -153,6 +131,33 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
 
     }
 
+    private static void validatePerson(PersonDo personDo) {
+        // 校验入参
+        if (ObjectUtils.isEmpty(personDo)) {
+            throw new BusinessException("参数异常", "请求参数为空");
+        }
+        // 姓名不能为空
+        if (ObjectUtils.isEmpty(personDo.getPersonName())) {
+            throw new BusinessException("姓名不能为空");
+        }
+        // 姓名长度2-10
+        if (personDo.getPersonName().length() < 2 || personDo.getPersonName().length() > 10) {
+            throw new BusinessException("姓名由2-10个汉字组成");
+        }
+        // 姓名只能是汉字
+        if (!personDo.getPersonName().matches("^[\u4e00-\u9fa5]+$")) {
+            throw new BusinessException("姓名由2-10个汉字组成");
+        }
+        // 手机号不能为空
+        if (ObjectUtils.isEmpty(personDo.getPhoneNum())) {
+            throw new BusinessException("手机号不能为空");
+        }
+        // 手机号正则匹配
+        if (!personDo.getPhoneNum().matches("^1[3-9]\\d{9}$")) {
+            throw new BusinessException("手机号格式不正确");
+        }
+    }
+
     @Override
     public ResVo<List<AddressVo>> getPersonAddressList(PersonDo personDo) {
         if (ObjectUtils.isEmpty(personDo)) {
@@ -163,6 +168,35 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         }
         List<AddressVo> addressList = personMapper.getPersonAddressList(personDo.getPersonId());
         return ResVo.success("查询人员地址列表成功", addressList);
+    }
+
+    @Override
+    public ResVo updatePerson(PersonDo personDo) {
+
+        // 获取当前登录用户信息
+        UserDo sessionUser = SessionUtils.getSessionUser();
+        validatePerson(personDo);
+
+        // 查询人员信息
+        PersonDo person = personMapper.selectById(personDo.getPersonId());
+        if (ObjectUtils.isEmpty(person)) {
+            return ResVo.fail("人员不存在");
+        }
+
+        // 检查人员状态
+        if (!person.getDataStatus().equals(ComConst.DATASTATUS_EFFECTIVE)) {
+            return ResVo.fail("人员状态异常");
+        }
+
+        // 更新人员信息
+        personDo.setUpdateUser(sessionUser.getLoginCode());
+        int updateResult = personMapper.updateById(personDo);
+        if (updateResult == 1) {
+            return ResVo.success("更新人员信息成功");
+        } else {
+            throw new BusinessException("更新人员信息失败");
+        }
+
     }
 
 

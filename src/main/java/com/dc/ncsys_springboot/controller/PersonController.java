@@ -66,4 +66,10 @@ public class PersonController {
         log.info("CONT入参: {}", personDo);
         return personService.getPersonAddressList(personDo);
     }
+
+    @PostMapping("/updatePerson")
+    public ResVo updatePerson(@RequestBody PersonDo personDo) {
+        log.info("CONT入参: {}", personDo);
+        return personService.updatePerson(personDo);
+    }
 }

@@ -113,9 +113,11 @@ public class PersonDo implements Serializable {
      */
     @TableField(exist = false)
     private List<AddressVo> addressList;
-
+    @TableField(exist = false)
     private String provinceName;
+    @TableField(exist = false)
     private String cityName;
+    @TableField(exist = false)
     private String areaName;
 
 	@Override
