@@ -199,5 +199,12 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
 
     }
 
+    @Override
+    public PageResVo<PersonDo> getPersonNotInWorker(PageQueryVo<PersonDo> pageQueryVo) {
+        PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
+        Page<PersonDo> page = personMapper.getPersonNotInWorker(pageQueryVo.getParams());
+        return PageResVo.success(page);
+    }
+
 
 }

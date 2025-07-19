@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.WorkerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.WorkerDo">
+        <id column="worker_id" property="workerId" />
+        <result column="person_id" property="personId" />
+        <result column="daily_pay" property="dailyPay" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        worker_id, person_id, daily_pay, data_status, create_user, create_time, update_user, update_time, remark
+    </sql>
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.WorkerDo">
+        SELECT mw.*,
+               mp.person_name,
+               mp.phone_num,
+               mp.id_num,
+               mp.sex,
+               mp.alias,
+               mp.address
+        FROM m_worker mw
+        LEFT JOIN m_person mp ON mw.person_id = mp.person_id
+        WHERE mw.data_status = 1
+        <if test="personName!= null and personName!= ''">
+            AND (
+            mp.person_name LIKE CONCAT('%', #{personName}, '%')
+            OR mp.alias LIKE CONCAT('%', #{personName}, '%')
+            )
+        </if>
+        <if test="phoneNum!= null and phoneNum!= ''">
+            AND mp.phone_num LIKE CONCAT('%', #{phoneNum}, '%')
+        </if>
+        <if test="idNum!= null and idNum!= ''">
+            AND mp.id_num LIKE CONCAT('%', #{idNum}, '%')
+        </if>
+        ORDER BY mw.create_time DESC
+    </select>
+
+</mapper>

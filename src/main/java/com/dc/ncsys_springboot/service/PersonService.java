@@ -32,4 +32,6 @@ public interface PersonService extends IService<PersonDo> {
     ResVo<List<AddressVo>> getPersonAddressList(PersonDo personDo);
 
     ResVo updatePerson(PersonDo personDo);
+
+    PageResVo<PersonDo> getPersonNotInWorker(PageQueryVo<PersonDo> pageQueryVo);
 }

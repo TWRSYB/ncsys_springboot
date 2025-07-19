@@ -72,4 +72,10 @@ public class PersonController {
         log.info("CONT入参: {}", personDo);
         return personService.updatePerson(personDo);
     }
+
+    @PostMapping("/getPersonNotInWorker")
+    public PageResVo<PersonDo> getPersonNotInWorker(@RequestBody PageQueryVo<PersonDo> pageQueryVo) {
+        log.info("CONT入参: {}", pageQueryVo);
+        return personService.getPersonNotInWorker(pageQueryVo);
+    }
 }

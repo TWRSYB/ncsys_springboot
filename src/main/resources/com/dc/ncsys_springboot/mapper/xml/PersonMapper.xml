@@ -103,5 +103,32 @@
             AND id_num = #{idNum}
         </if>
     </select>
+    <select id="getPersonNotInWorker" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT mp.*
+        FROM m_person mp
+        WHERE mp.data_status = '1'
+        AND mp.person_id NOT IN (
+            SELECT mw.person_id
+            FROM m_worker mw
+            WHERE mw.data_status = '1'
+        )
+        <if test="personName != null and personName != ''">
+            AND (
+            mp.person_name LIKE CONCAT('%', #{personName}, '%')
+            OR
+            mp.alias LIKE CONCAT('%', #{personName}, '%')
+            )
+        </if>
+        <if test="phoneNum != null and phoneNum != ''">
+            AND mp.phone_num LIKE CONCAT('%', #{phoneNum}, '%')
+        </if>
+        <if test="idNum != null and idNum != ''">
+            AND mp.id_num = #{idNum}
+        </if>
+        <if test="address != null and address !=''">
+            AND mp.address LIKE CONCAT('%', #{address}, '%')
+        </if>
+        ORDER BY mp.create_time DESC
+    </select>
 
 </mapper>

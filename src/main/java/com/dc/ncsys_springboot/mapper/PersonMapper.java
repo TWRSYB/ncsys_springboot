@@ -34,4 +34,6 @@ public interface PersonMapper extends BaseMapper<PersonDo> {
     Page<PersonDo> pageQuery(Map<String, String> params);
 
     PersonDo selectByIdNum(String idNum);
+
+    Page<PersonDo> getPersonNotInWorker(Map<String, String> params);
 }
