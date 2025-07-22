@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.WorkerAttendanceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo">
+        <id column="attendance_id" property="attendanceId" />
+        <result column="worker_id" property="workerId" />
+        <result column="date" property="date" />
+        <result column="morning_yn" property="morningYn" />
+        <result column="morning_pay" property="morningPay" />
+        <result column="afternoon_yn" property="afternoonYn" />
+        <result column="afternoon_pay" property="afternoonPay" />
+        <result column="day_pay" property="dayPay" />
+        <result column="clear_yn" property="clearYn" />
+        <result column="clear_date" property="clearDate" />
+        <result column="clear_id" property="clearId" />
+        <result column="remark" property="remark" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        attendance_id, worker_id, date, morning_yn, morning_pay, afternoon_yn, afternoon_pay, day_pay, clear_yn, clear_date, clear_id, remark, data_status, create_user, create_time, update_user, update_time
+    </sql>
+
+    <select id="getAttendanceListByWorkerIdAndYm"
+            resultType="com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo">
+        SELECT *
+        FROM t_worker_attendance
+        WHERE data_status = '1'
+        AND worker_id = #{workerId}
+        AND date LIKE CONCAT(#{ym}, '%')
+    </select>
+
+</mapper>

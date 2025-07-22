@@ -18,6 +18,8 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 工人表 服务实现类
@@ -99,6 +101,20 @@ public class WorkerServiceImpl extends ServiceImpl<WorkerMapper, WorkerDo> imple
         } else {
             return ResVo.fail("更新失败");
         }
+
+    }
+
+    @Override
+    public ResVo<List<WorkerDo>> getWorkerList() {
+        // 获取当前登录人
+        UserDo sessionUser = SessionUtils.getSessionUser();
+        // 如果不是管理员或系统管理员则返回空列表
+        if (!sessionUser.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) && !sessionUser.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
+            return ResVo.success(null);
+        }
+        // 查询所有工人
+        List<WorkerDo> workerList = workerMapper.pageQuery(null);
+        return ResVo.success("获取工人列表成功", workerList);
 
     }
 }

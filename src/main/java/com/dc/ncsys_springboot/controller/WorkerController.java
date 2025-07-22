@@ -8,10 +8,9 @@ import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -46,6 +45,12 @@ public class WorkerController {
     public ResVo<Object> updateWorker(@RequestBody WorkerDo workerDo) {
         log.info("CONT入参: {}", workerDo);
         return workerService.updateWorker(workerDo);
+    }
+
+    @GetMapping("/getWorkerList")
+    public ResVo<List<WorkerDo>> getWorkerList() {
+        log.info("CONT入参: ");
+        return workerService.getWorkerList();
     }
 
 }
