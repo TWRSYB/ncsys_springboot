@@ -20,4 +20,6 @@ public interface WorkerAttendanceService extends IService<WorkerAttendanceDo> {
     ResVo<List<Map<String, Object>>> getWorkerAndAttendanceList(String ym);
 
     ResVo<Object> addWorkerAttendance(WorkerAttendanceDo workerAttendanceDo);
+
+    ResVo<Object> updateWorkerAttendance(WorkerAttendanceDo workerAttendanceDo);
 }

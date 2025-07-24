@@ -85,6 +85,8 @@ public class WorkerDo implements Serializable {
     private String sex;
     @TableField(exist = false)
     private String address;
+    @TableField(exist = false)
+    private String lastAttendanceDate;
 
     @Override
     public String toString() {

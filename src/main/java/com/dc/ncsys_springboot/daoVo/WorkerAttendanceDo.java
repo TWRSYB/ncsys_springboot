@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -15,7 +16,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-20 15:06
+ * @since 2025-07-22 18:15
  */
 @Data
 @Accessors(chain = true)
@@ -66,9 +67,9 @@ public class WorkerAttendanceDo implements Serializable {
     private BigDecimal dayPay;
 
     /**
-     * 是否结算:Y-是,N-否
+     * 交易状态:记录中,待结算,已结算
      */
-    private String clearYn;
+    private String tradeStatus;
 
     /**
      * 结算日期
@@ -109,6 +110,17 @@ public class WorkerAttendanceDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    /**
+     * 出工人姓名
+     */
+    @TableField(exist = false)
+    private String personName;
+    /**
+     * 出工人手机号
+     */
+    @TableField(exist = false)
+    private String phoneNum;
 
 	@Override
 	public String toString() {

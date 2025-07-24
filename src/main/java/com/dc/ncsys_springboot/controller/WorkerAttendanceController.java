@@ -38,4 +38,10 @@ public class WorkerAttendanceController {
         return workerAttendanceService.addWorkerAttendance(workerAttendanceDo);
     }
 
+    @PostMapping("/updateWorkerAttendance")
+    public ResVo<Object> updateWorkerAttendance(@RequestBody WorkerAttendanceDo workerAttendanceDo) {
+        log.info("CONT入参: {}", workerAttendanceDo);
+        return workerAttendanceService.updateWorkerAttendance(workerAttendanceDo);
+    }
+
 }

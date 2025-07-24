@@ -11,7 +11,7 @@ public class IdUtils {
         } else if (obj instanceof WorkerDo worker) {
             worker.setWorkerId("Worker_" + worker.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
         } else if (obj instanceof WorkerAttendanceDo attendance) {
-            attendance.setAttendanceId("WorkerAttendance_" + attendance.getDate() + "_" + DateTimeUtil.getMinuteKey());
+            attendance.setAttendanceId("WorkerAttendance_" + attendance.getPhoneNum() + "_" + attendance.getDate() + "_" + DateTimeUtil.getMinuteKey());
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + obj.getClass());
         }

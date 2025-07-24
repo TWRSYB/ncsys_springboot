@@ -21,14 +21,17 @@
     </sql>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.WorkerDo">
         SELECT mw.*,
-               mp.person_name,
-               mp.phone_num,
-               mp.id_num,
-               mp.sex,
-               mp.alias,
-               mp.address
+        mp.person_name,
+        mp.phone_num,
+        mp.id_num,
+        mp.sex,
+        mp.alias,
+        mp.address,
+        mwa.last_attendance_date
         FROM m_worker mw
         LEFT JOIN m_person mp ON mw.person_id = mp.person_id
+        LEFT JOIN (SELECT worker_id, MAX(date) AS last_attendance_date FROM t_worker_attendance GROUP BY worker_id) mwa
+        ON mw.worker_id = mwa.worker_id
         WHERE mw.data_status = 1
         <if test="personName!= null and personName!= ''">
             AND (
@@ -42,7 +45,7 @@
         <if test="idNum!= null and idNum!= ''">
             AND mp.id_num LIKE CONCAT('%', #{idNum}, '%')
         </if>
-        ORDER BY mw.create_time DESC
+        ORDER BY SUBSTRING(mwa.last_attendance_date, 7) DESC, mw.create_time DESC
     </select>
 
 </mapper>

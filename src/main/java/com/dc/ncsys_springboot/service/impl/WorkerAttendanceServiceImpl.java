@@ -23,6 +23,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -89,23 +90,23 @@ public class WorkerAttendanceServiceImpl extends ServiceImpl<WorkerAttendanceMap
 
         // 如果不是管理员或系统管理员则返回失败
         if (!sessionUser.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) && !sessionUser.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
-            return ResVo.fail("无权限添加出工记录");
+            throw new BusinessException("添加失败", "无权限添加出工记录");
         }
         // 查询工人是否存在
         WorkerDo worker = workerMapper.selectById(workerAttendanceDo.getWorkerId());
         if (worker == null) {
-            return ResVo.fail("工人不存在");
+            throw new BusinessException("添加失败", "工人不存在");
         }
         // 赋值
         IdUtils.generateIdForObject(workerAttendanceDo);
         workerAttendanceDo.setCreateUser(sessionUser.getLoginCode());
         workerAttendanceDo.setUpdateUser(sessionUser.getLoginCode());
+        workerAttendanceDo.setDataStatus(ComConst.DATASTATUS_EFFECTIVE);
         if (!ObjectUtils.isEmpty(workerAttendanceDo.getMorningYn()) && !ObjectUtils.isEmpty(workerAttendanceDo.getAfternoonYn())) {
-            workerAttendanceDo.setDataStatus(ComConst.DATASTATUS_EFFECTIVE);
+            workerAttendanceDo.setTradeStatus("待结算");
         } else {
-            workerAttendanceDo.setDataStatus(ComConst.DATASTATUS_INIT);
+            workerAttendanceDo.setTradeStatus("记录中");
         }
-        workerAttendanceDo.setClearYn(ComConst.YN_N);
         int insert = workerAttendanceMapper.insert(workerAttendanceDo);
         if (insert == 1) {
             return ResVo.success("添加出工记录成功");
@@ -113,6 +114,56 @@ public class WorkerAttendanceServiceImpl extends ServiceImpl<WorkerAttendanceMap
             throw new BusinessException("添加失败", "添加数量不为1");
         }
 
+    }
+
+    @Override
+    public ResVo<Object> updateWorkerAttendance(WorkerAttendanceDo workerAttendanceDo) {
+        // 获取当前登录人
+        UserDo sessionUser = SessionUtils.getSessionUser();
+        // 入参校验
+        if (ObjectUtils.isEmpty(workerAttendanceDo)) {
+            throw new BusinessException("添加失败", "入参为空");
+        }
+        validateWorkerAttendance(workerAttendanceDo);
+        // 如果不是管理员或系统管理员则返回失败
+        if (!sessionUser.getRoleCode().equals(ComConst.ROLE_SYS_ADMIN) &&!sessionUser.getRoleCode().equals(ComConst.ROLE_MANAGER)) {
+            throw new BusinessException("添加失败", "无权限修改出工记录");
+        }
+
+        // 查询出工记录是否存在
+        WorkerAttendanceDo attendance = workerAttendanceMapper.selectById(workerAttendanceDo.getAttendanceId());
+        if (attendance == null) {
+            throw new BusinessException("添加失败", "出工记录不存在");
+        }
+        // 如果已经结算, 则返回失败
+        if (attendance.getTradeStatus().equals("已结算")) {
+            throw new BusinessException("添加失败", "已结算的出工记录不能修改");
+        }
+        // 匹配工人ID
+        if (!attendance.getWorkerId().equals(workerAttendanceDo.getWorkerId())) {
+            throw new BusinessException("添加失败", "工人ID不匹配");
+        }
+        // 匹配日期
+        if (!attendance.getDate().equals(workerAttendanceDo.getDate())) {
+            throw new BusinessException("添加失败", "日期不匹配");
+        }
+        // 匹配交易状态
+        if (!attendance.getTradeStatus().equals(workerAttendanceDo.getTradeStatus())) {
+            throw new BusinessException("添加失败", "交易状态不匹配");
+        }
+        // 赋值
+        workerAttendanceDo.setUpdateUser(sessionUser.getLoginCode());
+        if (!ObjectUtils.isEmpty(workerAttendanceDo.getMorningYn()) &&!ObjectUtils.isEmpty(workerAttendanceDo.getAfternoonYn())) {
+            workerAttendanceDo.setTradeStatus("待结算");
+        } else {
+            workerAttendanceDo.setTradeStatus("记录中");
+        }
+        int update = workerAttendanceMapper.updateById(workerAttendanceDo);
+        if (update == 1) {
+            return ResVo.success("修改出工记录成功");
+        } else {
+            throw new BusinessException("修改失败", "修改数量不为1");
+        }
     }
 
     private void validateWorkerAttendance(WorkerAttendanceDo workerAttendanceDo) {
@@ -176,18 +227,14 @@ public class WorkerAttendanceServiceImpl extends ServiceImpl<WorkerAttendanceMap
                     throw new BusinessException("添加失败", "当日工钱不能为空");
                 }
                 // 如果上午或下午有出工, 则当日工钱必须等于上午和下午的工钱之和
-                BigDecimal totalPay = new BigDecimal(0);
-                if (morningPay != null) {
-                    totalPay = totalPay.add(afternoonPay);
-                }
-                if (afternoonPay != null) {
-                    totalPay = totalPay.add(afternoonPay);
-                }
+                BigDecimal totalPay = Stream.of(morningPay, afternoonPay)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
                 if (dayPay.compareTo(totalPay) != 0) {
                     throw new BusinessException("添加失败", "当日工钱必须等于上午和下午的工钱之和");
                 }
             } else {
-                if (dayPay != null) {
+                if (dayPay.compareTo(new BigDecimal(0)) != 0) {
                     throw new BusinessException("添加失败", "当日不出工不能有工钱");
                 }
             }
