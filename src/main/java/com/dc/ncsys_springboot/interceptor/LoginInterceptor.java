@@ -26,7 +26,11 @@ public class LoginInterceptor implements HandlerInterceptor {
             "/ncsys/login.html",          // 登录页面
             "/ncsys/user/login",     // 登录接口
             "/ncsys/user/logout",     // 登录接口
-            "/ncsys/static/**"      // 静态资源
+//            "/ncsys/static/*",      // 静态资源, 可以不放行
+            "/ncsys/assets/*",      // 静态资源, 必须放行
+            "/ncsys/index.html",      // 主页, 必须放行
+            "/ncsys/"      // 主页, 必须放行
+
     ));
 
     // session中存在user对象且与请求头携带的令牌匹配则通过, 否则拒绝
@@ -49,7 +53,15 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         // 检查请求路径是否在放行列表中
         for (String excludedPath : EXCLUDE_PATHS) {
-            if (request.getRequestURI().startsWith(excludedPath)) {
+            // 检查请求路径是否在放行列表中
+            if (excludedPath.endsWith("*")) {
+                // 处理通配符路径
+                String prefix = excludedPath.substring(0, excludedPath.length() - 1);
+                if (request.getRequestURI().startsWith(prefix)) {
+                    log.info("放行请求: {}", request.getRequestURI());
+                    return true; // 直接放行
+                }
+            } else if (request.getRequestURI().equals(excludedPath)) {
                 log.info("放行请求: {}", request.getRequestURI());
                 return true; // 直接放行
             }
@@ -68,7 +80,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         // 检查用户是否登录（假设用户信息存储在"user"属性中）
         if (loginUserDo == null) {
-            log.warn("登录状态验证拒绝: session中不存在loginUser");
+            log.warn("登录状态验证拒绝: session中不存在loginUser, {}", request.getRequestURI());
         } else {
             // 继续执行
             try {
