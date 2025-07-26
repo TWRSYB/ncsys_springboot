@@ -3,6 +3,6 @@ server:
   port: 8210
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ncsys_test
-    username: root
-    password: 123456
+    url: jdbc:mysql://192.168.31.62:3306/ncsys_test
+    username: test_user
+    password: test_user@ncsys_test@2025
