@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 从应用配置读取路径 -->
+    <springProperty name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
+    <springProperty name="LOG_NAME" source="logging.file.name" defaultValue="ncsys"/>
+
+    <timestamp key="currentDate" datePattern="yyyy-MM-dd"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/${LOG_NAME}-${currentDate}.log"/>
+
+    <!-- 引入Spring Boot默认配置, 以支持控制台带颜色的日志 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- 自定义彩色格式 -->
+    <!--    <property name="CONSOLE_LOG_PATTERN"-->
+    <!--              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %clr(%5p) -&#45;&#45; [%15.15t] %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>-->
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--            <pattern>${CONSOLE_LOG_PATTERN}</pattern>-->
+            <charset>utf8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %clr(%logger{36}){cyan} - %line : %replace(%msg){'\"avatar\":\".*?\"', '\"avatar\":\"[FILTERED]\"'}%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 文件输出 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>        <!-- 滚动策略：日期+大小 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 滚动文件名格式 -->
+            <fileNamePattern>${LOG_PATH}/${LOG_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 单个文件最大50MB -->
+            <maxFileSize>50MB</maxFileSize>
+            <!-- 保留30天日志 -->
+<!--            <maxHistory>30</maxHistory>-->
+            <!-- 所有日志文件总大小限制 -->
+<!--            <totalSizeCap>5GB</totalSizeCap>-->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %replace(%msg){'\"avatar\":\".*?\"', '\"avatar\":\"[FILTERED]\"'}%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 日志级别设置 -->
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

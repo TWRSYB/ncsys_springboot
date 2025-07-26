@@ -1,0 +1,8 @@
+# application-dev.yml
+server:
+  port: 8110
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ncsys_dev
+    username: root
+    password: 123456

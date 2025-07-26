@@ -1,0 +1,8 @@
+# application-test.yml
+server:
+  port: 8210
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ncsys_test
+    username: root
+    password: 123456

@@ -1,0 +1,8 @@
+# application-prod.yml
+server:
+  port: 8310
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ncsys_prod
+    username: root
+    password: 123456

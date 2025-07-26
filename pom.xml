@@ -98,6 +98,46 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!-- 开发环境 -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <!-- 修正：使用更标准的命名 -->
+                <build.profile.id>dev</build.profile.id>
+            </properties>
+            <build>
+                <finalName>${project.artifactId}-dev</finalName>
+            </build>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <!-- 测试环境 -->
+        <profile>
+            <id>test</id>
+            <properties>
+                <build.profile.id>test</build.profile.id>
+            </properties>
+            <build>
+                <finalName>${project.artifactId}-test</finalName>
+            </build>
+        </profile>
+
+        <!-- 生产环境 -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <build.profile.id>prod</build.profile.id>
+            </properties>
+            <build>
+                <finalName>${project.artifactId}-prod</finalName>
+            </build>
+
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -105,6 +145,25 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 排除所有环境配置文件 -->
+                <excludes>
+                    <exclude>application-*.yml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 包含当前激活环境的配置 -->
+                <includes>
+                    <!-- 如果使用 YAML 配置 -->
+                    <include>application-${build.profile.id}.yml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
 
     </build>
 
