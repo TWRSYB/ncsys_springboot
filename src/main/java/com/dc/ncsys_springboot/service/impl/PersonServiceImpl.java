@@ -156,6 +156,16 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         if (!personDo.getPhoneNum().matches("^1[3-9]\\d{9}$")) {
             throw new BusinessException("手机号格式不正确");
         }
+        // 身份证号格式校验
+        if (ObjectUtils.isEmpty(personDo.getIdNum())) {
+            // 身份证号为空，设置为null
+            personDo.setIdNum(null);
+        } else {
+            // 身份证号正则匹配
+            if (!personDo.getIdNum().matches("^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$")) {
+                throw new BusinessException("身份证号格式不正确");
+            }
+        }
     }
 
     @Override
