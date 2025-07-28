@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.WorkerPayClearMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.WorkerPayClearDo">
+        <id column="clear_id" property="clearId" />
+        <result column="worker_id" property="workerId" />
+        <result column="clear_date" property="clearDate" />
+        <result column="involve_day_list" property="involveDayList" />
+        <result column="involve_days" property="involveDays" />
+        <result column="involve_pay" property="involvePay" />
+        <result column="premium" property="premium" />
+        <result column="clearing_amount" property="clearingAmount" />
+        <result column="remark" property="remark" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        clear_id, worker_id, clear_date, involve_day_list, involve_days, involve_pay, premium, clearing_amount, remark, data_status, create_user, create_time, update_user, update_time
+    </sql>
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.WorkerPayClearDo">
+        SELECT * FROM t_worker_pay_clear twpc
+        LEFT JOIN m_worker mw ON twpc.worker_id = mw.worker_id
+        LEFT JOIN m_person mp ON mw.person_id = mp.person_id
+        where twpc.data_status = '1'
+        <if test="workerId != null and workerId != ''">
+            AND twpc.worker_id = #{workerId}
+        </if>
+        <if test="ym != null and ym != ''">
+            AND twpc.clear_date LIKE CONCAT(#{ym}, '%')
+        </if>
+        <if test="personName != null and personName != ''">
+            AND (mp.person_name LIKE CONCAT('%', #{personName}, '%') OR mp.alias LIKE CONCAT('%', #{personName}, '%'))
+        </if>
+        <if test="phoneNum != null and phoneNum != ''">
+            AND mp.phone_num = #{phoneNum}
+        </if>
+        <if test="idNum != null and idNum != ''">
+            AND mp.id_num = #{idNum}
+        </if>
+        ORDER BY twpc.clear_date DESC
+    </select>
+
+</mapper>

@@ -26,4 +26,6 @@ public interface WorkerService extends IService<WorkerDo> {
     ResVo<Object> updateWorker(WorkerDo workerDo);
 
     ResVo<List<WorkerDo>> getWorkerList();
+
+    PageResVo<WorkerDo> pageQueryWageSettle(PageQueryVo<WorkerDo> pageQueryVo);
 }

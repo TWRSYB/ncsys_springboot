@@ -37,5 +37,13 @@
         AND date LIKE CONCAT(#{ym}, '%')
         ORDER BY date DESC
     </select>
+    <select id="getAttendanceListByWorkerId" resultType="com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo">
+        SELECT *
+        FROM t_worker_attendance
+        WHERE data_status = '1'
+        AND worker_id = #{workerId}
+        ORDER BY date DESC
+    </select>
+
 
 </mapper>

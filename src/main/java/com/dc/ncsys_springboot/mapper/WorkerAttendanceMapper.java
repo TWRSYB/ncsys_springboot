@@ -21,4 +21,7 @@ public interface WorkerAttendanceMapper extends BaseMapper<WorkerAttendanceDo> {
 
 
     List<WorkerAttendanceDo> getAttendanceListByWorkerIdAndYm(@Param("workerId") String workerId, @Param("ym") String ym);
+
+
+    List<WorkerAttendanceDo> getAttendanceListByWorkerId(String workerId);
 }

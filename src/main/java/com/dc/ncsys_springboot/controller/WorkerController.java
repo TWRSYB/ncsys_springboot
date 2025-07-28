@@ -53,4 +53,10 @@ public class WorkerController {
         return workerService.getWorkerList();
     }
 
+    @PostMapping("/pageQueryWageSettle")
+    public PageResVo<WorkerDo> pageQueryWageSettle(@RequestBody PageQueryVo<WorkerDo> pageQueryVo) {
+        log.info("CONT入参: {}", pageQueryVo);
+        return workerService.pageQueryWageSettle(pageQueryVo);
+    }
+
 }

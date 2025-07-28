@@ -83,10 +83,30 @@ public class WorkerDo implements Serializable {
     private String alias;
     @TableField(exist = false)
     private String sex;
+    // 地址
     @TableField(exist = false)
     private String address;
+    // 最后出工日期
     @TableField(exist = false)
     private String lastAttendanceDate;
+    // 已结天数
+    @TableField(exist = false)
+    private Double settleDays;
+    // 已结工资
+    @TableField(exist = false)
+    private BigDecimal settlePay;
+    // 未结天数
+    @TableField(exist = false)
+    private Double unSettleDays;
+    // 未结工资
+    @TableField(exist = false)
+    private BigDecimal unSettlePay;
+    // 累计天数
+    @TableField(exist = false)
+    private Double totalDays;
+    // 累计工资
+    @TableField(exist = false)
+    private BigDecimal totalPay;
 
     @Override
     public String toString() {

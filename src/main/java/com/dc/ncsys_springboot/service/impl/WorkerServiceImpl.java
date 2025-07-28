@@ -3,8 +3,10 @@ package com.dc.ncsys_springboot.service.impl;
 import com.dc.ncsys_springboot.constants.ComConst;
 import com.dc.ncsys_springboot.daoVo.PersonDo;
 import com.dc.ncsys_springboot.daoVo.UserDo;
+import com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo;
 import com.dc.ncsys_springboot.daoVo.WorkerDo;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
+import com.dc.ncsys_springboot.mapper.WorkerAttendanceMapper;
 import com.dc.ncsys_springboot.mapper.WorkerMapper;
 import com.dc.ncsys_springboot.service.WorkerService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,6 +20,7 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -36,6 +39,9 @@ public class WorkerServiceImpl extends ServiceImpl<WorkerMapper, WorkerDo> imple
 
     @Autowired
     private PersonMapper personMapper;
+
+    @Autowired
+    private WorkerAttendanceMapper workerAttendanceMapper;
 
     @Override
     public PageResVo<WorkerDo> pageQuery(PageQueryVo<WorkerDo> pageQueryVo) {
@@ -116,5 +122,56 @@ public class WorkerServiceImpl extends ServiceImpl<WorkerMapper, WorkerDo> imple
         List<WorkerDo> workerList = workerMapper.pageQuery(null);
         return ResVo.success("获取工人列表成功", workerList);
 
+    }
+
+    @Override
+    public PageResVo<WorkerDo> pageQueryWageSettle(PageQueryVo<WorkerDo> pageQueryVo) {
+        PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
+        Page<WorkerDo> workerPage = workerMapper.pageQuery(pageQueryVo.getParams());
+        // 遍历工人, 查询薪资结算情况
+        for (WorkerDo workerDo : workerPage.getResult()) {
+            List<WorkerAttendanceDo> attendanceList = workerAttendanceMapper.getAttendanceListByWorkerId(workerDo.getWorkerId());
+            double settleDays = 0.0;
+            BigDecimal settlePay = new BigDecimal(0);
+            double unSettleDays = 0.0;
+            BigDecimal unSettlePay = new BigDecimal(0);
+            double totalDays = 0.0;
+            BigDecimal totalPay = new BigDecimal(0);
+
+            for (WorkerAttendanceDo workerAttendanceDo : attendanceList) {
+                if (workerAttendanceDo.getMorningYn().equals(ComConst.YN_Y)) {
+                    totalDays += 0.5;
+                    totalPay = totalPay.add(workerAttendanceDo.getMorningPay());
+                    if (workerAttendanceDo.getTradeStatus().equals("已结算")) {
+                        settleDays += 0.5;
+                        settlePay = settlePay.add(workerAttendanceDo.getMorningPay());
+                    } else {
+                        unSettleDays += 0.5;
+                        unSettlePay = unSettlePay.add(workerAttendanceDo.getMorningPay());
+                    }
+                }
+                if (workerAttendanceDo.getAfternoonYn().equals(ComConst.YN_Y)) {
+                    totalDays += 0.5;
+                    totalPay = totalPay.add(workerAttendanceDo.getAfternoonPay());
+                    if (workerAttendanceDo.getTradeStatus().equals("已结算")) {
+                        settleDays += 0.5;
+                        settlePay = settlePay.add(workerAttendanceDo.getAfternoonPay());
+                    } else {
+                        unSettleDays += 0.5;
+                        unSettlePay = unSettlePay.add(workerAttendanceDo.getAfternoonPay());
+                    }
+                }
+
+            }
+            workerDo.setTotalDays(totalDays);
+            workerDo.setTotalPay(totalPay);
+            workerDo.setSettleDays(settleDays);
+            workerDo.setSettlePay(settlePay);
+            workerDo.setUnSettleDays(unSettleDays);
+            workerDo.setUnSettlePay(unSettlePay);
+        }
+
+
+        return PageResVo.success(workerPage);
     }
 }
