@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -113,6 +115,11 @@ public class WorkerPayClearDo implements Serializable {
      */
     @TableField(exist = false)
     private String idNum;
+
+    @TableField(exist = false)
+    private List<String> list_settleYmd;
+    @TableField(exist = false)
+    private List<WorkerAttendanceDo> list_settleAttendance;
 
 
 	@Override

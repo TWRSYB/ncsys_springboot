@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Date;
 
 @Slf4j
 public class DateTimeUtil {
@@ -176,5 +177,19 @@ public class DateTimeUtil {
             log.error("日期格式错误:{}", text, ignored);
             return false;
         }
+    }
+
+    /**
+     * 获取当前日期字符串（格式：yyyy-MM-dd）
+     */
+    public static String getYMD() {
+        return LocalDate.now().format(DATE_FORMATTER);
+    }
+
+    /**
+     * 获取指定日期的字符串（格式：yyyy-MM-dd）
+     */
+    public static String getYMD(Date date) {
+        return LocalDate.ofInstant(date.toInstant(), ZoneId.systemDefault()).format(DATE_FORMATTER);
     }
 }

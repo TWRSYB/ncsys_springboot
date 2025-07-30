@@ -1,9 +1,11 @@
 package com.dc.ncsys_springboot.controller;
 
+import com.dc.ncsys_springboot.daoVo.MixedWorkerPayClearVo;
 import com.dc.ncsys_springboot.daoVo.WorkerPayClearDo;
 import com.dc.ncsys_springboot.service.WorkerPayClearService;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
+import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,5 +32,11 @@ public class WorkerPayClearController {
     public PageResVo<WorkerPayClearDo> pageQuery(@RequestBody PageQueryVo<WorkerPayClearDo> pageQueryVo) {
         log.info("CONT入参: {}", pageQueryVo);
         return workerPayClearService.pageQuery(pageQueryVo);
+    }
+
+    @PostMapping("/clear")
+    public ResVo<Object> clear(@RequestBody MixedWorkerPayClearVo mixedWorkerPayClearVo) {
+        log.info("CONT入参: {}", mixedWorkerPayClearVo);
+        return workerPayClearService.clear(mixedWorkerPayClearVo);
     }
 }
