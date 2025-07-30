@@ -1,6 +1,7 @@
 package com.dc.ncsys_springboot.controller;
 
 import com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo;
+import com.dc.ncsys_springboot.daoVo.WorkerDo;
 import com.dc.ncsys_springboot.service.WorkerAttendanceService;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,25 @@ public class WorkerAttendanceController {
     public ResVo<Object> updateWorkerAttendance(@RequestBody WorkerAttendanceDo workerAttendanceDo) {
         log.info("CONT入参: {}", workerAttendanceDo);
         return workerAttendanceService.updateWorkerAttendance(workerAttendanceDo);
+    }
+
+    @PostMapping("/getWorkerAllAttendance")
+    public ResVo<List<WorkerAttendanceDo>> getWorkerAllAttendance(@RequestBody WorkerDo workerDo) {
+        log.info("CONT入参: {}", workerDo);
+        return workerAttendanceService.getWorkerAllAttendance(workerDo);
+    }
+
+    @PostMapping("/getWorkerAllAttendanceGroupByYm")
+    public ResVo<List<Map<String, Object>>> getWorkerAllAttendanceGroupByYm(@RequestBody WorkerDo workerDo) {
+        log.info("CONT入参: {}", workerDo);
+        return workerAttendanceService.getWorkerAllAttendanceGroupByYm(workerDo);
+    }
+
+
+    @PostMapping("/getWorkerAllAttendanceGroupByYm2")
+    public ResVo<Map<String, Object>> getWorkerAllAttendanceGroupByYm2(@RequestBody WorkerDo workerDo) {
+        log.info("CONT入参: {}", workerDo);
+        return workerAttendanceService.getWorkerAllAttendanceGroupByYm2(workerDo);
     }
 
 }

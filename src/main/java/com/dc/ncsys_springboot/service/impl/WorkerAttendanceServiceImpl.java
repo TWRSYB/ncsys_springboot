@@ -166,6 +166,96 @@ public class WorkerAttendanceServiceImpl extends ServiceImpl<WorkerAttendanceMap
         }
     }
 
+    @Override
+    public ResVo<List<WorkerAttendanceDo>> getWorkerAllAttendance(WorkerDo workerDo) {
+        // 入参校验
+        if (ObjectUtils.isEmpty(workerDo)) {
+            throw new BusinessException("查询失败", "入参为空");
+        }
+        // 工人ID不能为空
+        if (ObjectUtils.isEmpty(workerDo.getWorkerId())) {
+            throw new BusinessException("查询失败", "工人ID不能为空");
+        }
+        // 查询所有出工记录
+        List<WorkerAttendanceDo> attendanceList = workerAttendanceMapper.getAttendanceListByWorkerId(workerDo.getWorkerId());
+        return ResVo.success("查询工人出工数据成功", attendanceList);
+    }
+
+    @Override
+    public ResVo<List<Map<String, Object>>> getWorkerAllAttendanceGroupByYm(WorkerDo workerDo) {
+        // 入参校验
+        if (ObjectUtils.isEmpty(workerDo)) {
+            throw new BusinessException("查询失败", "入参为空");
+        }
+        // 工人ID不能为空
+        if (ObjectUtils.isEmpty(workerDo.getWorkerId())) {
+            throw new BusinessException("查询失败", "工人ID不能为空");
+        }
+        // 查询所有出工记录
+        List<WorkerAttendanceDo> attendanceList = workerAttendanceMapper.getAttendanceListByWorkerId(workerDo.getWorkerId());
+        // 按年月分组
+        List<Map<String, Object>> result = new ArrayList<>();
+        // 按年月分组
+        Map<String, Map<String, WorkerAttendanceDo>> ymMap = new LinkedHashMap<>();
+        // 遍历出工记录, 按年月分组
+        for (WorkerAttendanceDo attendance : attendanceList) {
+            String ym = attendance.getDate().substring(0, 7);
+            if (ymMap.containsKey(ym)) {
+                ((Map<String, WorkerAttendanceDo>) ymMap.get(ym)).put(attendance.getDate(), attendance);
+            } else {
+                Map<String, WorkerAttendanceDo> ymMap1 = new LinkedHashMap<>();
+                ymMap1.put(attendance.getDate(), attendance);
+                ymMap.put(ym, ymMap1);
+            }
+        }
+        // 遍历分组结果, 赋值
+        for (Map.Entry<String, Map<String, WorkerAttendanceDo>> entry : ymMap.entrySet()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("ym", entry.getKey());
+            Map<String, WorkerAttendanceDo> ymdMap = entry.getValue();
+            map.putAll(ymdMap);
+            result.add(map);
+        }
+
+        return ResVo.success("查询工人出工数据成功", result);
+    }
+
+    @Override
+    public ResVo<Map<String, Object>> getWorkerAllAttendanceGroupByYm2(WorkerDo workerDo) {
+        // 入参校验
+        if (ObjectUtils.isEmpty(workerDo)) {
+            throw new BusinessException("查询失败", "入参为空");
+        }
+        // 工人ID不能为空
+        if (ObjectUtils.isEmpty(workerDo.getWorkerId())) {
+            throw new BusinessException("查询失败", "工人ID不能为空");
+        }
+        // 查询所有出工记录
+        List<WorkerAttendanceDo> attendanceList = workerAttendanceMapper.getAttendanceListByWorkerId(workerDo.getWorkerId());
+        // 按年月分组
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        // 遍历出工记录, 按年月分组
+        for (WorkerAttendanceDo attendance : attendanceList) {
+            String ym = attendance.getDate().substring(0, 7);
+            if (result.containsKey(ym)) {
+                ((Map<String, WorkerAttendanceDo>) result.get(ym)).put(attendance.getDate(), attendance);
+            } else {
+                Map<String, WorkerAttendanceDo> ymMap = new LinkedHashMap<>();
+                ymMap.put(attendance.getDate(), attendance);
+                result.put(ym, ymMap);
+            }
+        }
+
+        // 首次出工日期和最后出工日期
+//        String lastAttendanceDate = attendanceList.get(0).getDate();
+//        String firstAttendanceDate = attendanceList.get(attendanceList.size() - 1).getDate();
+//        result.put("firstAttendanceDate", firstAttendanceDate);
+//        result.put("lastAttendanceDate", lastAttendanceDate);
+
+        return ResVo.success("查询工人出工数据成功", result);
+    }
+
     private void validateWorkerAttendance(WorkerAttendanceDo workerAttendanceDo) {
         // 工人ID不能为空
         if (ObjectUtils.isEmpty(workerAttendanceDo.getWorkerId())) {

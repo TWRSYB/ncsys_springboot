@@ -25,7 +25,7 @@
         clear_id, worker_id, clear_date, involve_day_list, involve_days, involve_pay, premium, clearing_amount, remark, data_status, create_user, create_time, update_user, update_time
     </sql>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.WorkerPayClearDo">
-        SELECT * FROM t_worker_pay_clear twpc
+        SELECT twpc.*, mp.person_name, mp.phone_num, mp.id_num FROM t_worker_pay_clear twpc
         LEFT JOIN m_worker mw ON twpc.worker_id = mw.worker_id
         LEFT JOIN m_person mp ON mw.person_id = mp.person_id
         where twpc.data_status = '1'

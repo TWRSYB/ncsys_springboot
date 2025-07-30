@@ -2,6 +2,7 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.daoVo.WorkerDo;
 import com.dc.ncsys_springboot.vo.ResVo;
 
 import java.util.List;
@@ -22,4 +23,10 @@ public interface WorkerAttendanceService extends IService<WorkerAttendanceDo> {
     ResVo<Object> addWorkerAttendance(WorkerAttendanceDo workerAttendanceDo);
 
     ResVo<Object> updateWorkerAttendance(WorkerAttendanceDo workerAttendanceDo);
+
+    ResVo<List<WorkerAttendanceDo>> getWorkerAllAttendance(WorkerDo workerDo);
+
+    ResVo<List<Map<String, Object>>> getWorkerAllAttendanceGroupByYm(WorkerDo workerDo);
+
+    ResVo<Map<String, Object>> getWorkerAllAttendanceGroupByYm2(WorkerDo workerDo);
 }

@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -94,6 +95,25 @@ public class WorkerPayClearDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    /**
+     * 工人姓名
+     */
+    @TableField(exist = false)
+    private String personName;
+
+    /**
+     * 手机号
+     */
+    @TableField(exist = false)
+    private String phoneNum;
+
+    /**
+     * 身份证号
+     */
+    @TableField(exist = false)
+    private String idNum;
+
 
 	@Override
 	public String toString() {
