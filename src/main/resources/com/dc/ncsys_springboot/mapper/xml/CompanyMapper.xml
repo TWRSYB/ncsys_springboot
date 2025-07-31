@@ -21,11 +21,12 @@
         <result column="create_time" property="createTime" />
         <result column="update_user" property="updateUser" />
         <result column="update_time" property="updateTime" />
+        <result column="company_phone_num" property="companyPhoneNum" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        company_id, company_name, credit_code, company_type, establish_date, registered_address, operating_address, company_size, legal_people_id, registered_capital, business_scope, remark, data_status, create_user, create_time, update_user, update_time
+        company_id, company_name, credit_code, company_type, establish_date, registered_address, operating_address, company_size, legal_people_id, registered_capital, business_scope, remark, data_status, create_user, create_time, update_user, update_time, company_phone_num
     </sql>
 
 </mapper>

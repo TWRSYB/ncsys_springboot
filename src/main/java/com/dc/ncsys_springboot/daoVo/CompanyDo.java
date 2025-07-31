@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:32
+ * @since 2025-07-31 17:45
  */
 @Data
 @TableName("m_company")
@@ -108,6 +108,11 @@ public class CompanyDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
+
+    /**
+     * 电话
+     */
+    private String companyPhoneNum;
 
 	@Override
 	public String toString() {

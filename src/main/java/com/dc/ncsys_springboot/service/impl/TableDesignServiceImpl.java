@@ -355,39 +355,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↓↓↓ 9. 文件处理 ↓↓↓");
         // 9.1 为Mapper.java添加@Mapper注解
         log.info("↓↓↓ 9.1. 为Mapper添加@Mapper注解 ↓↓↓");
-        String generateMapperDir = "src/main/java/com/dc/ncsys_springboot/mapper/";
-        String mapperName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.java";
-        Path mapperPath = Path.of(generateMapperDir, mapperName);
-        List<String> mapperLines;
-        try {
-            mapperLines = Files.readAllLines(mapperPath);
-            boolean hasMapperImport = mapperLines.stream()
-                    .anyMatch(line -> line.contains("import org.apache.ibatis.annotations.Mapper;"));
-            boolean hasMapperAnnotation = mapperLines.stream()
-                    .anyMatch(line -> line.contains("@Mapper"));
-
-            if (hasMapperImport || hasMapperAnnotation) {
-                log.info("Mapper已有@Mapper注解, 无需添加");
-            } else {
-                log.info("Mapper没有@Mapper注解, 执行添加");
-                // 添加import语句
-                int importInsertIndex = findImportInsertIndex(mapperLines);
-                mapperLines.add(importInsertIndex, "import org.apache.ibatis.annotations.Mapper;");
-
-                // 添加注解
-                int classDeclLine = findClassDeclarationLine(mapperLines);
-                if (classDeclLine != -1) {
-                    mapperLines.add(classDeclLine, "@Mapper");
-                }
-                // 写回文件
-                Files.write(mapperPath, mapperLines);
-                log.info("为Mapper添加@Mapper注解成功");
-            }
-
-        } catch (IOException e) {
-            log.warn("为Mapper文件添加@Mapper注解出现异常: ", e);
-            throw new BusinessException("为Mapper文件添加@Mapper注解出现异常");
-        }
+        addAnnotateForMapper(tableName);
         log.info("↑↑↑ 9.1. 为Mapper添加@Mapper注解 ↑↑↑");
 
 
@@ -542,10 +510,15 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         // 9. 文件处理
         log.info("↓↓↓ 9. 文件处理 ↓↓↓");
 
-        // 9.1. 将Mapper.xml移动到resources目录下
-        log.info("↓↓↓ 9.1. 将Mapper.xml移动到resources目录下 ↓↓↓");
+        // 9.1 为Mapper.java添加@Mapper注解
+        log.info("↓↓↓ 9.1. 为Mapper添加@Mapper注解 ↓↓↓");
+        addAnnotateForMapper(tableName);
+        log.info("↑↑↑ 9.1. 为Mapper添加@Mapper注解 ↑↑↑");
+
+        // 9.2. 将Mapper.xml移动到resources目录下
+        log.info("↓↓↓ 9.2. 将Mapper.xml移动到resources目录下 ↓↓↓");
         moveMapperXml(tableName);
-        log.info("↑↑↑ 9.1. 将Mapper.xml移动到resources目录下 ↑↑↑");
+        log.info("↑↑↑ 9.2. 将Mapper.xml移动到resources目录下 ↑↑↑");
 
 
         // 9.3 处理实体类文件
@@ -828,6 +801,42 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             log.info("移动代码生成器生成的Mapper.xml文件成功");
         } catch (IOException e) {
             throw new BusinessException("移动代码生成器生成的Mapper.xml文件出现异常", e);
+        }
+    }
+
+    private static void addAnnotateForMapper(String tableName) {
+        String generateMapperDir = "src/main/java/com/dc/ncsys_springboot/mapper/";
+        String mapperName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Mapper.java";
+        Path mapperPath = Path.of(generateMapperDir, mapperName);
+        List<String> mapperLines;
+        try {
+            mapperLines = Files.readAllLines(mapperPath);
+            boolean hasMapperImport = mapperLines.stream()
+                    .anyMatch(line -> line.contains("import org.apache.ibatis.annotations.Mapper;"));
+            boolean hasMapperAnnotation = mapperLines.stream()
+                    .anyMatch(line -> line.contains("@Mapper"));
+
+            if (hasMapperImport || hasMapperAnnotation) {
+                log.info("Mapper已有@Mapper注解, 无需添加");
+            } else {
+                log.info("Mapper没有@Mapper注解, 执行添加");
+                // 添加import语句
+                int importInsertIndex = findImportInsertIndex(mapperLines);
+                mapperLines.add(importInsertIndex, "import org.apache.ibatis.annotations.Mapper;");
+
+                // 添加注解
+                int classDeclLine = findClassDeclarationLine(mapperLines);
+                if (classDeclLine != -1) {
+                    mapperLines.add(classDeclLine, "@Mapper");
+                }
+                // 写回文件
+                Files.write(mapperPath, mapperLines);
+                log.info("为Mapper添加@Mapper注解成功");
+            }
+
+        } catch (IOException e) {
+            log.warn("为Mapper文件添加@Mapper注解出现异常: ", e);
+            throw new BusinessException("为Mapper文件添加@Mapper注解出现异常");
         }
     }
 
@@ -1596,9 +1605,15 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↓↓↓ 9. 文件处理 ↓↓↓");
 
         // 9.1. 将Mapper.xml移动到resources目录下
-        log.info("↓↓↓ 9.1. 将Mapper.xml移动到resources目录下 ↓↓↓");
+        // 9.1 为Mapper.java添加@Mapper注解
+        log.info("↓↓↓ 9.1. 为Mapper添加@Mapper注解 ↓↓↓");
+        addAnnotateForMapper(tableName);
+        log.info("↑↑↑ 9.1. 为Mapper添加@Mapper注解 ↑↑↑");
+
+        // 9.2. 将Mapper.xml移动到resources目录下
+        log.info("↓↓↓ 9.2. 将Mapper.xml移动到resources目录下 ↓↓↓");
         moveMapperXml(tableName);
-        log.info("↑↑↑ 9.1. 将Mapper.xml移动到resources目录下 ↑↑↑");
+        log.info("↑↑↑ 9.2. 将Mapper.xml移动到resources目录下 ↑↑↑");
 
         // 9.3 处理实体类文件
         log.info("↓↓↓ 9.3. 处理实体类文件 ↓↓↓");
