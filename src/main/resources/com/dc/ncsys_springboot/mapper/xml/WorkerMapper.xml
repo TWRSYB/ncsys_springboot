@@ -45,7 +45,7 @@
         <if test="idNum!= null and idNum!= ''">
             AND mp.id_num LIKE CONCAT('%', #{idNum}, '%')
         </if>
-        ORDER BY SUBSTRING(mwa.last_attendance_date, 7) DESC, mw.create_time DESC
+        ORDER BY LEFT(mwa.last_attendance_date, 7) DESC, mw.create_time DESC
     </select>
 
 </mapper>

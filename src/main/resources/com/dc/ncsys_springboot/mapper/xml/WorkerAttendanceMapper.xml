@@ -30,19 +30,23 @@
 
     <select id="getAttendanceListByWorkerIdAndYm"
             resultType="com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo">
-        SELECT *
-        FROM t_worker_attendance
-        WHERE data_status = '1'
-        AND worker_id = #{workerId}
-        AND date LIKE CONCAT(#{ym}, '%')
-        ORDER BY date DESC
+        SELECT twa.*, mp.person_name, mp.phone_num
+        FROM t_worker_attendance twa
+                 LEFT JOIN m_worker mw ON twa.worker_id = mw.worker_id
+                 LEFT JOIN m_person mp ON mw.person_id = mp.person_id
+        WHERE twa.data_status = '1'
+          AND twa.worker_id = #{workerId}
+          AND twa.date LIKE CONCAT(#{ym}, '%')
+        ORDER BY twa.date DESC
     </select>
     <select id="getAttendanceListByWorkerId" resultType="com.dc.ncsys_springboot.daoVo.WorkerAttendanceDo">
-        SELECT *
-        FROM t_worker_attendance
-        WHERE data_status = '1'
-        AND worker_id = #{workerId}
-        ORDER BY date DESC
+        SELECT twa.*, mp.person_name, mp.phone_num
+        FROM t_worker_attendance twa
+        LEFT JOIN m_worker mw ON twa.worker_id = mw.worker_id
+        LEFT JOIN m_person mp ON mw.person_id = mp.person_id
+        WHERE twa.data_status = '1'
+        AND twa.worker_id = #{workerId}
+        ORDER BY twa.date DESC
     </select>
 
 
