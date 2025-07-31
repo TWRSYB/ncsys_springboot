@@ -26,11 +26,12 @@
         <result column="create_time" property="createTime" />
         <result column="update_user" property="updateUser" />
         <result column="update_time" property="updateTime" />
+        <result column="remark" property="remark" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        serno, trade_date, buyer_type, buyer_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, trade_status, data_status, create_user, create_time, update_user, update_time
+        serno, trade_date, buyer_type, buyer_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, trade_status, data_status, create_user, create_time, update_user, update_time, remark
     </sql>
 
 </mapper>
