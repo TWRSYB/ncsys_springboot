@@ -2,6 +2,8 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.CornGrainSellDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 
 /**
  * <p>
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CornGrainSellService extends IService<CornGrainSellDo> {
 
+    PageResVo<CornGrainSellDo> pageQuery(PageQueryVo<CornGrainSellDo> pageQueryVo);
 }

@@ -1,9 +1,11 @@
 package com.dc.ncsys_springboot.mapper;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.dc.ncsys_springboot.daoVo.CornGrainSellDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.Map;
 
 
 /**
@@ -17,4 +19,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface CornGrainSellMapper extends BaseMapper<CornGrainSellDo> {
 
+    Page<CornGrainSellDo> pageQuery(Map<String, String> params);
 }

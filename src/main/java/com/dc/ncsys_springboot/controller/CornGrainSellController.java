@@ -30,8 +30,7 @@ public class CornGrainSellController {
     @PostMapping("/pageQuery")
     public PageResVo<CornGrainSellDo> pageQuery(@RequestBody PageQueryVo<CornGrainSellDo> pageQueryVo) {
         log.info("CONT 入参: {}", pageQueryVo);
-//        return cornGrainSellService.pageQuery(pageQueryVo);
-        return null;
+        return cornGrainSellService.pageQuery(pageQueryVo);
     }
 
 }
