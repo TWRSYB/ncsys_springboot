@@ -36,3 +36,6 @@ build/
 .vscode/
 
 /src/main/java/com/mybatis_plus_generator/**
+/src/main/resources/static/assets/**
+/src/main/resources/static/favicon.ico
+/src/main/resources/static/index.html

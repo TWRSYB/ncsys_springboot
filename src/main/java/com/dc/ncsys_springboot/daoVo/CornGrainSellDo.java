@@ -1,6 +1,5 @@
 package com.dc.ncsys_springboot.daoVo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -12,16 +11,16 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 玉米粒收购表
+ * 玉米粒出售表
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-13 16:55
+ * @since 2025-07-31 15:04
  */
 @Data
 @Accessors(chain = true)
-@TableName("t_corn_grain_purchase")
-public class CornGrainPurchaseDo implements Serializable {
+@TableName("t_corn_grain_sell")
+public class CornGrainSellDo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,9 +36,14 @@ public class CornGrainPurchaseDo implements Serializable {
     private String tradeDate;
 
     /**
-     * 出售人
+     * 购买人类型:企业,政府,个人
      */
-    private String sellerId;
+    private String buyerType;
+
+    /**
+     * 购买人
+     */
+    private String buyerId;
 
     /**
      * 地址
@@ -77,16 +81,6 @@ public class CornGrainPurchaseDo implements Serializable {
     private BigDecimal totalPrice;
 
     /**
-     * 备注
-     */
-    private String remark;
-
-    /**
-     * 交易状态:收购中,待结算,已结算
-     */
-    private String tradeStatus;
-
-    /**
      * 结算方式:现结,延结
      */
     private String clearingForm;
@@ -112,6 +106,11 @@ public class CornGrainPurchaseDo implements Serializable {
     private BigDecimal clearingAmount;
 
     /**
+     * 交易状态:收购中,待结算,已结算
+     */
+    private String tradeStatus;
+
+    /**
      * 数据状态:0-未生效,1-生效,2-禁用,9-废弃
      */
     private String dataStatus;
@@ -135,10 +134,6 @@ public class CornGrainPurchaseDo implements Serializable {
      * 最后更新时间
      */
     private Date updateTime;
-
-    // 出售人姓名
-    @TableField(exist = false)
-    private String sellerName;
 
 	@Override
 	public String toString() {
