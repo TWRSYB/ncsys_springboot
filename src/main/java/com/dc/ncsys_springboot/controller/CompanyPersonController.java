@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:40
+ * @since 2025-08-02 15:40
  */
 @RestController
-@RequestMapping("/companyPeopleDo")
-public class CompanyPeopleController {
+@RequestMapping("/companyPersonDo")
+public class CompanyPersonController {
 
 }

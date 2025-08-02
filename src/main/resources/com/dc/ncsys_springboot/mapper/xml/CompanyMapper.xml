@@ -28,5 +28,37 @@
     <sql id="Base_Column_List">
         company_id, company_name, credit_code, company_type, establish_date, registered_address, operating_address, company_size, legal_people_id, registered_capital, business_scope, remark, data_status, create_user, create_time, update_user, update_time, company_phone_num
     </sql>
+    <select id="getCompanyLike" resultType="com.dc.ncsys_springboot.daoVo.CompanyDo">
+        SELECT * FROM m_company
+        WHERE data_status = '1'
+        <if test="companyName != null and companyName != ''">
+            AND company_name LIKE CONCAT('%', #{companyName}, '%')
+        </if>
+        <if test="companyPhoneNum != null and companyPhoneNum != ''">
+            AND company_phone_num LIKE CONCAT('%', #{companyPhoneNum}, '%')
+        </if>
+    </select>
+    <select id="getCompanyAddressList" resultType="com.dc.ncsys_springboot.vo.AddressVo">
+        SELECT address,
+               create_time
+        FROM (SELECT address,
+                     create_time,
+                     ROW_NUMBER() OVER (PARTITION BY address ORDER BY create_time DESC) AS rn
+              FROM (SELECT address, create_time
+                    FROM t_corn_grain_sell tcgs
+                    WHERE tcgs.buyer_id = #{buyur_id}
+                      AND address IS NOT NULL
+                      AND address != ''
+                   ) AS merged_table
+             ) AS ranked_table
+        WHERE rn = 1
+        ORDER BY create_time DESC;
+    </select>
+    <select id="getCompanyPersonList" resultType="com.dc.ncsys_springboot.daoVo.PersonDo">
+        SELECT mp.* FROM m_company mc
+        LEFT JOIN m_company_person mcp ON mc.company_id = mcp.company_id
+        LEFT JOIN m_person mp ON mcp.person_id = mp.person_id
+        WHERE mc.company_id = #{companyId}
+    </select>
 
 </mapper>

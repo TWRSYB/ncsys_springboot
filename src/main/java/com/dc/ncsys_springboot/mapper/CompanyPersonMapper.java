@@ -1,7 +1,7 @@
 package com.dc.ncsys_springboot.mapper;
 import org.apache.ibatis.annotations.Mapper;
 
-import com.dc.ncsys_springboot.daoVo.CompanyPeopleDo;
+import com.dc.ncsys_springboot.daoVo.CompanyPersonDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 
@@ -12,9 +12,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:40
+ * @since 2025-08-02 15:40
  */
 @Mapper
-public interface CompanyPeopleMapper extends BaseMapper<CompanyPeopleDo> {
+public interface CompanyPersonMapper extends BaseMapper<CompanyPersonDo> {
 
 }

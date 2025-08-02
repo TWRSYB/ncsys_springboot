@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:19
+ * @since 2025-07-31 20:02
  */
 @Data
 @Accessors(chain = true)
@@ -36,7 +36,7 @@ public class CornGrainSellDo implements Serializable {
     private String tradeDate;
 
     /**
-     * 购买人类型:民企,国企,个人
+     * 购买人类型:个人,企业
      */
     private String buyerType;
 
@@ -139,6 +139,11 @@ public class CornGrainSellDo implements Serializable {
      * 备注
      */
     private String remark;
+
+    /**
+     * 对接人
+     */
+    private String dockPeople;
 
 	@Override
 	public String toString() {

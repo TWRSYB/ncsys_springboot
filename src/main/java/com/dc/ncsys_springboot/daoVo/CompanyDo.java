@@ -1,10 +1,14 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
+import com.dc.ncsys_springboot.vo.AddressVo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -113,6 +117,15 @@ public class CompanyDo implements Serializable {
      * 电话
      */
     private String companyPhoneNum;
+
+    /**
+     * 地址列表
+     */
+    @TableField(exist = false)
+    private List<AddressVo> addressList;
+
+    @TableField(exist = false)
+    private List<PersonDo> personList;
 
 	@Override
 	public String toString() {

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.dc.ncsys_springboot.mapper.CompanyPeopleMapper">
+<mapper namespace="com.dc.ncsys_springboot.mapper.CompanyPersonMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.CompanyPeopleDo">
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.CompanyPersonDo">
         <id column="company_id" property="companyId" />
-        <id column="people_id" property="peopleId" />
+        <id column="person_id" property="personId" />
         <result column="job" property="job" />
         <result column="entry_date" property="entryDate" />
         <result column="departure_date" property="departureDate" />
@@ -19,7 +19,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        company_id, people_id, job, entry_date, departure_date, remark, data_status, create_user, create_time, update_user, update_time
+        company_id, person_id, job, entry_date, departure_date, remark, data_status, create_user, create_time, update_user, update_time
     </sql>
 
 </mapper>

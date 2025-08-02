@@ -1,9 +1,12 @@
 package com.dc.ncsys_springboot.mapper;
+import com.dc.ncsys_springboot.daoVo.PersonDo;
+import com.dc.ncsys_springboot.vo.AddressVo;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.dc.ncsys_springboot.daoVo.CompanyDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
 
 
 /**
@@ -17,4 +20,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface CompanyMapper extends BaseMapper<CompanyDo> {
 
+    List<CompanyDo> getCompanyLike(CompanyDo companyDo);
+
+    List<AddressVo> getCompanyAddressList(String companyId);
+
+    List<PersonDo> getCompanyPersonList(String companyId);
 }

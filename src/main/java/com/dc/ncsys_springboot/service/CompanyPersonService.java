@@ -1,6 +1,6 @@
 package com.dc.ncsys_springboot.service;
 
-import com.dc.ncsys_springboot.daoVo.CompanyPeopleDo;
+import com.dc.ncsys_springboot.daoVo.CompanyPersonDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -9,8 +9,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:40
+ * @since 2025-08-02 15:40
  */
-public interface CompanyPeopleService extends IService<CompanyPeopleDo> {
+public interface CompanyPersonService extends IService<CompanyPersonDo> {
 
 }

@@ -86,7 +86,7 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
             List<AddressVo> addressList = personMapper.getPersonAddressList(person.getPersonId());
             person.setAddressList(addressList);
         }
-        return ResVo.success("查询人员列表成功", personDos);
+        return ResVo.success("人员模糊查询成功", personDos);
     }
 
     @Override

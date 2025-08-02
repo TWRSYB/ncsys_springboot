@@ -15,12 +15,12 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 17:40
+ * @since 2025-08-02 15:40
  */
 @Data
 @Accessors(chain = true)
-@TableName("m_company_people")
-public class CompanyPeopleDo implements Serializable {
+@TableName("m_company_person")
+public class CompanyPersonDo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,8 +33,8 @@ public class CompanyPeopleDo implements Serializable {
     /**
      * 人员ID
      */
-    @TableField("people_id")
-    private String peopleId;
+    @TableField("person_id")
+    private String personId;
 
     /**
      * 职位

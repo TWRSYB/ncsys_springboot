@@ -62,6 +62,12 @@
                     WHERE tccp.seller_id = #{personId}
                     AND address IS NOT NULL
                     AND address != ''
+                    UNION
+                    SELECT address, create_time
+                    FROM t_corn_grain_purchase tcgp
+                    WHERE tcgp.seller_id = #{personId}
+                    AND address IS NOT NULL
+                    AND address != ''
                     ) AS merged_table
               ) AS ranked_table
         WHERE rn = 1

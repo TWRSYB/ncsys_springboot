@@ -2,6 +2,9 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.CompanyDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.vo.ResVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CompanyService extends IService<CompanyDo> {
 
+    ResVo<List<CompanyDo>> getCompanyLike(CompanyDo companyDo);
 }
