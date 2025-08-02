@@ -17,4 +17,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface CornGrainSellWeighRecordMapper extends BaseMapper<CornGrainSellWeighRecordDo> {
 
+    int deleteByTradeSerno(String tradeSerno);
 }

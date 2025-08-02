@@ -8,6 +8,8 @@ import com.dc.ncsys_springboot.mapper.CornCobPurchaseWeighRecordMapper;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.CornCobPurchaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dc.ncsys_springboot.util.IdUtils;
+import com.dc.ncsys_springboot.util.RegexUtils;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -40,8 +42,6 @@ import java.util.regex.Pattern;
 @Transactional
 public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMapper, CornCobPurchaseDo> implements CornCobPurchaseService {
 
-    // 预编译正则模式，提高性能
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
     @Autowired
     private CornCobPurchaseMapper cornCobPurchaseMapper;
 
@@ -89,7 +89,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
 
         } else {
             // 如果不存在，插入新记录并获取ID
-            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
+            IdUtils.generateIdForObject(sellerInfo);
             sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
             sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setDataStatus("1");
@@ -206,7 +206,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             sellerInfo = existingSeller;
         } else {
             // 如果不存在，插入新记录并获取ID
-            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
+            IdUtils.generateIdForObject(sellerInfo);
             sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
             sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setAddress(mixedCornCobPurchaseDo.getAddress());
@@ -352,7 +352,7 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             throw new BusinessException("出售人手机号不能为空");
         }
         // 出售人手机号格式校验
-        if (!PHONE_PATTERN.matcher(sellerPhone).matches()) {
+        if (!RegexUtils.isMobile(sellerPhone)) {
             throw new BusinessException("出售人手机号格式不正确");
         }
 

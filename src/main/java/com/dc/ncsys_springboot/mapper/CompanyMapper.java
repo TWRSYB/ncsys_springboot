@@ -25,4 +25,6 @@ public interface CompanyMapper extends BaseMapper<CompanyDo> {
     List<AddressVo> getCompanyAddressList(String companyId);
 
     List<PersonDo> getCompanyPersonList(String companyId);
+
+    CompanyDo getByCompanyPhoneNum(String companyPhoneNum);
 }

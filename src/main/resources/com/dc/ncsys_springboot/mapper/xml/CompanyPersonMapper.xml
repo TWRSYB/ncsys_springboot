@@ -21,5 +21,11 @@
     <sql id="Base_Column_List">
         company_id, person_id, job, entry_date, departure_date, remark, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <select id="getByCompanyIdAndPersonId" resultType="com.dc.ncsys_springboot.daoVo.CompanyPersonDo">
+        SELECT * FROM m_company_person
+        WHERE company_id = #{companyId}
+        AND person_id = #{personId}
+        AND data_status = '1'
+    </select>
 
 </mapper>

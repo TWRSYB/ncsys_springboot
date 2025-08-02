@@ -17,4 +17,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface CompanyPersonMapper extends BaseMapper<CompanyPersonDo> {
 
+    CompanyPersonDo getByCompanyIdAndPersonId(String companyId, String personId);
 }

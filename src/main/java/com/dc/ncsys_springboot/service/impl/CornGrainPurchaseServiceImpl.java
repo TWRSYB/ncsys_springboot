@@ -8,8 +8,7 @@ import com.dc.ncsys_springboot.mapper.CornGrainPurchaseWeighRecordMapper;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.CornGrainPurchaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dc.ncsys_springboot.util.DateTimeUtil;
-import com.dc.ncsys_springboot.util.SessionUtils;
+import com.dc.ncsys_springboot.util.*;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
@@ -39,8 +38,6 @@ import java.util.regex.Pattern;
 @Service
 public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseMapper, CornGrainPurchaseDo> implements CornGrainPurchaseService {
 
-    // 预编译正则模式，提高性能
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
 
     @Autowired
     private CornGrainPurchaseMapper cornGrainPurchaseMapper;
@@ -91,7 +88,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
 
         } else {
             // 如果不存在，插入新记录并获取ID
-            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
+            IdUtils.generateIdForObject(sellerInfo);
             sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
             sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setDataStatus("1");
@@ -184,7 +181,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
 
         } else {
             // 如果不存在，插入新记录并获取ID
-            sellerInfo.setPersonId("People_" + sellerInfo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
+            IdUtils.generateIdForObject(sellerInfo);
             sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
             sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
             sellerInfo.setDataStatus("1");
@@ -194,7 +191,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         mixedCornGrainPurchaseDo.setSellerId(sellerInfo.getPersonId());
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornGrainPurchaseDo.getSerno())) {
-            mixedCornGrainPurchaseDo.setSerno("CornGrainPurchase_" + DateTimeUtil.getMinuteKey());
+            IdUtils.generateIdForObject(mixedCornGrainPurchaseDo);
             mixedCornGrainPurchaseDo.setCreateUser(sessionUserDo.getLoginCode());
         }
         mixedCornGrainPurchaseDo.setUpdateUser(sessionUserDo.getLoginCode());
@@ -212,13 +209,12 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
         for (int i = 0; i < beforeWeighRecordList.size(); i++) {
             CornGrainPurchaseWeighRecordDo record = beforeWeighRecordList.get(i);
             if (ObjectUtils.isEmpty(record.getWeighId())) {
-                record.setWeighId("CornGrainPurchase_WeighRecord_BeforeThresh" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
+                record.setWeighId("CornGrainPurchaseWeighRecord_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
                 record.setCreateUser(sessionUserDo.getLoginCode());
             }
             record.setTradeSerno(mixedCornGrainPurchaseDo.getSerno());
             record.setTradeDate(mixedCornGrainPurchaseDo.getTradeDate());
             record.setUpdateUser(sessionUserDo.getLoginCode());
-            record.setUpdateTime(new Date());
             record.setDataStatus("1");
             cornGrainPurchaseWeighRecordMapper.insert(record);
         }
@@ -309,7 +305,7 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
             throw new BusinessException("出售人手机号不能为空");
         }
         // 出售人手机号格式校验
-        if (!PHONE_PATTERN.matcher(sellerPhone).matches()) {
+        if (!RegexUtils.isMobile(sellerPhone)) {
             throw new BusinessException("出售人手机号格式不正确");
         }
 
@@ -324,7 +320,8 @@ public class CornGrainPurchaseServiceImpl extends ServiceImpl<CornGrainPurchaseM
             }
 
             // 结算方式只能是现结或延结
-            if (!"现结".equals(clearingForm) && !"延结".equals(clearingForm)) {
+            List<String> clearingFormList = FieldUtil.getEnumList("t_corn_grain_purchase", "clearing_form");
+            if (clearingFormList != null && !clearingFormList.contains(clearingForm)) {
                 throw new BusinessException("结算方式只能是现结或延结");
             }
 

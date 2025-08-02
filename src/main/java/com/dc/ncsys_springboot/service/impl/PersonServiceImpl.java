@@ -7,7 +7,7 @@ import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.PersonService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.dc.ncsys_springboot.util.DateTimeUtil;
+import com.dc.ncsys_springboot.util.IdUtils;
 import com.dc.ncsys_springboot.vo.AddressVo;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
@@ -118,7 +118,7 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
             }
         }
 
-        personDo.setPersonId("People_" + personDo.getPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
+        IdUtils.generateIdForObject(personDo);
         personDo.setCreateUser(sessionUser.getLoginCode());
         personDo.setUpdateUser(sessionUser.getLoginCode());
         personDo.setDataStatus(ComConst.DATASTATUS_EFFECTIVE);

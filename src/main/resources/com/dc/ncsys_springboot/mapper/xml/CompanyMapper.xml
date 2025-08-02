@@ -60,5 +60,10 @@
         LEFT JOIN m_person mp ON mcp.person_id = mp.person_id
         WHERE mc.company_id = #{companyId}
     </select>
+    <select id="getByCompanyPhoneNum" resultType="com.dc.ncsys_springboot.daoVo.CompanyDo">
+        SELECT * FROM m_company
+        WHERE data_status = '1'
+        AND company_phone_num = #{companyPhoneNum}
+    </select>
 
 </mapper>

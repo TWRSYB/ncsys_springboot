@@ -27,12 +27,13 @@
         <result column="update_user" property="updateUser" />
         <result column="update_time" property="updateTime" />
         <result column="remark" property="remark" />
-        <result column="dock_people" property="dockPeople" />
+        <result column="dock_person_id" property="dockPersonId" />
+        <result column="weigh_side" property="weighSide" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        serno, trade_date, buyer_type, buyer_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, trade_status, data_status, create_user, create_time, update_user, update_time, remark, dock_people
+        serno, trade_date, buyer_type, buyer_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, trade_status, data_status, create_user, create_time, update_user, update_time, remark, dock_person_id, weigh_side
     </sql>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.CornGrainSellDo">
         SELECT * FROM t_corn_grain_sell tcgs

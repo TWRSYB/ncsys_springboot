@@ -28,5 +28,9 @@
     <sql id="Base_Column_List">
         weigh_id, trade_serno, trade_date, carrier, verhicle_num, our_gross_weight, our_tare_weight, our_net_weight, gross_weight, tare_weight, net_weight, weight_diff, remark, data_status, create_user, create_time, update_user, update_time
     </sql>
+    <delete id="deleteByTradeSerno">
+        DELETE FROM ts_corn_grain_sell_weigh_record
+        WHERE trade_serno = #{tradeSerno}
+    </delete>
 
 </mapper>

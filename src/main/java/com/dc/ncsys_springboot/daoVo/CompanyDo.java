@@ -127,6 +127,11 @@ public class CompanyDo implements Serializable {
     @TableField(exist = false)
     private List<PersonDo> personList;
 
+    @TableField(exist = false)
+    private String dockPersonName;
+    @TableField(exist = false)
+    private String dockPhoneNum;
+
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);
