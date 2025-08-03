@@ -18,6 +18,8 @@ public class IdUtils {
             purchase.setSerno("CornGrainPurchase_" + purchase.getTradeDate() + "_" + DateTimeUtil.getMinuteKey());
         } else if (obj instanceof CornCobPurchaseDo purchase) {
             purchase.setSerno("CornCobPurchase_" + purchase.getTradeDate() + "_" + DateTimeUtil.getMinuteKey());
+        }else if (obj instanceof CompanyDo company) {
+            company.setCompanyId("Company_" + company.getCompanyPhoneNum() + "_" + DateTimeUtil.getMinuteKey());
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + obj.getClass());
         }

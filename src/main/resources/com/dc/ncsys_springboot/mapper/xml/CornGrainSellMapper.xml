@@ -36,18 +36,41 @@
         serno, trade_date, buyer_type, buyer_id, address, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, trade_status, data_status, create_user, create_time, update_user, update_time, remark, dock_person_id, weigh_side
     </sql>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.CornGrainSellDo">
-        SELECT * FROM t_corn_grain_sell tcgs
-        WHERE tcgs.data_status = '1'
-        <if test="tradeDate != null and tradeDate != ''">
-            AND tcgs.trade_date = #{tradeDate}
-        </if>
-        <if test="buyerType != null and buyerType != ''">
-            AND tcgs.buyer_type = #{buyerType}
-        </if>
-        <if test="tradeStatus != null and tradeStatus != ''">
-            AND tcgs.trade_status = #{tradeStatus}
-        </if>
-        ORDER BY tcgs.trade_date DESC
+        SELECT tcgs.*, case
+        WHEN tcgs.buyer_type= '个人' then mp.person_name
+        WHEN tcgs.buyer_type= '企业' then mc.company_name
+        else ''
+        end as buyer_name,
+        mp_dock.person_name as dock_person_name
+        FROM t_corn_grain_sell tcgs
+        LEFT JOIN m_person mp ON mp.person_id=tcgs.buyer_id
+        LEFT JOIN m_company mc ON mc.company_id=tcgs.buyer_id
+        LEFT JOIN m_person mp_dock ON mp_dock.person_id=tcgs.dock_person_id
+        LEFT JOIN m_company_person mcp ON mcp.company_id=mc.company_id AND mcp.person_id=mp_dock.person_id
+        <where>
+            <if test="tradeDate != null and tradeDate != ''">
+                AND tcgs.trade_date = #{tradeDate}
+            </if>
+            <if test="buyerType != null and buyerType != ''">
+                AND tcgs.buyer_type = #{buyerType}
+            </if>
+            <if test="buyer != null and buyer != ''">
+                AND (mp.person_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mp.alias LIKE CONCAT('%', #{buyer}, '%')
+                OR mp.phone_num LIKE CONCAT('%', #{buyer}, '%')
+                OR mc.company_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mc.company_phone_num LIKE CONCAT('%', #{buyer},'%')
+                OR mp_dock.person_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mp_dock.alias LIKE CONCAT('%', #{buyer}, '%')
+                OR mp_dock.phone_num LIKE CONCAT('%', #{buyer}, '%')
+                OR tcgs.buyer_id = #{buyer}
+                )
+            </if>
+            <if test="tradeStatus != null and tradeStatus != ''">
+                AND tcgs.trade_status = #{tradeStatus}
+            </if>
+        </where>
+        ORDER BY tcgs.trade_date DESC, tcgs.create_time DESC
 
     </select>
 

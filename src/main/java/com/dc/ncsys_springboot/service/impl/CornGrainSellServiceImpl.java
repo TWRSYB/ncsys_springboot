@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.dc.ncsys_springboot.daoVo.*;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.*;
@@ -12,6 +13,7 @@ import com.dc.ncsys_springboot.vo.ResVo;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,16 +38,16 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
 
     @Autowired
     private CornGrainSellMapper cornGrainSellMapper;
-    
+
     @Autowired
     private PersonMapper personMapper;
-    
+
     @Autowired
     private CompanyMapper companyMapper;
-    
+
     @Autowired
     private CompanyPersonMapper companyPersonMapper;
-    
+
     @Autowired
     private CornGrainSellWeighRecordMapper cornGrainSellWeighRecordMapper;
 
@@ -63,95 +65,103 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         if (!validateMixedTrade(mixedCornGrainSellDo, "save")) {
             return ResVo.fail("数据校验失败");
         }
-        
+
+        ResVo<Object> dealError = dealBuyer(mixedCornGrainSellDo, sessionUserDo);
+        if (dealError != null) return dealError;
+
+        // 插入交易记录
+        if (ObjectUtils.isEmpty(mixedCornGrainSellDo.getSerno())) {
+            IdUtils.generateIdForObject(mixedCornGrainSellDo);
+            mixedCornGrainSellDo.setCreateUser(sessionUserDo.getLoginCode());
+        }
+        mixedCornGrainSellDo.setUpdateUser(sessionUserDo.getLoginCode());
+        mixedCornGrainSellDo.setDataStatus("0");
+        mixedCornGrainSellDo.setTradeStatus("出售中");
+        boolean insertOrUpdate = cornGrainSellMapper.insertOrUpdate(mixedCornGrainSellDo);
+        if (!insertOrUpdate) {
+            throw new BusinessException("交易记录插入失败");
+        }
+
+        // 删除过磅记录然后重新插入
+        int delete = cornGrainSellWeighRecordMapper.deleteByTradeSerno(mixedCornGrainSellDo.getSerno());
+        log.info("删除过磅记录数：{}", delete);
+        List<CornGrainSellWeighRecordDo> beforeWeighRecordList = mixedCornGrainSellDo.getList_weigh();
+        for (int i = 0; i < beforeWeighRecordList.size(); i++) {
+            CornGrainSellWeighRecordDo record = beforeWeighRecordList.get(i);
+            if (ObjectUtils.isEmpty(record.getWeighId())) {
+                record.setWeighId("CornGrainSellWeighRecordDo_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
+                record.setCreateUser(sessionUserDo.getLoginCode());
+            }
+            record.setTradeSerno(mixedCornGrainSellDo.getSerno());
+            record.setTradeDate(mixedCornGrainSellDo.getTradeDate());
+            record.setUpdateUser(sessionUserDo.getLoginCode());
+            record.setDataStatus("0");
+            cornGrainSellWeighRecordMapper.insert(record);
+        }
+
+        return ResVo.success("出售记录保存成功");
+
+
+    }
+
+    @Override
+    public ResVo<MixedCornGrainSellDo> getTradeDetail(CornGrainSellDo cornGrainSellDo) {
+        if (ObjectUtils.isEmpty(cornGrainSellDo.getSerno())) {
+            throw new BusinessException("交易流水号不能为空");
+        }
+        CornGrainSellDo existCornGrainSell = cornGrainSellMapper.selectById(cornGrainSellDo);
+        if (existCornGrainSell == null) {
+            throw new BusinessException("交易记录不存在");
+        }
+
+        MixedCornGrainSellDo mixedCornGrainSellDo = new MixedCornGrainSellDo();
+        BeanUtils.copyProperties(existCornGrainSell, mixedCornGrainSellDo);
+
+        // 查询购买人信息
         // 如果购买人是个人
-        if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
-            // 查询购买人是否已经存在
-            PersonDo buyerPerson = mixedCornGrainSellDo.getBuyerPerson();
-            PersonDo existingPerson = personMapper.getByPhoneNum(buyerPerson.getPhoneNum());
-
-            if (existingPerson != null) {
-                // 如果存在，使用已存在的ID
-                if (!existingPerson.getPersonName().equals(buyerPerson.getPersonName())) {
-                    return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingPerson.getPersonName() + " 的客户，请检查");
-                }
-                buyerPerson = existingPerson;
-
-            } else {
-                // 如果不存在，插入新记录并获取ID
-                IdUtils.generateIdForObject(buyerPerson);
-                buyerPerson.setCreateUser(sessionUserDo.getLoginCode());
-                buyerPerson.setUpdateUser(sessionUserDo.getLoginCode());
-                buyerPerson.setDataStatus("1");
-                personMapper.insert(buyerPerson);
+        if (existCornGrainSell.getBuyerType().equals("个人")) {
+            PersonDo buyerPerson = personMapper.selectById(existCornGrainSell.getBuyerId());
+            if (buyerPerson == null) {
+                throw new BusinessException("购买人信息不存在");
             }
-            mixedCornGrainSellDo.setBuyerId(buyerPerson.getPersonId());
+            mixedCornGrainSellDo.setBuyerPerson(buyerPerson);
+        } else {
+            // 如果购买人是企业
+            CompanyDo buyerCompany = companyMapper.selectById(existCornGrainSell.getBuyerId());
+            if (buyerCompany == null) {
+                throw new BusinessException("购买企业信息不存在");
+            }
+            // 查询对接人信息
+            PersonDo dockPerson = personMapper.selectById(mixedCornGrainSellDo.getDockPersonId());
+            if (dockPerson == null) {
+                throw new BusinessException("对接人信息不存在");
+            }
+            buyerCompany.setDockPersonId(dockPerson.getPersonId());
+            buyerCompany.setDockPersonName(dockPerson.getPersonName());
+            buyerCompany.setDockPhoneNum(dockPerson.getPhoneNum());
+            mixedCornGrainSellDo.setBuyerCompany(buyerCompany);
         }
-        
-        // 如果购买人是企业
-        if ("企业".equals(mixedCornGrainSellDo.getBuyerType())) {
-            // 查询购买人是否已经存在
-            CompanyDo buyerCompany = mixedCornGrainSellDo.getBuyerCompany();
-            CompanyDo existingCompany = companyMapper.getByCompanyPhoneNum(buyerCompany.getCompanyPhoneNum());
-            if (existingCompany != null) {
-                // 如果存在，使用已存在的ID
-                if (!existingCompany.getCompanyName().equals(buyerCompany.getCompanyName())) {
-                    return ResVo.fail(666, "电话号码已经绑定企业名称为： " + existingCompany.getCompanyName() + " 的客户，请检查");
-                }
-                buyerCompany = existingCompany;
-            } else {
-                // 如果不存在，插入新记录并获取ID
-                IdUtils.generateIdForObject(buyerCompany);
-                buyerCompany.setCreateUser(sessionUserDo.getLoginCode());
-                buyerCompany.setUpdateUser(sessionUserDo.getLoginCode());
-                buyerCompany.setDataStatus("1");
-            }
-            mixedCornGrainSellDo.setBuyerId(buyerCompany.getCompanyId());
-            
-            // 查询对接人是否已经存在
-            String dockPersonName = buyerCompany.getDockPersonName();
-            String dockPhoneNum = buyerCompany.getDockPhoneNum();
-            PersonDo dockPerson = new PersonDo();
-            PersonDo existingDockPerson = personMapper.getByPhoneNum(dockPhoneNum);
-            if (existingDockPerson != null) {
-                // 如果存在，使用已存在的ID
-                if (!existingDockPerson.getPersonName().equals(dockPersonName)) {
-                    return ResVo.fail(777, "对接人号码已经绑定姓名为： " + existingDockPerson.getPersonName() + " 的客户，请检查");
-                }
-                dockPerson = existingDockPerson;
-            } else {
-                // 如果不存在，插入新记录并获取ID
-                dockPerson.setPersonName(dockPersonName);
-                dockPerson.setPhoneNum(dockPhoneNum);
-                IdUtils.generateIdForObject(dockPerson);
-                dockPerson.setCreateUser(sessionUserDo.getLoginCode());
-                dockPerson.setUpdateUser(sessionUserDo.getLoginCode());
-                dockPerson.setDataStatus("1");
-            }
-            log.info("对接人ID：{}", dockPerson.getPersonId());
-            mixedCornGrainSellDo.setDockPersonId(dockPerson.getPersonId());
-            
-            // 查询企业人员关系是否存在
-            CompanyPersonDo existingCompanyPerson = companyPersonMapper.getByCompanyIdAndPersonId(buyerCompany.getCompanyId(), dockPerson.getPersonId());
-            if (existingCompanyPerson == null) {
-                // 如果不存在，插入新记录
-                CompanyPersonDo companyPerson = new CompanyPersonDo();
-                companyPerson.setCompanyId(buyerCompany.getCompanyId());
-                companyPerson.setPersonId(dockPerson.getPersonId());
-                companyPerson.setCreateUser(sessionUserDo.getLoginCode());
-                companyPerson.setUpdateUser(sessionUserDo.getLoginCode());
-                companyPerson.setDataStatus("1");
-                companyPersonMapper.insert(companyPerson);
-            }
-            
-            if (existingDockPerson == null) {
-                personMapper.insert(dockPerson);
-            }
-            
-            if (existingCompany == null) {
-                companyMapper.insert(buyerCompany);
-            }
+        // 查询过磅记录
+        LambdaQueryWrapper<CornGrainSellWeighRecordDo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CornGrainSellWeighRecordDo::getTradeSerno, existCornGrainSell.getSerno());
+        wrapper.orderByAsc(CornGrainSellWeighRecordDo::getCreateTime);
+        List<CornGrainSellWeighRecordDo> weighRecordList = cornGrainSellWeighRecordMapper.selectList(wrapper);
+
+        // 组装返回结果
+        mixedCornGrainSellDo.setList_weigh(weighRecordList);
+        return ResVo.success("查询交易详情成功", mixedCornGrainSellDo);
+    }
+
+    @Override
+    public ResVo<Object> sellComplete(MixedCornGrainSellDo mixedCornGrainSellDo) {
+        // 获取当前登录用户
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        if (!validateMixedTrade(mixedCornGrainSellDo, "complete")) {
+            return ResVo.fail("数据校验失败");
         }
+
+        ResVo<Object> dealError = dealBuyer(mixedCornGrainSellDo, sessionUserDo);
+        if (dealError != null) return dealError;
 
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornGrainSellDo.getSerno())) {
@@ -184,8 +194,156 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         }
 
         return ResVo.success("出售记录保存成功");
+    }
 
+    @Override
+    public ResVo<Object> settleTrade(MixedCornGrainSellDo mixedCornGrainSellDo) {
+        // 获取当前登录用户
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        // 校验数据
+        if (!validateMixedTrade(mixedCornGrainSellDo, "settle")) {
+            return ResVo.fail("数据校验失败");
+        }
+        
+        // 验证购买人存在
+        if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
+            PersonDo buyerPerson = personMapper.selectById(mixedCornGrainSellDo.getBuyerId());
+            if (buyerPerson == null) {
+                return ResVo.fail("购买人不存在");
+            }
+        } else {
+            // 如果购买人是企业
+            CompanyDo buyerCompany = companyMapper.selectById(mixedCornGrainSellDo.getBuyerId());
+            if (buyerCompany == null) {
+                return ResVo.fail("购买企业不存在");
+            }
+        }
 
+        // 查询交易记录
+        CornGrainSellDo cornGrainSellDo = cornGrainSellMapper.selectById(mixedCornGrainSellDo.getSerno());
+        if (cornGrainSellDo == null) {
+            throw new BusinessException("交易记录不存在");
+        }
+        // 交易状态必须为待结算
+        if (!"待结算".equals(cornGrainSellDo.getTradeStatus())) {
+            throw new BusinessException("交易状态必须为待结算");
+        }
+        // 数据状态必须为1
+        if (!"1".equals(cornGrainSellDo.getDataStatus())) {
+            throw new BusinessException("数据状态必须为1");
+        }
+
+        // 匹配入参总价和数据库数据总价
+        if (mixedCornGrainSellDo.getTotalPrice().compareTo(cornGrainSellDo.getTotalPrice())!= 0) {
+            throw new BusinessException("总价不匹配");
+        }
+
+        // 更新交易记录(实际结算日期/补价/最终结算金额/备注/交易状态)
+        cornGrainSellDo.setActualClearingDate(mixedCornGrainSellDo.getActualClearingDate());
+        cornGrainSellDo.setPremium(mixedCornGrainSellDo.getPremium());
+        cornGrainSellDo.setClearingAmount(mixedCornGrainSellDo.getClearingAmount());
+        cornGrainSellDo.setRemark(mixedCornGrainSellDo.getRemark());
+        cornGrainSellDo.setTradeStatus("已结算");
+        mixedCornGrainSellDo.setUpdateUser(sessionUserDo.getLoginCode());
+
+        int update = cornGrainSellMapper.updateById(cornGrainSellDo);
+        if (update == 0) {
+            throw new BusinessException("交易记录更新失败");
+        }
+        return ResVo.success("交易结算成功");
+    }
+
+    private ResVo<Object> dealBuyer(MixedCornGrainSellDo mixedCornGrainSellDo, UserDo sessionUserDo) {
+        // 如果购买人是个人
+        if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
+            // 查询购买人是否已经存在
+            PersonDo buyerPerson = mixedCornGrainSellDo.getBuyerPerson();
+            PersonDo existingPerson = personMapper.getByPhoneNum(buyerPerson.getPhoneNum());
+
+            if (existingPerson != null) {
+                // 如果存在，使用已存在的ID
+                if (!existingPerson.getPersonName().equals(buyerPerson.getPersonName())) {
+                    return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingPerson.getPersonName() + " 的客户，请检查");
+                }
+                buyerPerson = existingPerson;
+
+            } else {
+                // 如果不存在，插入新记录并获取ID
+                IdUtils.generateIdForObject(buyerPerson);
+                buyerPerson.setCreateUser(sessionUserDo.getLoginCode());
+                buyerPerson.setUpdateUser(sessionUserDo.getLoginCode());
+                buyerPerson.setDataStatus("1");
+                personMapper.insert(buyerPerson);
+            }
+            mixedCornGrainSellDo.setBuyerId(buyerPerson.getPersonId());
+        }
+
+        // 如果购买人是企业
+        if ("企业".equals(mixedCornGrainSellDo.getBuyerType())) {
+
+            CompanyDo buyerCompany = mixedCornGrainSellDo.getBuyerCompany();
+            String dockPersonName = buyerCompany.getDockPersonName();
+            String dockPhoneNum = buyerCompany.getDockPhoneNum();
+
+            // 查询购买企业是否已经存在
+            CompanyDo existingCompany = companyMapper.getByCompanyPhoneNum(buyerCompany.getCompanyPhoneNum());
+            if (existingCompany != null) {
+                // 如果存在，使用已存在的ID
+                if (!existingCompany.getCompanyName().equals(buyerCompany.getCompanyName())) {
+                    return ResVo.fail(666, "电话号码已经绑定企业名称为： " + existingCompany.getCompanyName() + " 的客户，请检查");
+                }
+                buyerCompany = existingCompany;
+            } else {
+                // 如果不存在，插入新记录并获取ID
+                IdUtils.generateIdForObject(buyerCompany);
+                buyerCompany.setCreateUser(sessionUserDo.getLoginCode());
+                buyerCompany.setUpdateUser(sessionUserDo.getLoginCode());
+                buyerCompany.setDataStatus("1");
+            }
+            mixedCornGrainSellDo.setBuyerId(buyerCompany.getCompanyId());
+
+            // 查询对接人是否已经存在
+            PersonDo dockPerson = new PersonDo();
+            PersonDo existingDockPerson = personMapper.getByPhoneNum(dockPhoneNum);
+            if (existingDockPerson != null) {
+                // 如果存在，使用已存在的ID
+                if (!existingDockPerson.getPersonName().equals(dockPersonName)) {
+                    return ResVo.fail(777, "对接人号码已经绑定姓名为： " + existingDockPerson.getPersonName() + " 的客户，请检查");
+                }
+                dockPerson = existingDockPerson;
+            } else {
+                // 如果不存在，插入新记录并获取ID
+                dockPerson.setPersonName(dockPersonName);
+                dockPerson.setPhoneNum(dockPhoneNum);
+                IdUtils.generateIdForObject(dockPerson);
+                dockPerson.setCreateUser(sessionUserDo.getLoginCode());
+                dockPerson.setUpdateUser(sessionUserDo.getLoginCode());
+                dockPerson.setDataStatus("1");
+            }
+            mixedCornGrainSellDo.setDockPersonId(dockPerson.getPersonId());
+
+            // 查询企业人员关系是否存在
+            CompanyPersonDo existingCompanyPerson = companyPersonMapper.getByCompanyIdAndPersonId(buyerCompany.getCompanyId(), dockPerson.getPersonId());
+            if (existingCompanyPerson == null) {
+                // 如果不存在，插入新记录
+                CompanyPersonDo companyPerson = new CompanyPersonDo();
+                companyPerson.setCompanyId(buyerCompany.getCompanyId());
+                companyPerson.setPersonId(dockPerson.getPersonId());
+                companyPerson.setCreateUser(sessionUserDo.getLoginCode());
+                companyPerson.setUpdateUser(sessionUserDo.getLoginCode());
+                companyPerson.setDataStatus("1");
+                companyPersonMapper.insert(companyPerson);
+            }
+
+            if (existingDockPerson == null) {
+                personMapper.insert(dockPerson);
+            }
+
+            if (existingCompany == null) {
+                companyMapper.insert(buyerCompany);
+            }
+        }
+        return null;
     }
 
     private boolean validateMixedTrade(MixedCornGrainSellDo mixedCornGrainSellDo, String step) {
@@ -353,6 +511,29 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             if (totalPrice.compareTo(unitPrice.multiply(totalWeight).multiply(new BigDecimal(2))) != 0) {
                 throw new BusinessException("总金额必须 = 单价 x 总重量 x 2");
             }
+
+            // 如果是结算
+            if ("settle".equals(step)) {
+                // 结算金额必须等于总金额+补价
+                BigDecimal clearingAmount = mixedCornGrainSellDo.getClearingAmount();
+                BigDecimal premium = mixedCornGrainSellDo.getPremium();
+                if (clearingAmount.compareTo(totalPrice.add(premium)) != 0) {
+                    throw new BusinessException("结算金额必须等于总金额+补价");
+                }
+                // 结算日期不能为空
+                String actualClearingDate = mixedCornGrainSellDo.getActualClearingDate();
+                if (ObjectUtils.isEmpty(actualClearingDate)) {
+                    throw new BusinessException("结算日期不能为空");
+                }
+                // 结算日期格式校验
+                if (!DateTimeUtil.isDateStr(actualClearingDate)) {
+                    throw new BusinessException("结算日期格式不正确");
+                }
+                // 结算日期不能小于交易日期
+                if (DateTimeUtil.parseDate(actualClearingDate).isBefore(DateTimeUtil.parseDate(tradeDate))) {
+                    throw new BusinessException("结算日期不能小于交易日期");
+                }
+            }
         }
 
         // 校验过磅记录
@@ -398,7 +579,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 }
                 // 求和净重
                 sumNetWeight = sumNetWeight.add(netWeight);
-                
+
             } else {
                 // 当皮重存在时
                 if (tareWeight != null) {
@@ -426,6 +607,8 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 throw new BusinessException("总重量必须等于脱粒前过磅净重求和");
             }
         }
+
+
 
         return true;
 

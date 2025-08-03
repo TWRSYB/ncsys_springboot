@@ -127,8 +127,19 @@ public class CompanyDo implements Serializable {
     @TableField(exist = false)
     private List<PersonDo> personList;
 
+    /**
+     * 对接人ID
+     */
+    @TableField(exist = false)
+    private String dockPersonId;
+    /**
+     * 对接人名称
+     */
     @TableField(exist = false)
     private String dockPersonName;
+    /**
+     * 对接人手机号
+     */
     @TableField(exist = false)
     private String dockPhoneNum;
 

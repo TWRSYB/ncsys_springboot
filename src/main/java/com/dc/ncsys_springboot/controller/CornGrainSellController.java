@@ -42,4 +42,22 @@ public class CornGrainSellController {
         return cornGrainSellService.saveTrade(mixedCornGrainSellDo);
     }
 
+    @PostMapping("/getTradeDetail")
+    public ResVo<MixedCornGrainSellDo> getTradeDetail(@RequestBody CornGrainSellDo cornGrainSellDo) {
+        log.info("CONT入参: {}", cornGrainSellDo);
+        return cornGrainSellService.getTradeDetail(cornGrainSellDo);
+    }
+
+    @PostMapping("/sellComplete")
+    public ResVo<Object> sellComplete(@RequestBody MixedCornGrainSellDo mixedCornGrainSellDo) {
+        log.info("CONT入参: {}", mixedCornGrainSellDo);
+        return cornGrainSellService.sellComplete(mixedCornGrainSellDo);
+    }
+
+    @PostMapping("/settleTrade")
+    public ResVo<Object> settleTrade(@RequestBody MixedCornGrainSellDo mixedCornGrainSellDo) {
+        log.info("CONT入参: {}", mixedCornGrainSellDo);
+        return cornGrainSellService.settleTrade(mixedCornGrainSellDo);
+    }
+
 }

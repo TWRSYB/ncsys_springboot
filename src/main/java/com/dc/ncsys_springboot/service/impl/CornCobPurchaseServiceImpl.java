@@ -54,16 +54,6 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
     @Override
     public PageResVo<CornCobPurchaseDo> getList(PageQueryVo<CornCobPurchaseDo> queryVo) {
         PageHelper.startPage(queryVo.getPageNum(), queryVo.getPageSize());
-        // 根据姓名或手机号码查询出售人
-        if (!ObjectUtils.isEmpty(queryVo.getParams()) && !ObjectUtils.isEmpty(queryVo.getParams().get("seller"))) {
-            String seller = queryVo.getParams().get("seller");
-            PersonDo sellerDo = personMapper.getByPhoneNumOrName(seller);
-            if (sellerDo != null) {
-                queryVo.getParams().put("sellerId", sellerDo.getPersonId());
-            } else {
-                queryVo.getParams().put("sellerId", seller);
-            }
-        }
         Page<CornCobPurchaseDo> cornCobPurchaseDoList = cornCobPurchaseMapper.getList(queryVo.getParams());
         return PageResVo.success(cornCobPurchaseDoList);
     }
@@ -405,6 +395,29 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             log.info("总重量: {}", totalWeight);
             if (totalPrice.compareTo(unitPrice.multiply(totalWeight).multiply(new BigDecimal(2))) != 0) {
                 throw new BusinessException("总金额必须 = 单价 x 总重量 x 2");
+            }
+
+            // 如果是结算
+            if ("settle".equals(step)) {
+                // 结算金额必须等于总金额+补价
+                BigDecimal clearingAmount = mixedCornCobPurchaseDo.getClearingAmount();
+                BigDecimal premium = mixedCornCobPurchaseDo.getPremium();
+                if (clearingAmount.compareTo(totalPrice.add(premium)) != 0) {
+                    throw new BusinessException("结算金额必须等于总金额+补价");
+                }
+                // 结算日期不能为空
+                String actualClearingDate = mixedCornCobPurchaseDo.getActualClearingDate();
+                if (ObjectUtils.isEmpty(actualClearingDate)) {
+                    throw new BusinessException("结算日期不能为空");
+                }
+                // 结算日期格式校验
+                if (!DateTimeUtil.isDateStr(actualClearingDate)) {
+                    throw new BusinessException("结算日期格式不正确");
+                }
+                // 结算日期不能小于交易日期
+                if (DateTimeUtil.parseDate(actualClearingDate).isBefore(DateTimeUtil.parseDate(tradeDate))) {
+                    throw new BusinessException("结算日期不能小于交易日期");
+                }
             }
         }
 

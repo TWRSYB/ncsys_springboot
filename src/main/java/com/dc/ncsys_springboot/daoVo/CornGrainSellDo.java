@@ -1,5 +1,6 @@
 package com.dc.ncsys_springboot.daoVo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -149,6 +150,18 @@ public class CornGrainSellDo implements Serializable {
      * 计重方:我方,买方
      */
     private String weighSide;
+
+    /**
+     * 买方名称
+     */
+    @TableField(exist = false)
+    private String buyerName;
+
+    /**
+     * 对接人名称
+     */
+    @TableField(exist = false)
+    private String dockPersonName;
 
 	@Override
 	public String toString() {

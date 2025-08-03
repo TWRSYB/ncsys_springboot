@@ -69,22 +69,22 @@ public class DateTimeUtil {
         return LocalDateTime.now().format(KEY_FORMATTER_MILLISECOND);
     }
 
-    // ====================== 字符串转日期 ======================
+    // ====================== 字符串转时间 ======================
     /**
-     * 解析日期字符串（自动匹配预定义格式）
-     * @param text 日期字符串
+     * 解析时间字符串（自动匹配预定义格式）
+     * @param text 时间字符串
      * @return 解析后的LocalDateTime（失败返回null）
      */
-    public static LocalDateTime parse(String text) {
-        return parse(text, DEFAULT_FORMATTER, DATE_FORMATTER, TIME_FORMATTER);
+    public static LocalDateTime parseTime(String text) {
+        return parseTime(text, DEFAULT_FORMATTER, TIME_FORMATTER);
     }
 
     /**
-     * 解析日期字符串（指定格式）
-     * @param text 日期字符串
+     * 解析时间字符串（指定格式）
+     * @param text 时间字符串
      * @param pattern 格式模式
      */
-    public static LocalDateTime parse(String text, String pattern) {
+    public static LocalDateTime parseTime(String text, String pattern) {
         try {
             return LocalDateTime.parse(text, DateTimeFormatter.ofPattern(pattern));
         } catch (DateTimeParseException e) {
@@ -93,13 +93,24 @@ public class DateTimeUtil {
     }
 
     // 递归尝试多个格式（私有方法）
-    private static LocalDateTime parse(String text, DateTimeFormatter... formatters) {
+    private static LocalDateTime parseTime(String text, DateTimeFormatter... formatters) {
         for (DateTimeFormatter formatter : formatters) {
             try {
                 return LocalDateTime.parse(text, formatter);
-            } catch (DateTimeParseException ignored) {}
+            } catch (DateTimeParseException ignored) {
+            }
         }
         return null;
+    }
+
+    // ====================== 字符串转日期 ======================
+    /**
+     * 解析日期字符串（自动匹配预定义格式）
+     * @param text 日期字符串
+     * @return 解析后的LocalDate（失败返回null）
+     */
+    public static LocalDate parseDate(String text) {
+        return LocalDate.parse(text, DATE_FORMATTER);
     }
 
     // ====================== 日期计算 ======================

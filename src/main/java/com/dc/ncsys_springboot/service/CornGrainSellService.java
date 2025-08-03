@@ -20,4 +20,10 @@ public interface CornGrainSellService extends IService<CornGrainSellDo> {
     PageResVo<CornGrainSellDo> pageQuery(PageQueryVo<CornGrainSellDo> pageQueryVo);
 
     ResVo<Object> saveTrade(MixedCornGrainSellDo mixedCornGrainSellDo);
+
+    ResVo<MixedCornGrainSellDo> getTradeDetail(CornGrainSellDo cornGrainSellDo);
+
+    ResVo<Object> sellComplete(MixedCornGrainSellDo mixedCornGrainSellDo);
+
+    ResVo<Object> settleTrade(MixedCornGrainSellDo mixedCornGrainSellDo);
 }

@@ -34,18 +34,23 @@
     </sql>
     <select id="getList" resultType="com.dc.ncsys_springboot.daoVo.CornGrainPurchaseDo">
         SELECT tccp.*, mp.person_name as sellerName FROM t_corn_grain_purchase tccp
-        inner join m_person mp on tccp.seller_id = mp.person_id
+        INNER JOIN m_person mp ON tccp.seller_id = mp.person_id
         <where>
             <if test="tradeDate!= null and tradeDate!= ''">
-                AND trade_date = #{tradeDate}
+                AND tccp.trade_date = #{tradeDate}
             </if>
-            <if test="sellerId!= null and sellerId!= ''">
-                AND seller_id = #{sellerId}
+            <if test="seller!= null and seller!= ''">
+                AND (tccp.seller_id = #{seller}
+                OR mp.person_name LIKE CONCAT('%', #{seller}, '%')
+                OR mp.alias LIKE CONCAT('%', #{seller}, '%')
+                OR mp.phone_num LIKE CONCAT('%', #{seller}, '%')
+                )
             </if>
             <if test="tradeStatus!= null and tradeStatus!= ''">
-                AND trade_status = #{tradeStatus}
+                AND tccp.trade_status = #{tradeStatus}
             </if>
         </where>
+        ORDER BY tccp.trade_date DESC, tccp.create_time DESC
 
     </select>
 
