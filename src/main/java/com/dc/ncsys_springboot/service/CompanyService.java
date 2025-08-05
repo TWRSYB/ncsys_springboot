@@ -17,4 +17,8 @@ import java.util.List;
 public interface CompanyService extends IService<CompanyDo> {
 
     ResVo<List<CompanyDo>> getCompanyLike(CompanyDo companyDo);
+
+    ResVo<Object> updateCompanyNameByCompanyPhoneNum(CompanyDo companyDo);
+
+    ResVo<Object> updateDockPersonNameByPhoneNum(CompanyDo companyDo);
 }

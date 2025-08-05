@@ -34,4 +34,9 @@ public interface PersonService extends IService<PersonDo> {
     ResVo updatePerson(PersonDo personDo);
 
     PageResVo<PersonDo> getPersonNotInWorker(PageQueryVo<PersonDo> pageQueryVo);
+
+    ValidateOrInsertPersonResult validateOrInsertPerson(PersonDo personDo);
+
+    record ValidateOrInsertPersonResult(int validateResult, PersonDo personDo) {
+    }
 }

@@ -216,5 +216,33 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         return PageResVo.success(page);
     }
 
+    @Override
+    public ValidateOrInsertPersonResult validateOrInsertPerson(PersonDo personDo) {
+        // 获取当前登录用户
+        UserDo sessionUserDo = SessionUtils.getSessionUser();
+        // 根据手机号查询现有人员
+        PersonDo existingPerson = personMapper.getByPhoneNum(personDo.getPhoneNum());
+
+        // 校验结果: 0-插入新人员, 1-匹配到现有人员, 2-存在现有人员但姓名不匹配
+        int validateResult = 2;
+
+        if (existingPerson != null) {
+            // 如果存在，则匹配姓名
+            if (existingPerson.getPersonName().equals(personDo.getPersonName())) {
+                validateResult = 1;
+            }
+            personDo = existingPerson;
+        } else {
+            // 如果不存在，插入新记录并获取ID
+            IdUtils.generateIdForObject(personDo);
+            personDo.setCreateUser(sessionUserDo.getLoginCode());
+            personDo.setUpdateUser(sessionUserDo.getLoginCode());
+            personDo.setDataStatus("1");
+            personMapper.insert(personDo);
+            validateResult = 0;
+        }
+        return new ValidateOrInsertPersonResult(validateResult, personDo);
+    }
+
 
 }

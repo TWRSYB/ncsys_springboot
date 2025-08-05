@@ -3,9 +3,11 @@ package com.dc.ncsys_springboot.vo;
 import com.dc.ncsys_springboot.util.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
 @AllArgsConstructor
+@Accessors(chain = true)
 public class ResVo<T> {
     private Integer code;
     private String message;

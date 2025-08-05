@@ -8,6 +8,7 @@ import com.dc.ncsys_springboot.mapper.CornCobPurchaseWeighRecordMapper;
 import com.dc.ncsys_springboot.mapper.PersonMapper;
 import com.dc.ncsys_springboot.service.CornCobPurchaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dc.ncsys_springboot.service.PersonService;
 import com.dc.ncsys_springboot.util.IdUtils;
 import com.dc.ncsys_springboot.util.RegexUtils;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
@@ -49,6 +50,9 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
     private PersonMapper personMapper;
 
     @Autowired
+    private PersonService personService;
+
+    @Autowired
     private CornCobPurchaseWeighRecordMapper cornCobPurchaseWeighRecordMapper;
 
     @Override
@@ -66,27 +70,14 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             return ResVo.fail("数据校验失败");
         }
 
-        // 查询出售人是否已经存在
-        PersonDo sellerInfo = mixedCornCobPurchaseDo.getSellerInfo();
-        PersonDo existingSeller = personMapper.getByPhoneNum(sellerInfo.getPhoneNum());
-
-        if (existingSeller != null) {
-            // 如果存在，使用已存在的ID
-            if (!existingSeller.getPersonName().equals(sellerInfo.getPersonName())) {
-                return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingSeller.getPersonName() + " 的客户，请检查");
-            }
-            sellerInfo = existingSeller;
-
-        } else {
-            // 如果不存在，插入新记录并获取ID
-            IdUtils.generateIdForObject(sellerInfo);
-            sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
-            sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
-            sellerInfo.setDataStatus("1");
-            personMapper.insert(sellerInfo);
+        // 校验或插入出售人
+        PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(mixedCornCobPurchaseDo.getSellerInfo());
+        PersonDo sellerInfo = validateOrInsertResult.personDo();
+        if (validateOrInsertResult.validateResult() == 2) {
+            return ResVo.fail(555, "手机号码已经绑定姓名为： " + sellerInfo.getPersonName() + " 的客户，请检查").setData(sellerInfo.getPersonName());
         }
-
         mixedCornCobPurchaseDo.setSellerId(sellerInfo.getPersonId());
+
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornCobPurchaseDo.getSerno())) {
             mixedCornCobPurchaseDo.setSerno("CornCobPurchase_" + DateTimeUtil.getMinuteKey());
@@ -185,27 +176,14 @@ public class CornCobPurchaseServiceImpl extends ServiceImpl<CornCobPurchaseMappe
             return ResVo.fail("数据校验失败");
         }
 
-        // 查询出售人是否已经存在
-        PersonDo sellerInfo = mixedCornCobPurchaseDo.getSellerInfo();
-        PersonDo existingSeller = personMapper.getByPhoneNum(sellerInfo.getPhoneNum());
-        if (existingSeller != null) {
-            // 如果存在，使用已存在的ID
-            if (!existingSeller.getPersonName().equals(sellerInfo.getPersonName())) {
-                return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingSeller.getPersonName() + " 的客户，请检查");
-            }
-            sellerInfo = existingSeller;
-        } else {
-            // 如果不存在，插入新记录并获取ID
-            IdUtils.generateIdForObject(sellerInfo);
-            sellerInfo.setCreateUser(sessionUserDo.getLoginCode());
-            sellerInfo.setUpdateUser(sessionUserDo.getLoginCode());
-            sellerInfo.setAddress(mixedCornCobPurchaseDo.getAddress());
-            sellerInfo.setDataStatus("1");
-            personMapper.insert(sellerInfo);
+        // 校验或插入出售人
+        PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(mixedCornCobPurchaseDo.getSellerInfo());
+        PersonDo sellerInfo = validateOrInsertResult.personDo();
+        if (validateOrInsertResult.validateResult() == 2) {
+            return ResVo.fail(555, "手机号码已经绑定姓名为： " + sellerInfo.getPersonName() + " 的客户，请检查").setData(sellerInfo.getPersonName());
         }
-
-
         mixedCornCobPurchaseDo.setSellerId(sellerInfo.getPersonId());
+
         // 插入交易记录
         if (ObjectUtils.isEmpty(mixedCornCobPurchaseDo.getSerno())) {
             mixedCornCobPurchaseDo.setSerno("CornCobPurchase_" + DateTimeUtil.getMinuteKey());

@@ -6,6 +6,7 @@ import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.*;
 import com.dc.ncsys_springboot.service.CornGrainSellService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dc.ncsys_springboot.service.PersonService;
 import com.dc.ncsys_springboot.util.*;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
@@ -41,6 +42,9 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
 
     @Autowired
     private PersonMapper personMapper;
+
+    @Autowired
+    private PersonService personService;
 
     @Autowired
     private CompanyMapper companyMapper;
@@ -256,31 +260,15 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
     private ResVo<Object> dealBuyer(MixedCornGrainSellDo mixedCornGrainSellDo, UserDo sessionUserDo) {
         // 如果购买人是个人
         if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
-            // 查询购买人是否已经存在
-            PersonDo buyerPerson = mixedCornGrainSellDo.getBuyerPerson();
-            PersonDo existingPerson = personMapper.getByPhoneNum(buyerPerson.getPhoneNum());
-
-            if (existingPerson != null) {
-                // 如果存在，使用已存在的ID
-                if (!existingPerson.getPersonName().equals(buyerPerson.getPersonName())) {
-                    return ResVo.fail(555, "手机号码已经绑定姓名为： " + existingPerson.getPersonName() + " 的客户，请检查");
-                }
-                buyerPerson = existingPerson;
-
-            } else {
-                // 如果不存在，插入新记录并获取ID
-                IdUtils.generateIdForObject(buyerPerson);
-                buyerPerson.setCreateUser(sessionUserDo.getLoginCode());
-                buyerPerson.setUpdateUser(sessionUserDo.getLoginCode());
-                buyerPerson.setDataStatus("1");
-                personMapper.insert(buyerPerson);
+            // 校验或插入购买人
+            PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(mixedCornGrainSellDo.getBuyerPerson());
+            PersonDo buyerInfo = validateOrInsertResult.personDo();
+            if (validateOrInsertResult.validateResult() == 2) {
+                return ResVo.fail(555, "手机号码已经绑定姓名为： " + buyerInfo.getPersonName() + " 的客户，请检查").setData(buyerInfo.getPersonName());
             }
-            mixedCornGrainSellDo.setBuyerId(buyerPerson.getPersonId());
-        }
-
-        // 如果购买人是企业
-        if ("企业".equals(mixedCornGrainSellDo.getBuyerType())) {
-
+            mixedCornGrainSellDo.setBuyerId(buyerInfo.getPersonId());
+        } else {
+            // 如果购买人是企业
             CompanyDo buyerCompany = mixedCornGrainSellDo.getBuyerCompany();
             String dockPersonName = buyerCompany.getDockPersonName();
             String dockPhoneNum = buyerCompany.getDockPhoneNum();
@@ -290,7 +278,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             if (existingCompany != null) {
                 // 如果存在，使用已存在的ID
                 if (!existingCompany.getCompanyName().equals(buyerCompany.getCompanyName())) {
-                    return ResVo.fail(666, "电话号码已经绑定企业名称为： " + existingCompany.getCompanyName() + " 的客户，请检查");
+                    return ResVo.fail(666, "电话号码已经绑定企业名称为： " + existingCompany.getCompanyName() + " 的客户，请检查").setData(existingCompany.getCompanyName());
                 }
                 buyerCompany = existingCompany;
             } else {
@@ -299,26 +287,14 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 buyerCompany.setCreateUser(sessionUserDo.getLoginCode());
                 buyerCompany.setUpdateUser(sessionUserDo.getLoginCode());
                 buyerCompany.setDataStatus("1");
+                // 此时还不能插入, 因为如果走到下面的777会导致无法回滚
             }
             mixedCornGrainSellDo.setBuyerId(buyerCompany.getCompanyId());
 
-            // 查询对接人是否已经存在
-            PersonDo dockPerson = new PersonDo();
-            PersonDo existingDockPerson = personMapper.getByPhoneNum(dockPhoneNum);
-            if (existingDockPerson != null) {
-                // 如果存在，使用已存在的ID
-                if (!existingDockPerson.getPersonName().equals(dockPersonName)) {
-                    return ResVo.fail(777, "对接人号码已经绑定姓名为： " + existingDockPerson.getPersonName() + " 的客户，请检查");
-                }
-                dockPerson = existingDockPerson;
-            } else {
-                // 如果不存在，插入新记录并获取ID
-                dockPerson.setPersonName(dockPersonName);
-                dockPerson.setPhoneNum(dockPhoneNum);
-                IdUtils.generateIdForObject(dockPerson);
-                dockPerson.setCreateUser(sessionUserDo.getLoginCode());
-                dockPerson.setUpdateUser(sessionUserDo.getLoginCode());
-                dockPerson.setDataStatus("1");
+            PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(new PersonDo().setPersonName(dockPersonName).setPhoneNum(dockPhoneNum));
+            PersonDo dockPerson = validateOrInsertResult.personDo();
+            if (validateOrInsertResult.validateResult() == 2) {
+                return ResVo.fail(777, "对接人号码已经绑定姓名为： " + dockPerson.getPersonName() + " 的客户，请检查").setData(dockPerson.getPersonName());
             }
             mixedCornGrainSellDo.setDockPersonId(dockPerson.getPersonId());
 
@@ -333,10 +309,6 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 companyPerson.setUpdateUser(sessionUserDo.getLoginCode());
                 companyPerson.setDataStatus("1");
                 companyPersonMapper.insert(companyPerson);
-            }
-
-            if (existingDockPerson == null) {
-                personMapper.insert(dockPerson);
             }
 
             if (existingCompany == null) {

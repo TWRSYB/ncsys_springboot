@@ -35,5 +35,15 @@ public class CompanyController {
         return companyService.getCompanyLike(companyDo);
     }
 
+    @PostMapping("/updateCompanyNameByCompanyPhoneNum")
+    public ResVo<Object> updateCompanyNameByCompanyPhoneNum(@RequestBody CompanyDo companyDo) {
+        log.info("CONT入参: {}", companyDo);
+        return companyService.updateCompanyNameByCompanyPhoneNum(companyDo);
+    }
 
+    @PostMapping("/updateDockPersonNameByPhoneNum")
+    public ResVo<Object> updateDockPersonNameByPhoneNum(@RequestBody CompanyDo companyDo) {
+        log.info("CONT入参: {}", companyDo);
+        return companyService.updateDockPersonNameByPhoneNum(companyDo);
+    }
 }
