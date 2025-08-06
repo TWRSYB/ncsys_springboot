@@ -19,6 +19,15 @@
     <sql id="Base_Column_List">
         worker_id, person_id, daily_pay, data_status, create_user, create_time, update_user, update_time, remark
     </sql>
+    <update id="updateByWorkerId">
+        UPDATE m_worker
+        <set>
+            daily_pay = #{dailyPay},
+            remark = #{remark},
+            update_user = #{updateUser}
+        </set>
+        WHERE worker_id = #{workerId}
+    </update>
     <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.WorkerDo">
         SELECT mw.*,
         mp.person_name,

@@ -101,7 +101,7 @@ public class WorkerServiceImpl extends ServiceImpl<WorkerMapper, WorkerDo> imple
         existingWorker.setUpdateUser(sessionUser.getLoginCode());
         existingWorker.setRemark(workerDo.getRemark());
 
-        int rows = workerMapper.updateById(existingWorker);
+        int rows = workerMapper.updateByWorkerId(existingWorker);
         if (rows == 1) {
             return ResVo.success("更新成功");
         } else {

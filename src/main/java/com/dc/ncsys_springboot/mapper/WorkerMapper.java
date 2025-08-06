@@ -20,4 +20,6 @@ import java.util.Map;
 public interface WorkerMapper extends BaseMapper<WorkerDo> {
 
     Page<WorkerDo> pageQuery(Map<String, String> params);
+
+    int updateByWorkerId(WorkerDo existingWorker);
 }
