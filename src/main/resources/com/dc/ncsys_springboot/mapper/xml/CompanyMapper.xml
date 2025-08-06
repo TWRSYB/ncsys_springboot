@@ -49,6 +49,12 @@
                     WHERE tcgs.buyer_id = #{buyur_id}
                       AND address IS NOT NULL
                       AND address != ''
+                    UNION
+                    SELECT address, create_time
+                    FROM t_corn_xin_sell tccs
+                    WHERE tccs.buyer_id = #{buyur_id}
+                      AND address IS NOT NULL
+                      AND address != ''
                    ) AS merged_table
              ) AS ranked_table
         WHERE rn = 1

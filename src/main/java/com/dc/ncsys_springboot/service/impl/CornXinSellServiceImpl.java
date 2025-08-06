@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.dc.ncsys_springboot.daoVo.*;
 import com.dc.ncsys_springboot.exception.BusinessException;
 import com.dc.ncsys_springboot.mapper.*;
-import com.dc.ncsys_springboot.service.CornGrainSellService;
+import com.dc.ncsys_springboot.service.CornXinSellService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dc.ncsys_springboot.service.PersonService;
 import com.dc.ncsys_springboot.util.*;
@@ -21,86 +21,86 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**
  * <p>
- * 玉米粒出售表 服务实现类
+ * 玉米芯出售表 服务实现类
  * </p>
  *
  * @author sysAdmin
- * @since 2025-07-31 15:04
+ * @since 2025-08-06 15:08
  */
 @Slf4j
 @Transactional
 @Service
-public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, CornGrainSellDo> implements CornGrainSellService {
+public class CornXinSellServiceImpl extends ServiceImpl<CornXinSellMapper, CornXinSellDo> implements CornXinSellService {
 
     @Autowired
-    private CornGrainSellMapper cornGrainSellMapper;
-
+    private CornXinSellMapper cornXinSellMapper;
+    
     @Autowired
-    private PersonMapper personMapper;
-
+    private CornXinSellWeighRecordMapper cornXinSellWeighRecordMapper;
+    
     @Autowired
     private PersonService personService;
-
+    
     @Autowired
     private CompanyMapper companyMapper;
-
+    
     @Autowired
     private CompanyPersonMapper companyPersonMapper;
-
+    
     @Autowired
-    private CornGrainSellWeighRecordMapper cornGrainSellWeighRecordMapper;
-
+    private PersonMapper personMapper;
+    
+    
     @Override
-    public PageResVo<CornGrainSellDo> pageQuery(PageQueryVo<CornGrainSellDo> pageQueryVo) {
+    public PageResVo<CornXinSellDo> pageQuery(PageQueryVo<CornXinSellDo> pageQueryVo) {
         PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
-        Page<CornGrainSellDo> page = cornGrainSellMapper.pageQuery(pageQueryVo.getParams());
+        Page<CornXinSellDo> page = cornXinSellMapper.pageQuery(pageQueryVo.getParams());
         return PageResVo.success(page);
     }
 
     @Override
-    public ResVo<Object> saveTrade(MixedCornGrainSellDo mixedCornGrainSellDo) {
+    public ResVo<Object> saveTrade(MixedCornXinSellDo mixedCornXinSellDo) {
         // 获取当前登录用户
         UserDo sessionUserDo = SessionUtils.getSessionUser();
-        if (!validateMixedTrade(mixedCornGrainSellDo, "save")) {
+        if (!validateMixedTrade(mixedCornXinSellDo, "save")) {
             return ResVo.fail("数据校验失败");
         }
 
-        ResVo<Object> dealError = dealBuyer(mixedCornGrainSellDo, sessionUserDo);
+        ResVo<Object> dealError = dealBuyer(mixedCornXinSellDo, sessionUserDo);
         if (dealError != null) return dealError;
 
         // 插入交易记录
-        if (ObjectUtils.isEmpty(mixedCornGrainSellDo.getSerno())) {
-            IdUtils.generateIdForObject(mixedCornGrainSellDo);
-            mixedCornGrainSellDo.setCreateUser(sessionUserDo.getLoginCode());
+        if (ObjectUtils.isEmpty(mixedCornXinSellDo.getSerno())) {
+            IdUtils.generateIdForObject(mixedCornXinSellDo);
+            mixedCornXinSellDo.setCreateUser(sessionUserDo.getLoginCode());
         }
-        mixedCornGrainSellDo.setUpdateUser(sessionUserDo.getLoginCode());
-        mixedCornGrainSellDo.setDataStatus("0");
-        mixedCornGrainSellDo.setTradeStatus("出售中");
-        boolean insertOrUpdate = cornGrainSellMapper.insertOrUpdate(mixedCornGrainSellDo);
+        mixedCornXinSellDo.setUpdateUser(sessionUserDo.getLoginCode());
+        mixedCornXinSellDo.setDataStatus("0");
+        mixedCornXinSellDo.setTradeStatus("出售中");
+        boolean insertOrUpdate = cornXinSellMapper.insertOrUpdate(mixedCornXinSellDo);
         if (!insertOrUpdate) {
             throw new BusinessException("交易记录插入失败");
         }
 
         // 删除过磅记录然后重新插入
-        int delete = cornGrainSellWeighRecordMapper.deleteByTradeSerno(mixedCornGrainSellDo.getSerno());
+        int delete = cornXinSellWeighRecordMapper.deleteByTradeSerno(mixedCornXinSellDo.getSerno());
         log.info("删除过磅记录数：{}", delete);
-        List<CornGrainSellWeighRecordDo> beforeWeighRecordList = mixedCornGrainSellDo.getList_weigh();
+        List<CornXinSellWeighRecordDo> beforeWeighRecordList = mixedCornXinSellDo.getList_weigh();
         for (int i = 0; i < beforeWeighRecordList.size(); i++) {
-            CornGrainSellWeighRecordDo record = beforeWeighRecordList.get(i);
+            CornXinSellWeighRecordDo record = beforeWeighRecordList.get(i);
             if (ObjectUtils.isEmpty(record.getWeighId())) {
-                record.setWeighId("CornGrainSellWeighRecordDo_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
+                record.setWeighId("CornXinSellWeighRecordDo_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
                 record.setCreateUser(sessionUserDo.getLoginCode());
             }
-            record.setTradeSerno(mixedCornGrainSellDo.getSerno());
-            record.setTradeDate(mixedCornGrainSellDo.getTradeDate());
+            record.setTradeSerno(mixedCornXinSellDo.getSerno());
+            record.setTradeDate(mixedCornXinSellDo.getTradeDate());
             record.setUpdateUser(sessionUserDo.getLoginCode());
             record.setDataStatus("0");
-            cornGrainSellWeighRecordMapper.insert(record);
+            cornXinSellWeighRecordMapper.insert(record);
         }
 
         return ResVo.success("出售记录保存成功");
@@ -109,167 +109,168 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
     }
 
     @Override
-    public ResVo<MixedCornGrainSellDo> getTradeDetail(CornGrainSellDo cornGrainSellDo) {
-        if (ObjectUtils.isEmpty(cornGrainSellDo.getSerno())) {
+    public ResVo<MixedCornXinSellDo> getTradeDetail(CornXinSellDo cornXinSellDo) {
+        if (ObjectUtils.isEmpty(cornXinSellDo.getSerno())) {
             throw new BusinessException("交易流水号不能为空");
         }
-        CornGrainSellDo existCornGrainSell = cornGrainSellMapper.selectById(cornGrainSellDo);
-        if (existCornGrainSell == null) {
+        CornXinSellDo existCornXinSell = cornXinSellMapper.selectById(cornXinSellDo);
+        if (existCornXinSell == null) {
             throw new BusinessException("交易记录不存在");
         }
 
-        MixedCornGrainSellDo mixedCornGrainSellDo = new MixedCornGrainSellDo();
-        BeanUtils.copyProperties(existCornGrainSell, mixedCornGrainSellDo);
+        MixedCornXinSellDo mixedCornXinSellDo = new MixedCornXinSellDo();
+        BeanUtils.copyProperties(existCornXinSell, mixedCornXinSellDo);
 
         // 查询购买人信息
         // 如果购买人是个人
-        if (existCornGrainSell.getBuyerType().equals("个人")) {
-            PersonDo buyerPerson = personMapper.selectById(existCornGrainSell.getBuyerId());
+        if (existCornXinSell.getBuyerType().equals("个人")) {
+            PersonDo buyerPerson = personMapper.selectById(existCornXinSell.getBuyerId());
             if (buyerPerson == null) {
                 throw new BusinessException("购买人信息不存在");
             }
-            mixedCornGrainSellDo.setBuyerPerson(buyerPerson);
+            mixedCornXinSellDo.setBuyerPerson(buyerPerson);
         } else {
             // 如果购买人是企业
-            CompanyDo buyerCompany = companyMapper.selectById(existCornGrainSell.getBuyerId());
+            CompanyDo buyerCompany = companyMapper.selectById(existCornXinSell.getBuyerId());
             if (buyerCompany == null) {
                 throw new BusinessException("购买企业信息不存在");
             }
             // 查询对接人信息
-            PersonDo dockPerson = personMapper.selectById(mixedCornGrainSellDo.getDockPersonId());
+            PersonDo dockPerson = personMapper.selectById(mixedCornXinSellDo.getDockPersonId());
             if (dockPerson == null) {
                 throw new BusinessException("对接人信息不存在");
             }
             buyerCompany.setDockPersonId(dockPerson.getPersonId());
             buyerCompany.setDockPersonName(dockPerson.getPersonName());
             buyerCompany.setDockPhoneNum(dockPerson.getPhoneNum());
-            mixedCornGrainSellDo.setBuyerCompany(buyerCompany);
+            mixedCornXinSellDo.setBuyerCompany(buyerCompany);
         }
         // 查询过磅记录
-        LambdaQueryWrapper<CornGrainSellWeighRecordDo> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CornGrainSellWeighRecordDo::getTradeSerno, existCornGrainSell.getSerno());
-        wrapper.orderByAsc(CornGrainSellWeighRecordDo::getCreateTime);
-        List<CornGrainSellWeighRecordDo> weighRecordList = cornGrainSellWeighRecordMapper.selectList(wrapper);
+        LambdaQueryWrapper<CornXinSellWeighRecordDo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CornXinSellWeighRecordDo::getTradeSerno, existCornXinSell.getSerno());
+        wrapper.orderByAsc(CornXinSellWeighRecordDo::getCreateTime);
+        List<CornXinSellWeighRecordDo> weighRecordList = cornXinSellWeighRecordMapper.selectList(wrapper);
 
         // 组装返回结果
-        mixedCornGrainSellDo.setList_weigh(weighRecordList);
-        return ResVo.success("查询交易详情成功", mixedCornGrainSellDo);
+        mixedCornXinSellDo.setList_weigh(weighRecordList);
+        return ResVo.success("查询交易详情成功", mixedCornXinSellDo);
     }
 
     @Override
-    public ResVo<Object> sellComplete(MixedCornGrainSellDo mixedCornGrainSellDo) {
+    public ResVo<Object> sellComplete(MixedCornXinSellDo mixedCornXinSellDo) {
         // 获取当前登录用户
         UserDo sessionUserDo = SessionUtils.getSessionUser();
-        if (!validateMixedTrade(mixedCornGrainSellDo, "complete")) {
+        if (!validateMixedTrade(mixedCornXinSellDo, "complete")) {
             return ResVo.fail("数据校验失败");
         }
 
-        ResVo<Object> dealError = dealBuyer(mixedCornGrainSellDo, sessionUserDo);
+        ResVo<Object> dealError = dealBuyer(mixedCornXinSellDo, sessionUserDo);
         if (dealError != null) return dealError;
 
         // 插入交易记录
-        if (ObjectUtils.isEmpty(mixedCornGrainSellDo.getSerno())) {
-            IdUtils.generateIdForObject(mixedCornGrainSellDo);
-            mixedCornGrainSellDo.setCreateUser(sessionUserDo.getLoginCode());
+        if (ObjectUtils.isEmpty(mixedCornXinSellDo.getSerno())) {
+            IdUtils.generateIdForObject(mixedCornXinSellDo);
+            mixedCornXinSellDo.setCreateUser(sessionUserDo.getLoginCode());
         }
-        mixedCornGrainSellDo.setUpdateUser(sessionUserDo.getLoginCode());
-        mixedCornGrainSellDo.setDataStatus("1");
-        mixedCornGrainSellDo.setTradeStatus("待结算");
-        boolean insertOrUpdate = cornGrainSellMapper.insertOrUpdate(mixedCornGrainSellDo);
+        mixedCornXinSellDo.setUpdateUser(sessionUserDo.getLoginCode());
+        mixedCornXinSellDo.setDataStatus("1");
+        mixedCornXinSellDo.setTradeStatus("待结算");
+        boolean insertOrUpdate = cornXinSellMapper.insertOrUpdate(mixedCornXinSellDo);
         if (!insertOrUpdate) {
             throw new BusinessException("交易记录插入失败");
         }
 
         // 删除过磅记录然后重新插入
-        int delete = cornGrainSellWeighRecordMapper.deleteByTradeSerno(mixedCornGrainSellDo.getSerno());
+        int delete = cornXinSellWeighRecordMapper.deleteByTradeSerno(mixedCornXinSellDo.getSerno());
         log.info("删除过磅记录数：{}", delete);
-        List<CornGrainSellWeighRecordDo> beforeWeighRecordList = mixedCornGrainSellDo.getList_weigh();
+        List<CornXinSellWeighRecordDo> beforeWeighRecordList = mixedCornXinSellDo.getList_weigh();
         for (int i = 0; i < beforeWeighRecordList.size(); i++) {
-            CornGrainSellWeighRecordDo record = beforeWeighRecordList.get(i);
+            CornXinSellWeighRecordDo record = beforeWeighRecordList.get(i);
             if (ObjectUtils.isEmpty(record.getWeighId())) {
-                record.setWeighId("CornGrainSellWeighRecordDo_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
+                record.setWeighId("CornXinSellWeighRecordDo_" + DateTimeUtil.getMinuteKey() + "_" + (i + 1));
                 record.setCreateUser(sessionUserDo.getLoginCode());
             }
-            record.setTradeSerno(mixedCornGrainSellDo.getSerno());
-            record.setTradeDate(mixedCornGrainSellDo.getTradeDate());
+            record.setTradeSerno(mixedCornXinSellDo.getSerno());
+            record.setTradeDate(mixedCornXinSellDo.getTradeDate());
             record.setUpdateUser(sessionUserDo.getLoginCode());
             record.setDataStatus("1");
-            cornGrainSellWeighRecordMapper.insert(record);
+            cornXinSellWeighRecordMapper.insert(record);
         }
 
         return ResVo.success("出售记录保存成功");
     }
 
     @Override
-    public ResVo<Object> settleTrade(MixedCornGrainSellDo mixedCornGrainSellDo) {
+    public ResVo<Object> settleTrade(MixedCornXinSellDo mixedCornXinSellDo) {
         // 获取当前登录用户
         UserDo sessionUserDo = SessionUtils.getSessionUser();
         // 校验数据
-        if (!validateMixedTrade(mixedCornGrainSellDo, "settle")) {
+        if (!validateMixedTrade(mixedCornXinSellDo, "settle")) {
             return ResVo.fail("数据校验失败");
         }
-        
+
         // 验证购买人存在
-        if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
-            PersonDo buyerPerson = personMapper.selectById(mixedCornGrainSellDo.getBuyerId());
+        if ("个人".equals(mixedCornXinSellDo.getBuyerType())) {
+            PersonDo buyerPerson = personMapper.selectById(mixedCornXinSellDo.getBuyerId());
             if (buyerPerson == null) {
                 return ResVo.fail("购买人不存在");
             }
         } else {
             // 如果购买人是企业
-            CompanyDo buyerCompany = companyMapper.selectById(mixedCornGrainSellDo.getBuyerId());
+            CompanyDo buyerCompany = companyMapper.selectById(mixedCornXinSellDo.getBuyerId());
             if (buyerCompany == null) {
                 return ResVo.fail("购买企业不存在");
             }
         }
 
         // 查询交易记录
-        CornGrainSellDo cornGrainSellDo = cornGrainSellMapper.selectById(mixedCornGrainSellDo.getSerno());
-        if (cornGrainSellDo == null) {
+        CornXinSellDo cornXinSellDo = cornXinSellMapper.selectById(mixedCornXinSellDo.getSerno());
+        if (cornXinSellDo == null) {
             throw new BusinessException("交易记录不存在");
         }
         // 交易状态必须为待结算
-        if (!"待结算".equals(cornGrainSellDo.getTradeStatus())) {
+        if (!"待结算".equals(cornXinSellDo.getTradeStatus())) {
             throw new BusinessException("交易状态必须为待结算");
         }
         // 数据状态必须为1
-        if (!"1".equals(cornGrainSellDo.getDataStatus())) {
+        if (!"1".equals(cornXinSellDo.getDataStatus())) {
             throw new BusinessException("数据状态必须为1");
         }
 
         // 匹配入参总价和数据库数据总价
-        if (mixedCornGrainSellDo.getTotalPrice().compareTo(cornGrainSellDo.getTotalPrice())!= 0) {
+        if (mixedCornXinSellDo.getTotalPrice().compareTo(cornXinSellDo.getTotalPrice())!= 0) {
             throw new BusinessException("总价不匹配");
         }
 
         // 更新交易记录(实际结算日期/补价/最终结算金额/备注/交易状态)
-        cornGrainSellDo.setActualClearingDate(mixedCornGrainSellDo.getActualClearingDate());
-        cornGrainSellDo.setPremium(mixedCornGrainSellDo.getPremium());
-        cornGrainSellDo.setClearingAmount(mixedCornGrainSellDo.getClearingAmount());
-        cornGrainSellDo.setRemark(mixedCornGrainSellDo.getRemark());
-        cornGrainSellDo.setTradeStatus("已结算");
-        mixedCornGrainSellDo.setUpdateUser(sessionUserDo.getLoginCode());
+        cornXinSellDo.setActualClearingDate(mixedCornXinSellDo.getActualClearingDate());
+        cornXinSellDo.setPremium(mixedCornXinSellDo.getPremium());
+        cornXinSellDo.setClearingAmount(mixedCornXinSellDo.getClearingAmount());
+        cornXinSellDo.setRemark(mixedCornXinSellDo.getRemark());
+        cornXinSellDo.setTradeStatus("已结算");
+        mixedCornXinSellDo.setUpdateUser(sessionUserDo.getLoginCode());
 
-        int update = cornGrainSellMapper.updateById(cornGrainSellDo);
+        int update = cornXinSellMapper.updateById(cornXinSellDo);
         if (update == 0) {
             throw new BusinessException("交易记录更新失败");
         }
         return ResVo.success("交易结算成功");
     }
 
-    private ResVo<Object> dealBuyer(MixedCornGrainSellDo mixedCornGrainSellDo, UserDo sessionUserDo) {
+
+    private ResVo<Object> dealBuyer(MixedCornXinSellDo mixedCornXinSellDo, UserDo sessionUserDo) {
         // 如果购买人是个人
-        if ("个人".equals(mixedCornGrainSellDo.getBuyerType())) {
+        if ("个人".equals(mixedCornXinSellDo.getBuyerType())) {
             // 校验或插入购买人
-            PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(mixedCornGrainSellDo.getBuyerPerson());
+            PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(mixedCornXinSellDo.getBuyerPerson());
             PersonDo buyerInfo = validateOrInsertResult.personDo();
             if (validateOrInsertResult.validateResult() == 2) {
                 return ResVo.fail(555, "手机号码已经绑定姓名为： " + buyerInfo.getPersonName() + " 的客户，请检查").setData(buyerInfo.getPersonName());
             }
-            mixedCornGrainSellDo.setBuyerId(buyerInfo.getPersonId());
+            mixedCornXinSellDo.setBuyerId(buyerInfo.getPersonId());
         } else {
             // 如果购买人是企业
-            CompanyDo buyerCompany = mixedCornGrainSellDo.getBuyerCompany();
+            CompanyDo buyerCompany = mixedCornXinSellDo.getBuyerCompany();
             String dockPersonName = buyerCompany.getDockPersonName();
             String dockPhoneNum = buyerCompany.getDockPhoneNum();
 
@@ -289,14 +290,14 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 buyerCompany.setDataStatus("1");
                 // 此时还不能插入, 因为如果走到下面的777会导致无法回滚
             }
-            mixedCornGrainSellDo.setBuyerId(buyerCompany.getCompanyId());
+            mixedCornXinSellDo.setBuyerId(buyerCompany.getCompanyId());
 
             PersonService.ValidateOrInsertPersonResult validateOrInsertResult = personService.validateOrInsertPerson(new PersonDo().setPersonName(dockPersonName).setPhoneNum(dockPhoneNum));
             PersonDo dockPerson = validateOrInsertResult.personDo();
             if (validateOrInsertResult.validateResult() == 2) {
                 return ResVo.fail(777, "对接人号码已经绑定姓名为： " + dockPerson.getPersonName() + " 的客户，请检查").setData(dockPerson.getPersonName());
             }
-            mixedCornGrainSellDo.setDockPersonId(dockPerson.getPersonId());
+            mixedCornXinSellDo.setDockPersonId(dockPerson.getPersonId());
 
             // 查询企业人员关系是否存在
             CompanyPersonDo existingCompanyPerson = companyPersonMapper.getByCompanyIdAndPersonId(buyerCompany.getCompanyId(), dockPerson.getPersonId());
@@ -318,14 +319,14 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         return null;
     }
 
-    private boolean validateMixedTrade(MixedCornGrainSellDo mixedCornGrainSellDo, String step) {
+    private boolean validateMixedTrade(MixedCornXinSellDo mixedCornXinSellDo, String step) {
         // 校验数据
-        if (mixedCornGrainSellDo == null) {
+        if (mixedCornXinSellDo == null) {
             throw new BusinessException("无效的交易数据");
         }
 
         // 交易日期校验
-        String tradeDate = mixedCornGrainSellDo.getTradeDate();
+        String tradeDate = mixedCornXinSellDo.getTradeDate();
         if (ObjectUtils.isEmpty(tradeDate)) {
             throw new BusinessException("交易日期不能为空");
         }
@@ -335,18 +336,18 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         }
 
         // 计重方校验
-        String weighSide = mixedCornGrainSellDo.getWeighSide();
+        String weighSide = mixedCornXinSellDo.getWeighSide();
         if (ObjectUtils.isEmpty(weighSide)) {
             throw new BusinessException("计重方不能为空");
         }
-        List<String> weighSideList = FieldUtil.getEnumList("t_corn_grain_sell", "weigh_side");
+        List<String> weighSideList = FieldUtil.getEnumList("t_corn_xin_sell", "weigh_side");
         if (weighSideList != null && !weighSideList.contains(weighSide)) {
             throw new BusinessException("计重方错误");
         }
 
         // 购买人类型校验
-        String buyerType = mixedCornGrainSellDo.getBuyerType();
-        List<String> buyerTypeList = FieldUtil.getEnumList("t_corn_grain_sell", "buyer_type");
+        String buyerType = mixedCornXinSellDo.getBuyerType();
+        List<String> buyerTypeList = FieldUtil.getEnumList("t_corn_xin_sell", "buyer_type");
         if (ObjectUtils.isEmpty(buyerType)) {
             throw new BusinessException("购买人类型不能为空");
         }
@@ -356,7 +357,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
 
         // 购买人为企业
         if ("企业".equals(buyerType)) {
-            CompanyDo buyerCompany = mixedCornGrainSellDo.getBuyerCompany();
+            CompanyDo buyerCompany = mixedCornXinSellDo.getBuyerCompany();
             if (buyerCompany == null) {
                 throw new BusinessException("购买人企业信息不能为空");
             }
@@ -398,7 +399,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         // 购买人为个人
         if ("个人".equals(buyerType)) {
             // 购买人校验
-            PersonDo buyerPerson = mixedCornGrainSellDo.getBuyerPerson();
+            PersonDo buyerPerson = mixedCornXinSellDo.getBuyerPerson();
             if (buyerPerson == null) {
                 throw new BusinessException("购买人信息不能为空");
             }
@@ -420,18 +421,18 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             }
         }
 
-        BigDecimal totalWeight = mixedCornGrainSellDo.getTotalWeight();
+        BigDecimal totalWeight = mixedCornXinSellDo.getTotalWeight();
         // 如果不是保存操作
         if (!"save".equals(step)) {
 
             // 结算方式校验
-            String clearingForm = mixedCornGrainSellDo.getClearingForm();
+            String clearingForm = mixedCornXinSellDo.getClearingForm();
             if (ObjectUtils.isEmpty(clearingForm)) {
                 throw new BusinessException("结算方式不能为空");
             }
 
             // 结算方式校验
-            List<String> clearingFormList = FieldUtil.getEnumList("t_corn_grain_sell", "clearing_form");
+            List<String> clearingFormList = FieldUtil.getEnumList("t_corn_xin_sell", "clearing_form");
             if (clearingFormList != null && !clearingFormList.contains(clearingForm)) {
                 throw new BusinessException("结算方式错误");
             }
@@ -439,7 +440,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             // 如果时延结
             if ("延结".equals(clearingForm)) {
                 // 计划结算日期校验
-                String planClearingDate = mixedCornGrainSellDo.getPlanClearingDate();
+                String planClearingDate = mixedCornXinSellDo.getPlanClearingDate();
                 if (ObjectUtils.isEmpty(planClearingDate)) {
                     throw new BusinessException("计划结算日期不能为空");
                 }
@@ -449,15 +450,15 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
                 }
             } else {
                 // 计划结算日期校验
-                String planClearingDate = mixedCornGrainSellDo.getPlanClearingDate();
+                String planClearingDate = mixedCornXinSellDo.getPlanClearingDate();
                 if (!ObjectUtils.isEmpty(planClearingDate)) {
                     throw new BusinessException("非延结, 不能有计划结算日期");
                 }
-                mixedCornGrainSellDo.setPlanClearingDate(null);
+                mixedCornXinSellDo.setPlanClearingDate(null);
             }
 
             // 单价校验
-            BigDecimal unitPrice = mixedCornGrainSellDo.getUnitPrice();
+            BigDecimal unitPrice = mixedCornXinSellDo.getUnitPrice();
             if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new BusinessException("单价必须大于0");
             }
@@ -472,7 +473,7 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             }
 
             // 总金额校验
-            BigDecimal totalPrice = mixedCornGrainSellDo.getTotalPrice();
+            BigDecimal totalPrice = mixedCornXinSellDo.getTotalPrice();
             if (totalPrice == null || totalPrice.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new BusinessException("总金额必须大于0");
             }
@@ -487,13 +488,13 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
             // 如果是结算
             if ("settle".equals(step)) {
                 // 结算金额必须等于总金额+补价
-                BigDecimal clearingAmount = mixedCornGrainSellDo.getClearingAmount();
-                BigDecimal premium = mixedCornGrainSellDo.getPremium();
+                BigDecimal clearingAmount = mixedCornXinSellDo.getClearingAmount();
+                BigDecimal premium = mixedCornXinSellDo.getPremium();
                 if (clearingAmount.compareTo(totalPrice.add(premium)) != 0) {
                     throw new BusinessException("结算金额必须等于总金额+补价");
                 }
                 // 结算日期不能为空
-                String actualClearingDate = mixedCornGrainSellDo.getActualClearingDate();
+                String actualClearingDate = mixedCornXinSellDo.getActualClearingDate();
                 if (ObjectUtils.isEmpty(actualClearingDate)) {
                     throw new BusinessException("结算日期不能为空");
                 }
@@ -509,10 +510,10 @@ public class CornGrainSellServiceImpl extends ServiceImpl<CornGrainSellMapper, C
         }
 
         // 校验过磅记录
-        List<CornGrainSellWeighRecordDo> list_weigh = mixedCornGrainSellDo.getList_weigh();
+        List<CornXinSellWeighRecordDo> list_weigh = mixedCornXinSellDo.getList_weigh();
         // 过磅净重求和
         BigDecimal sumNetWeight = BigDecimal.ZERO;
-        for (CornGrainSellWeighRecordDo record : list_weigh) {
+        for (CornXinSellWeighRecordDo record : list_weigh) {
             BigDecimal grossWeight;
             BigDecimal tareWeight;
             BigDecimal netWeight;

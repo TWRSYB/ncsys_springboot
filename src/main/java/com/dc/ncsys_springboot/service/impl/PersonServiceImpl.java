@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import com.dc.ncsys_springboot.util.SessionUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,14 +55,25 @@ public class PersonServiceImpl extends ServiceImpl<PersonMapper, PersonDo> imple
         }
 
         // 查询人员信息
-        PersonDo person = personMapper.selectByPhoneNum(personDo.getPhoneNum());
-        if (ObjectUtils.isEmpty(person)) {
+        PersonDo existPerson = personMapper.selectByPhoneNum(personDo.getPhoneNum());
+        if (ObjectUtils.isEmpty(existPerson)) {
             return ResVo.fail("人员不存在");
         }
 
+        // 将旧名添加到别名
+        String alias = existPerson.getAlias();
+        if (ObjectUtils.isEmpty(alias)) {
+            alias = existPerson.getPersonName();
+        } else {
+            if (!Arrays.asList(alias.split(",")).contains(existPerson.getPersonName())) {
+                alias = alias + "," + existPerson.getPersonName();
+            }
+        }
+        existPerson.setAlias(alias);
+
         // 更新人员名称
-        person.setPersonName(personDo.getPersonName());
-        int updateResult = personMapper.updateById(person);
+        existPerson.setPersonName(personDo.getPersonName());
+        int updateResult = personMapper.updateById(existPerson);
         if (updateResult > 0) {
             return ResVo.success("更新人员名称成功");
         }

@@ -48,7 +48,7 @@
             AND phone_num like CONCAT('%', #{phoneNum}, '%')
           </if>
           <if test="personName != null and personName != ''">
-            AND person_name like CONCAT('%', #{personName}, '%')
+            AND (person_name like CONCAT('%', #{personName}, '%') OR alias like CONCAT('%', #{personName}, '%'))
           </if>
     </select>
     <select id="getPersonAddressList" resultType="com.dc.ncsys_springboot.vo.AddressVo">
@@ -66,6 +66,24 @@
                     SELECT address, create_time
                     FROM t_corn_grain_purchase tcgp
                     WHERE tcgp.seller_id = #{personId}
+                    AND address IS NOT NULL
+                    AND address != ''
+                    UNION
+                    SELECT address, create_time
+                    FROM t_corn_xin_purchase tccp
+                    WHERE tccp.seller_id = #{personId}
+                    AND address IS NOT NULL
+                    AND address != ''
+                    UNION
+                    SELECT address, create_time
+                    FROM t_corn_grain_sell tccs
+                    WHERE tccs.buyer_id = #{personId}
+                    AND address IS NOT NULL
+                    AND address != ''
+                    UNION
+                    SELECT address, create_time
+                    FROM t_corn_xin_sell tccx
+                    WHERE tccx.buyer_id = #{personId}
                     AND address IS NOT NULL
                     AND address != ''
                     ) AS merged_table

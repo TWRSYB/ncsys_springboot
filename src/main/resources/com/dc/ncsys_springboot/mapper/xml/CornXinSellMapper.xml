@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dc.ncsys_springboot.mapper.CornXinSellMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.dc.ncsys_springboot.daoVo.CornXinSellDo">
+        <id column="serno" property="serno" />
+        <result column="trade_date" property="tradeDate" />
+        <result column="trade_status" property="tradeStatus" />
+        <result column="buyer_type" property="buyerType" />
+        <result column="buyer_id" property="buyerId" />
+        <result column="address" property="address" />
+        <result column="dock_person_id" property="dockPersonId" />
+        <result column="weigh_side" property="weighSide" />
+        <result column="quality_mould_rate" property="qualityMouldRate" />
+        <result column="quality_humidity" property="qualityHumidity" />
+        <result column="impurity" property="impurity" />
+        <result column="unit_price" property="unitPrice" />
+        <result column="total_weight" property="totalWeight" />
+        <result column="total_price" property="totalPrice" />
+        <result column="clearing_form" property="clearingForm" />
+        <result column="plan_clearing_date" property="planClearingDate" />
+        <result column="actual_clearing_date" property="actualClearingDate" />
+        <result column="premium" property="premium" />
+        <result column="clearing_amount" property="clearingAmount" />
+        <result column="remark" property="remark" />
+        <result column="data_status" property="dataStatus" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        serno, trade_date, trade_status, buyer_type, buyer_id, address, dock_person_id, weigh_side, quality_mould_rate, quality_humidity, impurity, unit_price, total_weight, total_price, clearing_form, plan_clearing_date, actual_clearing_date, premium, clearing_amount, remark, data_status, create_user, create_time, update_user, update_time
+    </sql>
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.CornXinSellDo">
+        SELECT tcxs.*, case
+        WHEN tcxs.buyer_type= '个人' then mp.person_name
+        WHEN tcxs.buyer_type= '企业' then mc.company_name
+        else ''
+        end as buyer_name,
+        mp_dock.person_name as dock_person_name
+        FROM t_corn_xin_sell tcxs
+        LEFT JOIN m_person mp ON mp.person_id=tcxs.buyer_id
+        LEFT JOIN m_company mc ON mc.company_id=tcxs.buyer_id
+        LEFT JOIN m_person mp_dock ON mp_dock.person_id=tcxs.dock_person_id
+        LEFT JOIN m_company_person mcp ON mcp.company_id=mc.company_id AND mcp.person_id=mp_dock.person_id
+        <where>
+            <if test="tradeDate != null and tradeDate != ''">
+                AND tcxs.trade_date = #{tradeDate}
+            </if>
+            <if test="buyerType != null and buyerType != ''">
+                AND tcxs.buyer_type = #{buyerType}
+            </if>
+            <if test="buyer != null and buyer != ''">
+                AND (mp.person_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mp.alias LIKE CONCAT('%', #{buyer}, '%')
+                OR mp.phone_num LIKE CONCAT('%', #{buyer}, '%')
+                OR mc.company_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mc.company_phone_num LIKE CONCAT('%', #{buyer},'%')
+                OR mp_dock.person_name LIKE CONCAT('%', #{buyer}, '%')
+                OR mp_dock.alias LIKE CONCAT('%', #{buyer}, '%')
+                OR mp_dock.phone_num LIKE CONCAT('%', #{buyer}, '%')
+                OR tcxs.buyer_id = #{buyer}
+                )
+            </if>
+            <if test="tradeStatus != null and tradeStatus != ''">
+                AND tcxs.trade_status = #{tradeStatus}
+            </if>
+        </where>
+        ORDER BY tcxs.trade_date DESC, tcxs.create_time DESC
+
+    </select>
+
+</mapper>
