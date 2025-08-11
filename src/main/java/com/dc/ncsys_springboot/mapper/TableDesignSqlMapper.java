@@ -2,10 +2,12 @@ package com.dc.ncsys_springboot.mapper;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignSqlDo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -24,4 +26,6 @@ public interface TableDesignSqlMapper extends BaseMapper<TableDesignSqlDo> {
     List<TableDesignSqlDo> selectByTableId(@Param("tableId") String tableId);
 
     TableDesignSqlDo selectLast(@Param("tableId") String tableId);
+
+    Page<TableDesignSqlDo> pageQuery(Map<String, String> params);
 }

@@ -5,9 +5,12 @@ import com.dc.ncsys_springboot.daoVo.TableDesignColumnDo;
 import com.dc.ncsys_springboot.daoVo.TableDesignDo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dc.ncsys_springboot.daoVo.TableDesignUniqueKeyDo;
+import com.dc.ncsys_springboot.vo.Field;
 import com.dc.ncsys_springboot.vo.PageQueryVo;
 import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -19,25 +22,25 @@ import com.dc.ncsys_springboot.vo.ResVo;
  */
 public interface TableDesignService extends IService<TableDesignDo> {
 
-    PageResVo<TableDesignDo> getTableDesignList(PageQueryVo<TableDesignDo> pageQueryVo);
+    PageResVo<TableDesignDo> pageQuery(PageQueryVo<TableDesignDo> pageQueryVo);
 
-    ResVo getTableDesign(String tableName);
+    ResVo<List<Field>> getTableDesign(String tableName);
 
-    ResVo saveTableDesign(MixedTableDesign mixedTableDesign);
+    ResVo<Object> saveTableDesign(MixedTableDesign mixedTableDesign);
 
-    ResVo getTableDesignDetail(String tableName);
+    ResVo<MixedTableDesign> getTableDesignDetail(String tableName);
 
-    ResVo createTableAndEntity(MixedTableDesign mixedTableDesign);
+    ResVo<Object> createTableAndEntity(MixedTableDesign mixedTableDesign);
 
-    ResVo addColumn(TableDesignColumnDo tableDesignColumnDo);
+    ResVo<TableDesignColumnDo> addColumn(TableDesignColumnDo tableDesignColumnDo);
 
-    ResVo deleteTableDesign(TableDesignDo tableDesignDo);
+    ResVo<Object> deleteTableDesign(TableDesignDo tableDesignDo);
 
-    ResVo addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
+    ResVo<TableDesignUniqueKeyDo> addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
 
-    ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
+    ResVo<Object> deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo);
 
-    ResVo generateTableDesign(String tableName);
+    ResVo<MixedTableDesign> generateTableDesign(String tableName);
 
-    ResVo changeColumn(TableDesignColumnDo tableDesignColumnDo);
+    ResVo<TableDesignColumnDo> changeColumn(TableDesignColumnDo tableDesignColumnDo);
 }

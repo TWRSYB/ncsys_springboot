@@ -1,12 +1,13 @@
 package com.dc.ncsys_springboot.controller;
 
+import com.dc.ncsys_springboot.daoVo.TableDesignSqlDo;
 import com.dc.ncsys_springboot.service.TableDesignSqlService;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -30,9 +31,21 @@ public class TableDesignSqlController {
      * @return ResVo
      */
     @GetMapping("/getLastTableDesignSql")
-    public ResVo getLastTableDesignSql(String tableId) {
+    public ResVo<TableDesignSqlDo> getLastTableDesignSql(String tableId) {
         log.info("CONT入参: {}", tableId);
         return tableDesignSqlService.getLastTableDesignSql(tableId);
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param pageQueryVo 分页查询VO
+     * @return PageResVo
+     */
+    @PostMapping("/pageQuery")
+    public PageResVo<TableDesignSqlDo> pageQuery(@RequestBody PageQueryVo<TableDesignSqlDo> pageQueryVo) {
+        log.info("CONT入参: {}", pageQueryVo);
+        return tableDesignSqlService.pageQuery(pageQueryVo);
     }
 
 }

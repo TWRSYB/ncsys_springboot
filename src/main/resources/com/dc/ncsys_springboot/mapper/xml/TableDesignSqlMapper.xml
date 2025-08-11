@@ -46,5 +46,21 @@
         order by execute_order desc
         limit 1
     </select>
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.TableDesignSqlDo">
+        SELECT stds.*, std.table_name, std.table_comment FROM s_table_design_sql stds
+        LEFT JOIN s_table_design std on stds.table_id = std.table_id
+        <where>
+            <if test="tableLike != null and tableLike != ''">
+                AND (std.table_name like CONCAT('%', #{tableLike}, '%') OR std.table_comment like CONCAT('%', #{tableLike}, '%'))
+            </if>
+            <if test="sqlType != null and sqlType != ''">
+                AND stds.sql_type = #{sqlType}
+            </if>
+            <if test="dataStatus != null and dataStatus != ''">
+                AND stds.data_status = #{dataStatus}
+            </if>
+        </where>
+        ORDER BY stds.create_time DESC, stds.execute_order DESC
+    </select>
 
 </mapper>

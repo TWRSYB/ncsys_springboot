@@ -63,14 +63,14 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
     private TableDesignColumnService tableDesignColumnService;
 
     @Override
-    public PageResVo<TableDesignDo> getTableDesignList(PageQueryVo<TableDesignDo> pageQueryVo) {
+    public PageResVo<TableDesignDo> pageQuery(PageQueryVo<TableDesignDo> pageQueryVo) {
         PageHelper.startPage(pageQueryVo.getPageNum(), pageQueryVo.getPageSize());
-        Page<TableDesignDo> tableDesigns = tableDesignMapper.getTableDesignList(pageQueryVo.getParams());
+        Page<TableDesignDo> tableDesigns = tableDesignMapper.pageQuery(pageQueryVo.getParams());
         return PageResVo.success(tableDesigns);
     }
 
     @Override
-    public ResVo getTableDesign(String tableName) {
+    public ResVo<List<Field>> getTableDesign(String tableName) {
 
         List<Field> Fields = new ArrayList<>();
         List<SimpleTableDesign> simpleTableDesigns = tableDesignMapper.getTableDesign(tableName);
@@ -121,7 +121,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 2_保存表设计
      */
     @Override
-    public ResVo saveTableDesign(MixedTableDesign mixedTableDesign) {
+    public ResVo<Object> saveTableDesign(MixedTableDesign mixedTableDesign) {
         if (!validateMixedTableDesign(mixedTableDesign)) return ResVo.fail("表设计校验失败");
         saveMixedTableDesign(mixedTableDesign);
         return ResVo.success("保存表设计成功");
@@ -191,7 +191,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 4 查询唯一约束列表
      */
     @Override
-    public ResVo getTableDesignDetail(String tableName) {
+    public ResVo<MixedTableDesign> getTableDesignDetail(String tableName) {
 
         MixedTableDesign mixedTableDesign = new MixedTableDesign();
         // 1 查询主表数据
@@ -238,7 +238,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 9. 文件处理
      */
     @Override
-    public ResVo createTableAndEntity(MixedTableDesign mixedTableDesign) {
+    public ResVo<Object> createTableAndEntity(MixedTableDesign mixedTableDesign) {
 
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
@@ -371,14 +371,42 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
+        // 9.4 为Controller添加@Slf4j注解
+        log.info("↓↓↓ 9.4. 为Controller添加@Slf4j注解 ↓↓↓");
+        addAnnotateForController(tableName);
+        log.info("↑↑↑ 9.4. 为Controller添加@Slf4j注解 ↑↑↑");
+
+        // 9.5 为merviceImpl添加@Slf4j注解和@Transactional注解
+        log.info("↓↓↓ 9.5. 为merviceImpl添加@Slf4j注解和@Transactional注解 ↓↓↓");
+        addAnnotateForServiceImpl(tableName);
+        log.info("↑↑↑ 9.5. 为merviceImpl添加@Slf4j注解和@Transactional注解 ↑↑↑");
+
         return ResVo.success("创建表和实体类成功");
     }
 
+
+
+
+    /**
+     * 在sql脚本中拼接字段
+     *
+     * @param sqlBuilder sql脚本
+     * @param tableDesignColumnDo 字段设计
+     */
     private static void sqlAppendColumn(StringBuilder sqlBuilder, TableDesignColumnDo tableDesignColumnDo) {
-        sqlBuilder.append("\t`").append(tableDesignColumnDo.getColumnName()).append("`\t").append(tableDesignColumnDo.getFieldType());
+        // 字段名
+        sqlBuilder.append("\t`").append(tableDesignColumnDo.getColumnName());
+        // 字段类型
+        if ("YMD".equals(tableDesignColumnDo.getFieldType())) {
+            sqlBuilder.append("`\tCHAR");
+        } else {
+            sqlBuilder.append("`\t").append(tableDesignColumnDo.getFieldType());
+        }
 
         // 处理字段长度
-        if ("DECIMAL".equals(tableDesignColumnDo.getFieldType())) {
+        if ("YMD".equals(tableDesignColumnDo.getFieldType())) {
+            sqlBuilder.append("(10)\t");
+        } else if ("DECIMAL".equals(tableDesignColumnDo.getFieldType())) {
             sqlBuilder.append("(14,4)\t");
         } else if (ObjectUtils.isEmpty(tableDesignColumnDo.getFieldLength())) {
             sqlBuilder.append("\t");
@@ -416,7 +444,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 9. 文件处理
      */
     @Override
-    public ResVo addColumn(TableDesignColumnDo tableDesignColumnDo) {
+    public ResVo<TableDesignColumnDo> addColumn(TableDesignColumnDo tableDesignColumnDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
         UserDo sessionUserDo = SessionUtils.getSessionUser();
@@ -527,7 +555,8 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         log.info("↑↑↑ 9.3. 处理实体类文件 ↑↑↑");
         log.info("↑↑↑ 9. 文件处理 ↑↑↑");
 
-        return ResVo.success("添加字段成功", tableDesignColumnMapper.selectByTableIdAndColumnName(tableDesignColumnDo));
+        TableDesignColumnDo tableDesignColumnDo1 = tableDesignColumnMapper.selectByTableIdAndColumnName(tableDesignColumnDo);
+        return ResVo.success("添加字段成功", tableDesignColumnDo1);
 
     }
 
@@ -538,7 +567,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 4 删除主数据 删除列数据 删除唯一约束数据
      */
     @Override
-    public ResVo deleteTableDesign(TableDesignDo inDo) {
+    public ResVo<Object> deleteTableDesign(TableDesignDo inDo) {
 
         // 1 入参检查
         log.info("↓↓↓ 1 入参检查 ↓↓↓");
@@ -613,7 +642,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * 9. 更新唯一约束数据状态并落库
      */
     @Override
-    public ResVo addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
+    public ResVo<TableDesignUniqueKeyDo> addUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
         UserDo sessionUserDo = SessionUtils.getSessionUser();
@@ -734,8 +763,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
     /**
      * 处理实体类文件
-     * 1 添加toString方法
+     * 1 为Do添加toString方法
      * 2 替换@TableId为@TableField
+     * 3 为time字段添加@JsonFormat注解
      *
      * @param tableName      表名
      * @param replaceTableId 是否替换TableId为TableField
@@ -747,7 +777,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         List<String> doLines;
         try {
             doLines = Files.readAllLines(doPath);
-
+            // 1 为Do添加toString方法
             log.info("↓↓↓ 为Do添加toString方法 ↓↓↓");
             doLines.add(2, "import com.dc.ncsys_springboot.util.JsonUtils;");
             doLines.add(doLines.size() - 1, "");
@@ -757,7 +787,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             doLines.add(doLines.size() - 1, "\t}");
             doLines.add(doLines.size() - 1, "");
             log.info("↑↑↑ 为Do添加toString方法 ↑↑↑");
-
+            // 2 替换@TableId为@TableField
             if (replaceTableId) {
                 log.info("↓↓↓ 当前表包含多个key, 需要替换后面的@TableId为@TableField ↓↓↓");
                 boolean hasTableFieldImport = doLines.stream()
@@ -781,6 +811,16 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
                 }
                 log.info("↑↑↑ 当前表包含多个key, 需要替换后面的@TableId为@TableField ↑↑↑");
             }
+            // 3 为time字段添加@JsonFormat注解
+            log.info("↓↓↓ 为time字段添加@JsonFormat注解 ↓↓↓");
+            doLines.add(2, "import com.fasterxml.jackson.annotation.JsonFormat;");
+            for (int i = 0; i < doLines.size(); i++) {
+                String line = doLines.get(i);
+                if (line.contains("private Date")) {
+                    doLines.add(i++, "\t@JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\", timezone = \"GMT+8\")");
+                }
+            }
+            log.info("↑↑↑ 为time字段添加@JsonFormat注解 ↑↑↑");
 
             Files.write(doPath, doLines);
 
@@ -839,6 +879,93 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
             throw new BusinessException("为Mapper文件添加@Mapper注解出现异常");
         }
     }
+
+
+    private void addAnnotateForController(String tableName) {
+        String generateControllerDir = "src/main/java/com/dc/ncsys_springboot/controller/";
+        String controllerName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "Controller.java";
+        Path controllerPath = Path.of(generateControllerDir, controllerName);
+        List<String> controllerLines;
+        try {
+            controllerLines = Files.readAllLines(controllerPath);
+            // 添加import语句
+            int importInsertIndex = findImportInsertIndex(controllerLines);
+            controllerLines.add(importInsertIndex, "import lombok.extern.slf4j.Slf4j;");
+
+            // 添加注解
+            int classDeclLine = findClassDeclarationLine(controllerLines);
+            if (classDeclLine != -1) {
+                controllerLines.add(classDeclLine, "@Slf4j");
+            }
+            // 写回文件
+            Files.write(controllerPath, controllerLines);
+            log.info("为Controller添加@Slf4j注解成功");
+        } catch (IOException e) {
+            log.warn("为Controller文件添加@Slf4j注解出现异常: ", e);
+            throw new BusinessException("为Controller文件添加@Slf4j注解出现异常");
+        }
+
+    }
+
+
+    private void addAnnotateForServiceImpl(String tableName) {
+        String generateServiceImplDir = "src/main/java/com/dc/ncsys_springboot/service/impl/";
+        String serviceImplName = StrUtils.underLine2BigCamel(tableName.substring(tableName.indexOf("_") + 1)) + "ServiceImpl.java";
+        Path serviceImplPath = Path.of(generateServiceImplDir, serviceImplName);
+        List<String> serviceImplLines;
+        try {
+            serviceImplLines = Files.readAllLines(serviceImplPath);
+            // 添加import语句
+            int importInsertIndex = findImportInsertIndex(serviceImplLines);
+            serviceImplLines.add(importInsertIndex, "import lombok.extern.slf4j.Slf4j;");
+            serviceImplLines.add(importInsertIndex, "import org.springframework.transaction.annotation.Transactional;");
+            // 添加注解
+            int classDeclLine = findClassDeclarationLine(serviceImplLines);
+            if (classDeclLine != -1) {
+                serviceImplLines.add(classDeclLine, "@Slf4j");
+                serviceImplLines.add(classDeclLine, "@Transactional");
+            }
+            // 写回文件
+            Files.write(serviceImplPath, serviceImplLines);
+            log.info("为ServiceImpl添加@Slf4j注解和@Transactional注解成功");
+        } catch (IOException e) {
+            log.warn("为ServiceImpl文件添加@Slf4j注解和@Transactional注解出现异常: ", e);
+            throw new BusinessException("为ServiceImpl文件添加@Slf4j注解和@Transactional注解出现异常");
+        }
+
+    }
+
+
+    // 辅助方法：查找import插入位置
+    private static int findImportInsertIndex(List<String> lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("import ") || line.startsWith("package ")) {
+                continue;
+            }
+            if (line.isEmpty()) {
+                return i;
+            }
+            break;
+        }
+        return 1; // 默认插入位置在package之后
+    }
+
+    // 辅助方法：查找类声明行
+    private static int findClassDeclarationLine(List<String> lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("public class ") ||
+                    line.startsWith("public interface ") ||
+                    line.startsWith("class ") ||
+                    line.startsWith("interface ")) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
 
     private static String getSql(StringBuilder sqlBuilder, Set<String> allowedWordsSet) {
         String sql = sqlBuilder.toString();
@@ -1262,37 +1389,9 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         return true;
     }
 
-    // 辅助方法：查找import插入位置
-    private static int findImportInsertIndex(List<String> lines) {
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i).trim();
-            if (line.startsWith("import ") || line.startsWith("package ")) {
-                continue;
-            }
-            if (line.isEmpty()) {
-                return i;
-            }
-            break;
-        }
-        return 1; // 默认插入位置在package之后
-    }
-
-    // 辅助方法：查找类声明行
-    private static int findClassDeclarationLine(List<String> lines) {
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i).trim();
-            if (line.startsWith("public class ") ||
-                    line.startsWith("public interface ") ||
-                    line.startsWith("class ") ||
-                    line.startsWith("interface ")) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     @Override
-    public ResVo deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
+    public ResVo<Object> deleteUniqueKey(TableDesignUniqueKeyDo tableDesignUniqueKeyDo) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
         UserDo sessionUserDo = SessionUtils.getSessionUser();
@@ -1374,7 +1473,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
 
 
     @Override
-    public ResVo generateTableDesign(String tableName) {
+    public ResVo<MixedTableDesign> generateTableDesign(String tableName) {
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");
         UserDo sessionUserDo = SessionUtils.getSessionUser();
@@ -1395,11 +1494,11 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
         if (tableDesignDo != null) {
             throw new BusinessException("校验拒绝", "表设计已存在");
         }
-        // 生成 tableId（这里假设使用表名 + 时间戳生成唯一ID）
-        MixedTableDesign mixedTableDesign = new MixedTableDesign();
-        String tableId = tableName + "_" + DateTimeUtil.getMinuteKey();
         log.info("↑↑↑ 2. 检查表是否存在 ↑↑↑");
 
+        // 生成 tableId（使用表名 + 时间戳生成唯一ID）
+        MixedTableDesign mixedTableDesign = new MixedTableDesign();
+        String tableId = tableName + "_" + DateTimeUtil.getMinuteKey();
 
         // 4. 获取列信息
         log.info("↓↓↓ 4. 获取列信息 ↓↓↓");
@@ -1518,7 +1617,7 @@ public class TableDesignServiceImpl extends ServiceImpl<TableDesignMapper, Table
      * @return ResVo
      */
     @Override
-    public ResVo changeColumn(TableDesignColumnDo tableDesignColumnDo) {
+    public ResVo<TableDesignColumnDo> changeColumn(TableDesignColumnDo tableDesignColumnDo) {
 
         // 1. 获取SessionUser
         log.info("↓↓↓ 1. 获取SessionUser ↓↓↓");

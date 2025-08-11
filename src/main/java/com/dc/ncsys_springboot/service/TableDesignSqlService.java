@@ -2,6 +2,8 @@ package com.dc.ncsys_springboot.service;
 
 import com.dc.ncsys_springboot.daoVo.TableDesignSqlDo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dc.ncsys_springboot.vo.PageQueryVo;
+import com.dc.ncsys_springboot.vo.PageResVo;
 import com.dc.ncsys_springboot.vo.ResVo;
 
 /**
@@ -20,5 +22,7 @@ public interface TableDesignSqlService extends IService<TableDesignSqlDo> {
      * @param tableId 表ID
      * @return ResVo
      */
-    ResVo getLastTableDesignSql(String tableId);
+    ResVo<TableDesignSqlDo> getLastTableDesignSql(String tableId);
+
+    PageResVo<TableDesignSqlDo> pageQuery(PageQueryVo<TableDesignSqlDo> pageQueryVo);
 }

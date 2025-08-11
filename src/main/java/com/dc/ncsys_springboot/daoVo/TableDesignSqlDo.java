@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.dc.ncsys_springboot.util.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -65,6 +66,7 @@ public class TableDesignSqlDo implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     /**
@@ -75,7 +77,20 @@ public class TableDesignSqlDo implements Serializable {
     /**
      * 最后更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
+
+    /**
+     * 表名
+     */
+    @TableField(exist = false)
+    private String tableName;
+
+    /**
+     * 表注释
+     */
+    @TableField(exist = false)
+    private String tableComment;
 
     public String toString() {
         return this.getClass().getSimpleName() + "=" +JsonUtils.toJson(this);

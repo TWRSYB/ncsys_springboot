@@ -39,7 +39,7 @@
                    ) AS table_exists
     </select>
 
-    <select id="getTableDesignList" resultType="com.dc.ncsys_springboot.daoVo.TableDesignDo">
+    <select id="pageQuery" resultType="com.dc.ncsys_springboot.daoVo.TableDesignDo">
         SELECT *
         FROM s_table_design
         <where>
